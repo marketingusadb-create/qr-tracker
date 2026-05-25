@@ -56,21 +56,48 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 .badge-inactive{background:#fce7e7;color:#e74c3c}
 .toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateY(0)}
-/* Flyer */
-.flyer-preview{width:816px;max-width:100%;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);padding:0}
-.flyer-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #ddd}
-.flyer-card{padding:24px;border:1px solid #eee;min-height:420px;display:flex;flex-direction:column;position:relative;page-break-inside:avoid}
-.flyer-card .card-label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.flyer-card .card-title{font-size:18px;font-weight:900;margin-bottom:6px}
-.flyer-card .card-text{font-size:12px;color:#555;margin-bottom:10px;line-height:1.5;flex:1}
-.flyer-card .card-qr{text-align:center;margin-top:auto}
-.flyer-card .card-qr img{max-width:120px;border-radius:6px;display:block;margin:0 auto}
-.flyer-card .card-phone{font-size:14px;font-weight:700;color:#2563eb;text-align:center;margin-top:8px}
-.flyer-editor{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0}
-.flyer-editor .fe-card{background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px}
-.flyer-editor .fe-card h4{font-size:13px;margin-bottom:8px;color:#888}
-.flyer-editor .fe-card input,.flyer-editor .fe-card textarea{font-size:12px;margin-bottom:6px}
-@media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-preview{box-shadow:none;width:100%}.flyer-card{min-height:0;height:auto}}
+/* Flyer Pro */
+.flyer-wrap{max-width:900px;margin:0 auto}
+.flyer-controls{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.flyer-controls h3{font-size:15px;margin-bottom:12px}
+.flyer-clients{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.flyer-clients label{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;font-size:13px;background:#f0f0f0;cursor:pointer;transition:all .2s;border:2px solid transparent}
+.flyer-clients label:hover{border-color:#2563eb}
+.flyer-clients label.checked{background:#2563eb;color:#fff}
+.flyer-clients input[type=checkbox]{display:none}
+.flyer-theme{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.flyer-theme button{padding:6px 14px;border-radius:8px;border:2px solid transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.flyer-theme button.active{border-color:#222;box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor}
+.flyer-card-editors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.flyer-card-editor{background:#fafafa;border-radius:10px;padding:14px;border:1px solid #eee}
+.flyer-card-editor .fce-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.flyer-card-editor .fce-color{width:24px;height:24px;border-radius:6px;flex-shrink:0}
+.flyer-card-editor input,.flyer-card-editor textarea{font-size:12px;margin-bottom:4px;padding:6px 10px}
+.flyer-card-editor textarea{min-height:40px}
+.flyer-card-editor .fce-qr-pos{display:flex;gap:4px;margin-top:4px}
+.flyer-card-editor .fce-qr-pos button{padding:3px 8px;border-radius:4px;border:1px solid #ddd;font-size:11px;cursor:pointer;background:#fff;font-family:inherit}
+.flyer-card-editor .fce-qr-pos button.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.flyer-actions{display:flex;gap:8px;margin-bottom:16px}
+/* Professional Sheet */
+.flyer-sheet{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:0;box-shadow:0 4px 40px rgba(0,0,0,.15);position:relative;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif}
+.flyer-card-pro{width:50%;min-height:5.5in;float:left;display:flex;flex-direction:column;position:relative;overflow:hidden;page-break-inside:avoid}
+.flyer-card-pro .fc-bg{position:absolute;inset:0;z-index:0}
+.flyer-card-pro .fc-content{position:relative;z-index:1;padding:26px 22px;flex:1;display:flex;flex-direction:column}
+.flyer-card-pro .fc-badge{font-size:9px;text-transform:uppercase;letter-spacing:2px;opacity:.6;margin-bottom:6px}
+.flyer-card-pro .fc-title{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:6px}
+.flyer-card-pro .fc-text{font-size:11px;line-height:1.6;opacity:.8;margin-bottom:12px;flex:1}
+.flyer-card-pro .fc-qr{text-align:center;margin:6px 0}
+.flyer-card-pro .fc-qr img{max-width:110px;border-radius:4px;display:inline-block}
+.flyer-card-pro .fc-qr-left{text-align:left}
+.flyer-card-pro .fc-qr-right{text-align:right}
+.flyer-card-pro .fc-phone{font-size:16px;font-weight:800;text-align:center;margin-top:6px;letter-spacing:.5px}
+.flyer-card-pro.fc-dark .fc-content{color:#fff}
+.flyer-card-pro.fc-dark .fc-badge{color:rgba(255,255,255,.5)}
+.flyer-card-pro.fc-dark .fc-text{color:rgba(255,255,255,.8)}
+.flyer-card-pro.fc-light .fc-content{color:#222}
+.flyer-card-pro.fc-light .fc-badge{color:rgba(0,0,0,.4)}
+.flyer-card-pro.fc-light .fc-text{color:rgba(0,0,0,.7)}
+@media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-controls{display:none!important}.flyer-sheet{box-shadow:none;margin:0;width:100%}.flyer-card-pro{min-height:0;height:auto;float:none;width:50%;display:inline-block;vertical-align:top}}
 </style>
 </head>
 <body>
@@ -117,17 +144,29 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   </div>
 
   <div id="tab-flyer" class="tab-content">
-    <div class="card no-print">
-      <h2>🎨 Creador de Flyer (8.5x11)</h2>
-      <p style="font-size:13px;color:#888;margin-bottom:12px">Selecciona hasta 4 clientes para crear un flyer imprimible con sus códigos QR. Cada sección es personalizable.</p>
-      <div id="flyerClientList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
-      <div class="flyer-editor" id="flyerEditor"></div>
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button class="btn btn-primary btn-sm" onclick="generateFlyer()">🔄 Generar Flyer</button>
-        <button class="btn btn-success btn-sm" onclick="printFlyer()">🖨 Imprimir</button>
+    <div class="flyer-wrap">
+      <div class="flyer-controls no-print">
+        <h3>🎨 Creador Profesional de Flyer</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:12px">Flyer tamaño carta (8.5×11) en 4 tarjetas. Selecciona clientes, personaliza y descarga o imprime.</p>
+        <div class="flyer-clients" id="flyerClientList"></div>
+        <div style="font-size:12px;color:#888;margin-bottom:10px">Tema de color:</div>
+        <div class="flyer-theme" id="flyerTheme">
+          <button style="background:#1a1a2e;color:#fff" data-theme="dark" onclick="setFlyerTheme('dark')">🌙 Oscuro</button>
+          <button style="background:#2563eb;color:#fff" data-theme="blue" onclick="setFlyerTheme('blue')" class="active">💙 Azul</button>
+          <button style="background:#e74c3c;color:#fff" data-theme="red" onclick="setFlyerTheme('red')">❤️ Rojo</button>
+          <button style="background:#16a34a;color:#fff" data-theme="green" onclick="setFlyerTheme('green')">💚 Verde</button>
+          <button style="background:#222;color:#fff" data-theme="black" onclick="setFlyerTheme('black')">🖤 Negro</button>
+          <button style="background:#fff;color:#222;border-color:#ddd" data-theme="light" onclick="setFlyerTheme('light')">⬜ Claro</button>
+        </div>
+        <div class="flyer-card-editors" id="flyerEditor"></div>
+        <div class="flyer-actions">
+          <button class="btn btn-primary" onclick="generateFlyer()">🔄 Generar Flyer</button>
+          <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar Imagen</button>
+          <button class="btn btn-outline" onclick="printFlyer()">🖨 Imprimir</button>
+        </div>
       </div>
+      <div id="flyerResult"></div>
     </div>
-    <div id="flyerResult"></div>
   </div>
 
   <div id="tab-settings" class="tab-content">
@@ -193,7 +232,7 @@ var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
 </script>
 <script>
-var _currentClientId=null,_clients=[],_flyerQrData={};
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue';
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
 
@@ -370,49 +409,128 @@ function deleteClient(){
   QR_DB.collection('clients').doc(_currentClientId).delete().then(function(){toast('Cliente eliminado');closeClientModal()}).catch(function(err){toast('Error: '+err.message)});
 }
 
-/* Flyer */
+/* Flyer Pro */
+var _flyerTheme='blue';
+var _flyerThemes={
+  dark:{bg1:'#1a1a2e',bg2:'#16213e',text:'#fff',accent:'#e94560',badge:'#e94560',dark:true},
+  blue:{bg1:'#1e3a5f',bg2:'#2563eb',text:'#fff',accent:'#fbbf24',badge:'#93c5fd',dark:true},
+  red:{bg1:'#7f1d1d',bg2:'#dc2626',text:'#fff',accent:'#fca5a5',badge:'#fca5a5',dark:true},
+  green:{bg1:'#14532d',bg2:'#16a34a',text:'#fff',accent:'#86efac',badge:'#86efac',dark:true},
+  black:{bg1:'#0a0a0a',bg2:'#27272a',text:'#fff',accent:'#f59e0b',badge:'#a1a1aa',dark:true},
+  light:{bg1:'#f8fafc',bg2:'#e2e8f0',text:'#222',accent:'#2563eb',badge:'#64748b',dark:false}
+};
+var _flyerData={};
+
+function setFlyerTheme(t){
+  _flyerTheme=t;
+  document.querySelectorAll('#flyerTheme button').forEach(function(b){b.classList.remove('active')});
+  document.querySelector('#flyerTheme button[data-theme="'+t+'"]').classList.add('active');
+  renderFlyer();
+}
+
+function populateFlyerSelect(){
+  var html='';
+  _clients.forEach(function(c){
+    QR_DB.collection('clients').doc(c._id).collection('qrCodes').get().then(function(snap){
+      var cb=document.getElementById('fcb_'+c._id);
+      if(cb) cb.parentElement.style.opacity=snap.size>0?'1':'.4';
+    });
+    html+='<label id="fcl_'+c._id+'" onclick="toggleFlyerClient(\''+c._id+'\')">'
+      +'<input type="checkbox" id="fcb_'+c._id+'" value="'+c._id+'" onchange="checkFlyerCount()"/> '
+      +esc(c.name||c._id)+'</label>';
+  });
+  document.getElementById('flyerClientList').innerHTML=html;
+}
+
+function toggleFlyerClient(id){
+  var cb=document.getElementById('fcb_'+id);
+  cb.checked=!cb.checked;cb.onchange();
+  cb.parentElement.classList.toggle('checked',cb.checked);
+}
+
+function checkFlyerCount(){
+  var c=document.querySelectorAll('#flyerClientList input:checked').length;
+  if(c>4){toast('Máximo 4 clientes por flyer');return}
+  document.querySelectorAll('#flyerClientList input:checked').forEach(function(cb){cb.parentElement.classList.add('checked')});
+  document.querySelectorAll('#flyerClientList input:not(:checked)').forEach(function(cb){cb.parentElement.classList.remove('checked')});
+}
+
 function generateFlyer(){
   var checked=document.querySelectorAll('#flyerClientList input:checked');
-  if(checked.length===0||checked.length>4){toast('Selecciona entre 1 y 4 clientes');return}
-  var baseUrl=getBaseUrl();
-  var editor=document.getElementById('flyerEditor');editor.innerHTML='';
+  if(!checked.length||checked.length>4){toast('Selecciona entre 1 y 4 clientes');return}
+  var baseUrl=getBaseUrl();var ed=document.getElementById('flyerEditor');ed.innerHTML='';
   var promises=[];
-  checked.forEach(function(cb){
-    var id=cb.value;var c=_clients.find(function(x){return x._id===id});
+  checked.forEach(function(cb){var id=cb.value;
+    var c=_clients.find(function(x){return x._id===id});
     promises.push(QR_DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){
       var qrDoc=snap.docs[0];if(!qrDoc) return;
       var qrData=baseUrl+'?c='+id+'&q='+qrDoc.id;
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(qrData);
-      _flyerQrData[id]={name:c.name||'Negocio',qrData:qrData,qrImg:qrImg,phone:c.whatsapp||'',title:c.name||'Negocio',text:'¡Escanea el código QR y contáctanos!'};
-      editor.innerHTML+='<div class="fe-card"><h4>'+esc(c.name||'Cliente')+'</h4>'
-        +'<input id="ft_'+id+'" placeholder="Título" value="'+esc(c.name||'')+'" />'
-        +'<textarea id="fd_'+id+'" placeholder="Texto descriptivo" rows="2">¡Escanea el código QR y contáctanos!</textarea>'
-        +'<input id="fp_'+id+'" placeholder="Teléfono" value="'+esc(c.whatsapp||'')+'" />'
-        +'<img src="'+qrImg+'" style="max-width:100px;display:block;margin:4px auto" /></div>';
+      _flyerData[id]={name:c.name||'Negocio',qrData:qrData,qrImg:qrImg,phone:c.whatsapp||'',title:c.name||'Negocio',text:'¡Escanea el código QR y contáctanos! Estamos listos para atenderte.',qrPos:'center'};
+      ed.innerHTML+='<div class="flyer-card-editor" id="fce_'+id+'">'
+        +'<div class="fce-header"><div class="fce-color" style="background:'+_flyerThemes[_flyerTheme].bg1+'"></div><strong>'+esc(c.name||'')+'</strong></div>'
+        +'<input id="ft_'+id+'" placeholder="Título" value="'+esc(c.name||'')+'" oninput="renderFlyer()" />'
+        +'<textarea id="fd_'+id+'" placeholder="Texto descriptivo" rows="2" oninput="renderFlyer()">¡Escanea el código QR y contáctanos! Estamos listos para atenderte.</textarea>'
+        +'<input id="fp_'+id+'" placeholder="Teléfono" value="'+esc(c.whatsapp||'')+'" oninput="renderFlyer()" />'
+        +'<div class="fce-qr-pos"><span style="font-size:11px;color:#888">QR:</span>'
+        +'<button onclick="setQrPos(\''+id+'\',\'left\')" class="active">Izq</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'center\')">Centro</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'right\')">Der</button></div>'
+        +'</div>';
     }));
   });
   Promise.all(promises).then(function(){renderFlyer()});
 }
 
+function setQrPos(id,pos){
+  _flyerData[id].qrPos=pos;
+  document.querySelectorAll('#fce_'+id+' .fce-qr-pos button').forEach(function(b){b.classList.remove('active')});
+  var btns=document.querySelectorAll('#fce_'+id+' .fce-qr-pos button');
+  var idx={left:0,center:1,right:2}[pos]||1;
+  if(btns[idx]) btns[idx].classList.add('active');
+  renderFlyer();
+}
+
 function renderFlyer(){
   var checked=document.querySelectorAll('#flyerClientList input:checked');
-  var html='<div class="flyer-preview" id="flyerPreview"><div class="flyer-grid">';
-  checked.forEach(function(cb){
-    var id=cb.value;var d=_flyerQrData[id]||{};
+  var theme=_flyerThemes[_flyerTheme]||_flyerThemes.blue;
+  var html='<div class="flyer-sheet" id="flyerSheet">';
+  checked.forEach(function(cb){var id=cb.value;var d=_flyerData[id]||{};
     var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
     var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
     var phone=document.getElementById('fp_'+id);var p=phone?phone.value:d.phone;
-    html+='<div class="flyer-card"><div class="card-label">Escanea y contáctanos</div>'
-      +'<div class="card-title">'+esc(t||'')+'</div>'
-      +'<div class="card-text">'+esc(ds||'')+'</div>'
-      +'<div class="card-qr"><img src="'+d.qrImg+'" alt="QR"/><div class="card-phone">'+(p?'📱 '+esc(p):'')+'</div></div>'
-      +'</div>';
+    var qrClass=d.qrPos==='left'?'fc-qr-left':d.qrPos==='right'?'fc-qr-right':'';
+    html+='<div class="flyer-card-pro '+(theme.dark?'fc-dark':'fc-light')+'">'
+      +'<div class="fc-bg" style="background:linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')"></div>'
+      +'<div class="fc-content">'
+      +'<div class="fc-badge" style="color:'+theme.badge+'">✦ Escanea y contáctanos</div>'
+      +'<div class="fc-title" style="color:'+theme.text+'">'+esc(t||'')+'</div>'
+      +'<div class="fc-text" style="color:'+theme.text+'">'+esc(ds||'')+'</div>'
+      +'<div class="fc-qr '+qrClass+'"><img src="'+d.qrImg+'" alt="QR"/></div>'
+      +'<div class="fc-phone" style="color:'+theme.accent+'">'+(p?'📱 '+esc(p):'')+'</div>'
+      +'</div></div>';
   });
-  html+='</div></div>';
+  html+='</div><div style="clear:both"></div>';
   document.getElementById('flyerResult').innerHTML=html;
 }
 
 function printFlyer(){window.print()}
+
+function downloadFlyerImg(){
+  var sheet=document.getElementById('flyerSheet');
+  if(!sheet){toast('Genera el flyer primero');return}
+  var s=document.createElement('script');
+  s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+  s.onload=function(){
+    html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
+      var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='flyer-qr-tracker.png';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast('✅ Imagen descargada');
+    }).catch(function(){toast('Error al generar imagen')});
+  };
+  s.onerror=function(){toast('Error al cargar librería de imagen')};
+  document.head.appendChild(s);
+}
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
