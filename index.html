@@ -26,7 +26,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <div class="error" id="error">
   <h2>⚠️ Error</h2>
-  <p id="errorMsg">Este código QR no es válido o ha expirado.</p>
+  <p id="errorMsg">Este código QR no es válido, ha expirado o ha sido desactivado.</p>
   <a href="https://wa.me/1234567890">Contactar por WhatsApp</a>
 </div>
 
@@ -115,19 +115,28 @@ function saveScan(clientDoc,qrId){
 if(!clientId||!qrId){
   showError();
 } else {
-  QR_DB.collection('clients').doc(clientId).get()
-    .then(function(doc){
-      if(!doc.exists){ showError('Este código QR no está registrado.'); return null; }
-      return doc.data();
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get()
+    .then(function(qrDoc){
+      if(!qrDoc.exists){ showError('Este código QR no está registrado.'); return null; }
+      var qrData=qrDoc.data();
+      if(qrData.active===false){ showError('Este código QR ha sido desactivado.'); return null; }
+      return qrDoc;
     })
-    .then(function(clientData){
-      if(!clientData) return;
-      var wa=clientData.whatsapp||clientData.phone;
+    .then(function(qrDoc){
+      if(!qrDoc) return;
+      return QR_DB.collection('clients').doc(clientId).get().then(function(clientDoc){
+        if(!clientDoc.exists){ showError('El cliente no está registrado.'); return null; }
+        return {client:clientDoc.data(),qrId:qrDoc.id};
+      });
+    })
+    .then(function(data){
+      if(!data) return;
+      var wa=data.client.whatsapp||data.client.phone;
       if(!wa){ showError('El contacto no está configurado.'); return; }
       saveScan(clientId,qrId).then(function(scanData){
-        if(scanData) notifyTelegram(clientData.telegramToken,clientData.telegramChatId,scanData);
+        if(scanData) notifyTelegram(data.client.telegramToken,data.client.telegramChatId,scanData);
         var waUrl='https://wa.me/'+wa;
-        var msg=clientData.waMessage||'Hola, escaneé tu código QR';
+        var msg=data.client.waMessage||'Hola, escaneé tu código QR';
         if(msg) waUrl+='?text='+encodeURIComponent(msg);
         location.href=waUrl;
       }).catch(function(){
