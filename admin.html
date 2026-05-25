@@ -163,6 +163,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
           <button class="btn btn-primary" onclick="generateFlyer()">🔄 Generar Flyer</button>
           <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar Imagen</button>
           <button class="btn btn-outline" onclick="printFlyer()">🖨 Imprimir</button>
+          <a href="designer.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;margin-left:8px">🎨 Diseñador Pro</a>
         </div>
       </div>
       <div id="flyerResult"></div>
@@ -382,7 +383,7 @@ function generateManualQr(){
 }
 
 function createClient(){
-  var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim();
+  var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim().replace(/\D/g,'');
   var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
   var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
@@ -397,7 +398,7 @@ function createClient(){
 function saveClient(){
   if(!_currentClientId) return;
   QR_DB.collection('clients').doc(_currentClientId).update({
-    name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim(),
+    name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
     telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
     waMessage:document.getElementById('editWaMsg').value.trim()
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
