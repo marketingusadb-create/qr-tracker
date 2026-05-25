@@ -32,7 +32,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="firebase-config.js"></script>
+<script>
+var QR_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
+  authDomain: "qr-tracker-crm.firebaseapp.com",
+  projectId: "qr-tracker-crm",
+  storageBucket: "qr-tracker-crm.firebasestorage.app",
+  messagingSenderId: "1085744853871",
+  appId: "1:1085744853871:web:9a9f8413ee352ca55cae9a"
+};
+firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
+var QR_DB = firebase.firestore(firebase.app("qrTracker"));
+</script>
 <script>
 var params=new URLSearchParams(location.search);
 var clientId=params.get('c')||params.get('id');
