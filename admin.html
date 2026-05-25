@@ -13,18 +13,21 @@ h1 small{font-size:13px;font-weight:400;color:#888}
 .card h2{font-size:16px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee}
 input,select,textarea{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;transition:border .2s}
 input:focus,select:focus,textarea:focus{border-color:#2563eb}
-textarea{min-height:60px;resize:vertical}
+textarea{min-height:60px;resize:vertical;font-family:inherit}
 .btn{padding:10px 20px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
 .btn-primary{background:#2563eb;color:#fff}
 .btn-primary:hover{background:#1d4ed8}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
 .btn-danger{background:#e74c3c;color:#fff}
 .btn-danger:hover{background:#c0392b}
+.btn-warning{background:#f59e0b;color:#fff}
+.btn-warning:hover{background:#d97706}
 .btn-sm{padding:6px 12px;font-size:12px}
 .btn-outline{background:transparent;border:2px solid #ddd;color:#555}
 .btn-outline:hover{border-color:#2563eb;color:#2563eb}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .client-list{display:grid;gap:12px}
-.client-card{border:2px solid #eee;border-radius:12px;padding:16px;transition:border .2s}
+.client-card{border:2px solid #eee;border-radius:12px;padding:16px;transition:border .2s;cursor:pointer}
 .client-card:hover{border-color:#2563eb}
 .client-card h3{font-size:15px;margin-bottom:4px}
 .client-card .meta{font-size:12px;color:#888;margin-bottom:10px}
@@ -33,7 +36,7 @@ textarea{min-height:60px;resize:vertical}
 .qr-item img{width:100%;max-width:200px;border-radius:8px;display:block;margin:0 auto 8px}
 .qr-item .label{font-size:12px;color:#888;margin-bottom:4px}
 .qr-item .id{font-size:10px;color:#aaa;word-break:break-all}
-.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
 .tab{padding:8px 16px;border-radius:8px 8px 0 0;border:none;font-weight:700;font-size:13px;cursor:pointer;background:#eee;color:#666;font-family:inherit;transition:all .2s}
 .tab.active{background:#2563eb;color:#fff}
 .tab-content{display:none}
@@ -49,10 +52,25 @@ textarea{min-height:60px;resize:vertical}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .badge-mobile{background:#dbeafe;color:#1d4ed8}
 .badge-desktop{background:#f3e8ff;color:#7c3aed}
-.copy-btn{background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;padding:2px 6px}
-.copy-btn:hover{text-decoration:underline}
+.badge-active{background:#dcfce7;color:#16a34a}
+.badge-inactive{background:#fce7e7;color:#e74c3c}
 .toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateY(0)}
+/* Flyer */
+.flyer-preview{width:816px;max-width:100%;margin:0 auto;background:#fff;box-shadow:0 2px 20px rgba(0,0,0,.15);padding:0}
+.flyer-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #ddd}
+.flyer-card{padding:24px;border:1px solid #eee;min-height:420px;display:flex;flex-direction:column;position:relative;page-break-inside:avoid}
+.flyer-card .card-label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.flyer-card .card-title{font-size:18px;font-weight:900;margin-bottom:6px}
+.flyer-card .card-text{font-size:12px;color:#555;margin-bottom:10px;line-height:1.5;flex:1}
+.flyer-card .card-qr{text-align:center;margin-top:auto}
+.flyer-card .card-qr img{max-width:120px;border-radius:6px;display:block;margin:0 auto}
+.flyer-card .card-phone{font-size:14px;font-weight:700;color:#2563eb;text-align:center;margin-top:8px}
+.flyer-editor{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0}
+.flyer-editor .fe-card{background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px}
+.flyer-editor .fe-card h4{font-size:13px;margin-bottom:8px;color:#888}
+.flyer-editor .fe-card input,.flyer-editor .fe-card textarea{font-size:12px;margin-bottom:6px}
+@media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-preview{box-shadow:none;width:100%}.flyer-card{min-height:0;height:auto}}
 </style>
 </head>
 <body>
@@ -69,12 +87,13 @@ textarea{min-height:60px;resize:vertical}
 <div id="app" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
-    <button class="btn btn-sm btn-outline" onclick="logout()">Cerrar sesión</button>
+    <button class="btn btn-sm btn-outline no-print" onclick="logout()">Cerrar sesión</button>
   </div>
 
-  <div class="tabs">
+  <div class="tabs no-print">
     <button class="tab active" onclick="switchTab('clients',this)">Clientes</button>
     <button class="tab" onclick="switchTab('newClient',this)">+ Nuevo Cliente</button>
+    <button class="tab" onclick="switchTab('flyer',this)">Flyer</button>
     <button class="tab" onclick="switchTab('settings',this)">Config</button>
   </div>
 
@@ -97,12 +116,26 @@ textarea{min-height:60px;resize:vertical}
     </div>
   </div>
 
+  <div id="tab-flyer" class="tab-content">
+    <div class="card no-print">
+      <h2>🎨 Creador de Flyer (8.5x11)</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:12px">Selecciona hasta 4 clientes para crear un flyer imprimible con sus códigos QR. Cada sección es personalizable.</p>
+      <div id="flyerClientList" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+      <div class="flyer-editor" id="flyerEditor"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-primary btn-sm" onclick="generateFlyer()">🔄 Generar Flyer</button>
+        <button class="btn btn-success btn-sm" onclick="printFlyer()">🖨 Imprimir</button>
+      </div>
+    </div>
+    <div id="flyerResult"></div>
+  </div>
+
   <div id="tab-settings" class="tab-content">
     <div class="card">
       <h2>Generar QR manualmente</h2>
       <p style="font-size:13px;color:#888;margin-bottom:12px">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
       <select id="manualClient"></select>
-      <input id="manualQrId" placeholder="ID del QR (ej: promo-verano-2026)" />
+      <input id="manualQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" />
       <button class="btn btn-primary" onclick="generateManualQr()">Generar QR</button>
       <div id="manualQrResult" style="margin-top:10px"></div>
     </div>
@@ -160,249 +193,226 @@ var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
 </script>
 <script>
-var _currentClientId=null;
-var _clients=[];
+var _currentClientId=null,_clients=[],_flyerQrData={};
 
-function toast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show')},3000);
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
+
+function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 Crear cuenta</h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="Contraseña (mín 6 caracteres)" /><button class="btn btn-primary" onclick="register()">Crear cuenta</button>'}
+
+function register(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
+QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>'}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+
+function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Ingresa email y contraseña';document.getElementById('loginError').style.display='block';return}
+QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+
+function logout(){QR_AUTH.signOut();location.reload()}
+QR_AUTH.onAuthStateChanged(function(u){if(u){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=u.email;loadClients()}})
+
+function switchTab(t,btn){
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
+  btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active')
 }
-
-function showRegister(){
-  document.getElementById('loginBox').innerHTML='<h1>📝 Crear cuenta</h1>'
-    +'<input id="loginEmail" type="email" placeholder="Email" />'
-    +'<input id="loginPass" type="password" placeholder="Contraseña (mín 6 caracteres)" />'
-    +'<button class="btn btn-primary" onclick="register()">Crear cuenta</button>';
-}
-
-function register(){
-  var e=document.getElementById('loginEmail').value;
-  var p=document.getElementById('loginPass').value;
-  if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
-  QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){
-    document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>';
-  }).catch(function(err){
-    document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block';
-  });
-}
-
-function login(){
-  var e=document.getElementById('loginEmail').value;
-  var p=document.getElementById('loginPass').value;
-  if(!e||!p){document.getElementById('loginError').textContent='Ingresa email y contraseña';document.getElementById('loginError').style.display='block';return}
-  QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){
-    document.getElementById('loginBox').style.display='none';
-    document.getElementById('app').style.display='block';
-    document.getElementById('adminEmail').textContent=e;
-    loadClients();
-  }).catch(function(err){
-    document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block';
-  });
-}
-
-function logout(){
-  QR_AUTH.signOut();location.reload();
-}
-
-QR_AUTH.onAuthStateChanged(function(user){
-  if(user){
-    document.getElementById('loginBox').style.display='none';
-    document.getElementById('app').style.display='block';
-    document.getElementById('adminEmail').textContent=user.email;
-    loadClients();
-  }
-});
-
-function switchTab(tab,btn){
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
-  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active')});
-  btn.classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='newClient'&&btn) populateManualSelect();
-}
-
-function switchModalTab(tab,btn){
-  document.querySelectorAll('#clientModal .tab').forEach(function(t){t.classList.remove('active')});
-  document.querySelectorAll('#clientModal .tab-content').forEach(function(t){t.classList.remove('active')});
-  btn.classList.add('active');
-  document.getElementById('mtab-'+tab).classList.add('active');
+function switchModalTab(t,btn){
+  document.querySelectorAll('#clientModal .tab').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('#clientModal .tab-content').forEach(function(e){e.classList.remove('active')});
+  btn.classList.add('active');document.getElementById('mtab-'+t).classList.add('active')
 }
 
 function loadClients(){
   QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
-    _clients=[];
-    var html='';
-    snap.forEach(function(doc){
-      var d=doc.data();d._id=doc.id;_clients.push(d);
-      html+='<div class="client-card" onclick="openClient(\''+doc.id+'\')">'
-        +'<h3>'+esc(d.name||'Sin nombre')+'</h3>'
-        +'<div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div>'
-        +'<div style="font-size:12px;color:#888">🆔 '+doc.id+'</div>'
-        +'</div>';
-    });
-    if(!html) html='<p style="color:#888;text-align:center;padding:40px">No hay clientes aún. Crea tu primer cliente.</p>';
-    document.getElementById('clientList').innerHTML=html;
-    populateManualSelect();
+    _clients=[];var html='';
+    snap.forEach(function(doc){var d=doc.data();d._id=doc.id;_clients.push(d);
+      html+='<div class="client-card" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div><div style="font-size:12px;color:#888">🆔 '+doc.id+'</div></div>'});
+    if(!html) html='<p style="color:#888;text-align:center;padding:40px">No hay clientes aún.</p>';
+    document.getElementById('clientList').innerHTML=html;populateManualSelect();populateFlyerSelect()
   });
 }
+function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
 
-function populateManualSelect(){
-  var sel=document.getElementById('manualClient');
-  sel.innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('');
+function populateFlyerSelect(){
+  var html='';
+  _clients.forEach(function(c){
+    QR_DB.collection('clients').doc(c._id).collection('qrCodes').get().then(function(snap){
+      var hasQr=snap.size>0;
+      var cb=document.getElementById('fcb_'+c._id);
+      if(cb) cb.disabled=!hasQr;
+    });
+    html+='<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;background:#eee;cursor:pointer"><input type="checkbox" id="fcb_'+c._id+'" value="'+c._id+'" onchange="checkFlyerCount()"/> '+esc(c.name||c._id)+'</label>';
+  });
+  document.getElementById('flyerClientList').innerHTML=html;
 }
+
+function checkFlyerCount(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked').length;
+  if(checked>4) toast('Máximo 4 clientes por flyer');
+}
+function getBaseUrl(){return location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html'}
 
 function openClient(id){
   _currentClientId=id;
   QR_DB.collection('clients').doc(id).get().then(function(doc){
-    if(!doc.exists) return;
-    var d=doc.data();
+    if(!doc.exists) return;var d=doc.data();
     document.getElementById('modalClientName').textContent='📋 '+esc(d.name||'Cliente');
-    document.getElementById('editName').value=d.name||'';
-    document.getElementById('editWhatsapp').value=d.whatsapp||'';
-    document.getElementById('editTelegramToken').value=d.telegramToken||'';
-    document.getElementById('editTelegramChat').value=d.telegramChatId||'';
+    document.getElementById('editName').value=d.name||'';document.getElementById('editWhatsapp').value=d.whatsapp||'';
+    document.getElementById('editTelegramToken').value=d.telegramToken||'';document.getElementById('editTelegramChat').value=d.telegramChatId||'';
     document.getElementById('editWaMsg').value=d.waMessage||'';
-    document.getElementById('clientModal').style.display='block';
-    loadScans(id);
-    loadQrCodes(id);
+    document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
   });
 }
-
-function closeClientModal(){
-  document.getElementById('clientModal').style.display='none';
-  _currentClientId=null;
-}
+function closeClientModal(){document.getElementById('clientModal').style.display='none';_currentClientId=null}
 
 function loadScans(clientId){
   QR_DB.collection('clients').doc(clientId).collection('scans').orderBy('timestamp','desc').limit(100).onSnapshot(function(snap){
-    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>IP</th><th>Ubicación</th><th>Dispositivo</th><th>QR</th></tr></thead><tbody>';
-    var count=0;
-    snap.forEach(function(doc){
-      count++;
-      var d=doc.data();
-      var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—';
-      var badge=d.device==='Mobile'?'<span class="badge badge-mobile">📱 Móvil</span>':'<span class="badge badge-desktop">💻 Escritorio</span>';
-      html+='<tr><td style="white-space:nowrap">'+dt+'</td><td>'+esc(d.ip||'—')+'</td><td>'+[d.city,d.country].filter(Boolean).join(', ')+'</td><td>'+badge+' '+esc(d.os||'')+'</td><td style="font-size:11px;color:#888">'+esc(d.qrId||'—')+'</td></tr>';
-    });
-    html+='</tbody></table>';
-    if(!count) html='<p style="color:#888;text-align:center;padding:20px">Aún no hay scans.</p>';
+    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>IP</th><th>Ubicación</th><th>Dispositivo</th><th>QR</th></tr></thead><tbody>';var c=0;
+    snap.forEach(function(doc){c++;var d=doc.data();
+      html+='<tr><td style="white-space:nowrap">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—')+'</td><td>'+esc(d.ip||'—')+'</td><td>'+[d.city,d.country].filter(Boolean).join(', ')+'</td><td>'+(d.device==='Mobile'?'<span class="badge badge-mobile">📱 Móvil</span>':'<span class="badge badge-desktop">💻 Escritorio</span>')+' '+esc(d.os||'')+'</td><td style="font-size:11px;color:#888">'+esc(d.qrId||'—')+'</td></tr>'});
+    html+='</tbody></table>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">Aún no hay scans.</p>';
     document.getElementById('modalScanList').innerHTML=html;
   });
 }
 
 function loadQrCodes(clientId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').get().then(function(snap){
-    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html';
-    var html='<div class="qr-grid">';
-    snap.forEach(function(doc){
-      var d=doc.data();
+    var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
+    snap.forEach(function(doc){var d=doc.data();
+      var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?'✅ Activo':'❌ Inactivo';
       var qrData=baseUrl+'?c='+clientId+'&q='+doc.id;
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
       var subj=encodeURIComponent('Mi código QR - '+esc(d.label||doc.id));
       var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
-      html+='<div class="qr-item">'
-        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
-        +'<div class="label">'+esc(d.label||doc.id)+'</div>'
+      html+='<div class="qr-item"><img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+        +'<div class="label">'+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
         +'<div class="id">'+qrData+'</div>'
         +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
-        +'<a href="'+qrImg+'" download="qr-'+doc.id+'.png" class="btn btn-sm btn-outline">⬇</a>'
-        +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline" title="Enviar por Email">📧</a>'
-        +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline" title="Enviar por WhatsApp">💬</a>'
-        +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline" title="Enviar por Telegram">✈️</a>'
-        +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline" title="Enviar por SMS">📱</a>'
-        +'</div></div>';
-    });
-    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno arriba.</p>';
+        +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?'🔴 Desactivar':'🟢 Activar')+'</button>'
+        +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
+        +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline">📧</a>'
+        +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
+        +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
+        +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱</a>'
+        +'</div></div>'});
+    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno.</p>';
     document.getElementById('modalQrList').innerHTML=html;
   });
 }
 
+function toggleQrStatus(clientId,qrId,newStatus){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({active:newStatus}).then(function(){
+    toast(newStatus?'✅ QR activado':'🔴 QR desactivado');
+    loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
 function genId(){return 'qr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+function downloadQr(url,name){
+  fetch(url).then(function(r){return r.blob()}).then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href)
+  }).catch(function(){toast('Error al descargar')});
+}
 
 function addQrCode(){
   if(!_currentClientId){toast('Selecciona un cliente primero');return}
   var qrId=document.getElementById('newQrId').value.trim()||genId();
-  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({
-    label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){
-    document.getElementById('newQrId').value='';
-    toast('✅ QR generado: '+qrId);
-    loadQrCodes(_currentClientId);
+  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    document.getElementById('newQrId').value='';toast('✅ QR generado: '+qrId);loadQrCodes(_currentClientId)
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function generateManualQr(){
   var clientId=document.getElementById('manualClient').value;
   var qrId=document.getElementById('manualQrId').value.trim()||genId();
-  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({
-    label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){
-    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html';
-    var qrData=baseUrl+'?c='+clientId+'&q='+qrId;
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    var baseUrl=getBaseUrl();var qrData=baseUrl+'?c='+clientId+'&q='+qrId;
     var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
     var subj=encodeURIComponent('Mi código QR');
     document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado: <strong>'+qrId+'</strong></p>'
       +'<img src="'+qrImg+'" style="max-width:200px;border-radius:8px;display:block;margin-bottom:8px"/>'
       +'<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">'
-      +'<a href="'+qrImg+'" download="qr-'+qrId+'.png" class="btn btn-sm btn-primary">⬇ Descargar</a>'
+      +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+qrId+'.png\')" class="btn btn-sm btn-primary">⬇ Descargar</button>'
       +'<a href="mailto:?subject='+subj+'&body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📧 Email</a>'
       +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬 WhatsApp</a>'
       +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️ Telegram</a>'
       +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱 SMS</a>'
-      +'</div>'
-      +'<p style="font-size:11px;color:#888;margin-top:6px;word-break:break-all">'+qrData+'</p>';
+      +'</div><p style="font-size:11px;color:#888;margin-top:6px;word-break:break-all">'+qrData+'</p>';
     document.getElementById('manualQrId').value='';
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function createClient(){
-  var name=document.getElementById('ncName').value.trim();
-  var wa=document.getElementById('ncWhatsapp').value.trim();
-  var tgToken=document.getElementById('ncTelegramToken').value.trim();
-  var tgChat=document.getElementById('ncTelegramChat').value.trim();
-  var email=document.getElementById('ncEmail').value.trim();
-  var pass=document.getElementById('ncPass').value;
-  var waMsg=document.getElementById('ncWaMsg').value.trim();
+  var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim();
+  var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
+  var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  QR_DB.collection('clients').doc(newId).set({
-    name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,
-    email:email,dashboardPass:pass,waMessage:waMsg,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,email:email,dashboardPass:pass,waMessage:waMsg,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    document.getElementById('ncName').value='';document.getElementById('ncWhatsapp').value='';
-    document.getElementById('ncTelegramToken').value='';document.getElementById('ncTelegramChat').value='';
-    document.getElementById('ncEmail').value='';document.getElementById('ncPass').value='';
-    document.getElementById('ncWaMsg').value='';
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg'].forEach(function(id){document.getElementById(id).value=''});
     toast('Cliente creado exitosamente');
   }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
 
 function saveClient(){
   if(!_currentClientId) return;
-  var data={
-    name:document.getElementById('editName').value.trim(),
-    whatsapp:document.getElementById('editWhatsapp').value.trim(),
-    telegramToken:document.getElementById('editTelegramToken').value.trim(),
-    telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+  QR_DB.collection('clients').doc(_currentClientId).update({
+    name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim(),
+    telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
     waMessage:document.getElementById('editWaMsg').value.trim()
-  };
-  QR_DB.collection('clients').doc(_currentClientId).update(data).then(function(){
-    document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';
-    toast('Cambios guardados');
-  }).catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+  }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
+  .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
 
 function deleteClient(){
   if(!_currentClientId||!confirm('¿Eliminar este cliente y todos sus datos? No se puede deshacer.')) return;
-  QR_DB.collection('clients').doc(_currentClientId).delete().then(function(){
-    toast('Cliente eliminado');
-    closeClientModal();
-  }).catch(function(err){toast('Error: '+err.message)});
+  QR_DB.collection('clients').doc(_currentClientId).delete().then(function(){toast('Cliente eliminado');closeClientModal()}).catch(function(err){toast('Error: '+err.message)});
 }
+
+/* Flyer */
+function generateFlyer(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked');
+  if(checked.length===0||checked.length>4){toast('Selecciona entre 1 y 4 clientes');return}
+  var baseUrl=getBaseUrl();
+  var editor=document.getElementById('flyerEditor');editor.innerHTML='';
+  var promises=[];
+  checked.forEach(function(cb){
+    var id=cb.value;var c=_clients.find(function(x){return x._id===id});
+    promises.push(QR_DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){
+      var qrDoc=snap.docs[0];if(!qrDoc) return;
+      var qrData=baseUrl+'?c='+id+'&q='+qrDoc.id;
+      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(qrData);
+      _flyerQrData[id]={name:c.name||'Negocio',qrData:qrData,qrImg:qrImg,phone:c.whatsapp||'',title:c.name||'Negocio',text:'¡Escanea el código QR y contáctanos!'};
+      editor.innerHTML+='<div class="fe-card"><h4>'+esc(c.name||'Cliente')+'</h4>'
+        +'<input id="ft_'+id+'" placeholder="Título" value="'+esc(c.name||'')+'" />'
+        +'<textarea id="fd_'+id+'" placeholder="Texto descriptivo" rows="2">¡Escanea el código QR y contáctanos!</textarea>'
+        +'<input id="fp_'+id+'" placeholder="Teléfono" value="'+esc(c.whatsapp||'')+'" />'
+        +'<img src="'+qrImg+'" style="max-width:100px;display:block;margin:4px auto" /></div>';
+    }));
+  });
+  Promise.all(promises).then(function(){renderFlyer()});
+}
+
+function renderFlyer(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked');
+  var html='<div class="flyer-preview" id="flyerPreview"><div class="flyer-grid">';
+  checked.forEach(function(cb){
+    var id=cb.value;var d=_flyerQrData[id]||{};
+    var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
+    var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
+    var phone=document.getElementById('fp_'+id);var p=phone?phone.value:d.phone;
+    html+='<div class="flyer-card"><div class="card-label">Escanea y contáctanos</div>'
+      +'<div class="card-title">'+esc(t||'')+'</div>'
+      +'<div class="card-text">'+esc(ds||'')+'</div>'
+      +'<div class="card-qr"><img src="'+d.qrImg+'" alt="QR"/><div class="card-phone">'+(p?'📱 '+esc(p):'')+'</div></div>'
+      +'</div>';
+  });
+  html+='</div></div>';
+  document.getElementById('flyerResult').innerHTML=html;
+}
+
+function printFlyer(){window.print()}
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
