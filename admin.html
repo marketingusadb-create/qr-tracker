@@ -14,6 +14,9 @@ h1 small{font-size:13px;font-weight:400;color:#888}
 input,select,textarea{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;transition:border .2s}
 input:focus,select:focus,textarea:focus{border-color:#2563eb}
 textarea{min-height:60px;resize:vertical;font-family:inherit}
+.form-group label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:3px;margin-top:12px}
+.form-group label small{font-weight:400;color:#999;font-size:11px}
+.form-group input,.form-group textarea{margin-bottom:0}
 .btn{padding:10px 20px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
 .btn-primary{background:#2563eb;color:#fff}
 .btn-primary:hover{background:#1d4ed8}
@@ -54,6 +57,15 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 .badge-desktop{background:#f3e8ff;color:#7c3aed}
 .badge-active{background:#dcfce7;color:#16a34a}
 .badge-inactive{background:#fce7e7;color:#e74c3c}
+.badge-type-whatsapp{background:#dcfce7;color:#16a34a}
+.badge-type-telegram{background:#dbeafe;color:#1d4ed8}
+.badge-type-sms{background:#fef3c7;color:#b45309}
+.badge-type-teams{background:#f3e8ff;color:#7c3aed}
+.qr-type-select{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.qr-type-select label{display:flex;align-items:center;gap:4px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid #ddd;transition:all .2s;background:#fff;font-family:inherit}
+.qr-type-select label:hover{border-color:#2563eb}
+.qr-type-select label.active{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+.qr-type-select input[type=radio]{display:none}
 .toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateY(0)}
 /* Flyer Pro */
@@ -131,13 +143,14 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   <div id="tab-newClient" class="tab-content">
     <div class="card">
       <h2>Crear nuevo cliente</h2>
-      <input id="ncName" placeholder="Nombre del cliente / negocio" />
-      <input id="ncWhatsapp" placeholder="WhatsApp (código país + número, ej: 527771234567)" />
-      <input id="ncTelegramToken" placeholder="Token del bot de Telegram" />
-      <input id="ncTelegramChat" placeholder="Chat ID de Telegram" />
-      <input id="ncEmail" placeholder="Email del cliente (para su dashboard)" />
-      <input id="ncPass" type="password" placeholder="Contraseña del dashboard" />
-      <textarea id="ncWaMsg" placeholder="Mensaje personalizado para WhatsApp (opcional, ej: 'Hola, quiero info sobre tus servicios')"></textarea>
+      <div class="form-group"><label>Nombre del negocio</label><input id="ncName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label>WhatsApp <small>(a donde redirige el QR)</small></label><input id="ncWhatsapp" placeholder="Código país + número, sin + ni espacios. Ej: 573001234567" /></div>
+      <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="ncTelegramToken" placeholder="123456789:ABCdefGHIjklMNO..." /></div>
+      <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="ncTelegramChat" placeholder="-1001234567890" /></div>
+      <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="ncTelegramUser" placeholder="usuario_sin_@" /></div>
+      <div class="form-group"><label>Email del cliente <small>(para su dashboard)</small></label><input id="ncEmail" placeholder="cliente@email.com" /></div>
+      <div class="form-group"><label>Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
+      <div class="form-group"><label>Mensaje de WhatsApp <small>(texto que aparece precargado en el formulario)</small></label><textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
       <button class="btn btn-primary" onclick="createClient()">Crear Cliente</button>
       <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
     </div>
@@ -195,6 +208,13 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div id="modalScanList"><p style="color:#888">Cargando...</p></div>
     </div>
     <div id="mtab-qrCodes" class="tab-content">
+      <p style="font-size:12px;color:#888;margin-bottom:8px">Selecciona el tipo de QR y genera:</p>
+      <div class="qr-type-select">
+        <label class="active"><input type="radio" name="qrType" value="whatsapp" checked onchange="setQrType('whatsapp')" /> 💬 WhatsApp</label>
+        <label><input type="radio" name="qrType" value="telegram" onchange="setQrType('telegram')" /> ✈️ Telegram</label>
+        <label><input type="radio" name="qrType" value="sms" onchange="setQrType('sms')" /> 📱 SMS</label>
+        <label><input type="radio" name="qrType" value="teams" onchange="setQrType('teams')" /> 💼 Teams</label>
+      </div>
       <div style="margin-bottom:12px;display:flex;gap:8px">
         <input id="newQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" style="flex:1;margin:0" />
         <button class="btn btn-primary btn-sm" onclick="addQrCode()">Generar QR</button>
@@ -202,11 +222,12 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div id="modalQrList"></div>
     </div>
     <div id="mtab-edit" class="tab-content">
-      <input id="editName" placeholder="Nombre" />
-      <input id="editWhatsapp" placeholder="WhatsApp" />
-      <input id="editTelegramToken" placeholder="Telegram Token" />
-      <input id="editTelegramChat" placeholder="Telegram Chat ID" />
-      <textarea id="editWaMsg" placeholder="Mensaje WhatsApp"></textarea>
+      <div class="form-group"><label>Nombre del negocio</label><input id="editName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label>WhatsApp <small>(a donde redirige el QR)</small></label><input id="editWhatsapp" placeholder="573001234567" /></div>
+      <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="editTelegramToken" placeholder="123456789:ABC..." /></div>
+      <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="editTelegramChat" placeholder="-1001234567890" /></div>
+      <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
+      <div class="form-group"><label>Mensaje de WhatsApp <small>(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
       <button class="btn btn-primary" onclick="saveClient()">Guardar cambios</button>
       <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px">Eliminar cliente</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
@@ -233,7 +254,8 @@ var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
 </script>
 <script>
-var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue';
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp';
+function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
 
@@ -296,6 +318,7 @@ function openClient(id){
     document.getElementById('modalClientName').textContent='📋 '+esc(d.name||'Cliente');
     document.getElementById('editName').value=d.name||'';document.getElementById('editWhatsapp').value=d.whatsapp||'';
     document.getElementById('editTelegramToken').value=d.telegramToken||'';document.getElementById('editTelegramChat').value=d.telegramChatId||'';
+    document.getElementById('editTelegramUser').value=d.telegramUser||'';
     document.getElementById('editWaMsg').value=d.waMessage||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
@@ -305,9 +328,14 @@ function closeClientModal(){document.getElementById('clientModal').style.display
 
 function loadScans(clientId){
   QR_DB.collection('clients').doc(clientId).collection('scans').orderBy('timestamp','desc').limit(100).onSnapshot(function(snap){
-    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>IP</th><th>Ubicación</th><th>Dispositivo</th><th>QR</th></tr></thead><tbody>';var c=0;
+    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>Nombre</th><th>Email / Tel</th><th>Mensaje</th><th>IP / Ubicación</th><th>Dispositivo</th></tr></thead><tbody>';var c=0;
     snap.forEach(function(doc){c++;var d=doc.data();
-      html+='<tr><td style="white-space:nowrap">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—')+'</td><td>'+esc(d.ip||'—')+'</td><td>'+[d.city,d.country].filter(Boolean).join(', ')+'</td><td>'+(d.device==='Mobile'?'<span class="badge badge-mobile">📱 Móvil</span>':'<span class="badge badge-desktop">💻 Escritorio</span>')+' '+esc(d.os||'')+'</td><td style="font-size:11px;color:#888">'+esc(d.qrId||'—')+'</td></tr>'});
+      html+='<tr><td style="white-space:nowrap">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—')+'</td>'
+        +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
+        +'<td style="font-size:12px">'+(d.leadEmail?'📧 '+esc(d.leadEmail):'')+(d.leadPhone?(d.leadEmail?'<br>':'')+'📱 '+esc(d.leadPhone):'')+'</td>'
+        +'<td style="font-size:12px;color:#555">'+esc(d.leadMessage||'—')+'</td>'
+        +'<td style="font-size:11px;color:#888">'+esc(d.ip||'—')+'<br>'+[d.city,d.country].filter(Boolean).join(', ')+'</td>'
+        +'<td>'+(d.device==='Mobile'?'<span class="badge badge-mobile">📱</span>':'<span class="badge badge-desktop">💻</span>')+' '+esc(d.os||'')+'</td></tr>'});
     html+='</tbody></table>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">Aún no hay scans.</p>';
     document.getElementById('modalScanList').innerHTML=html;
   });
@@ -316,14 +344,16 @@ function loadScans(clientId){
 function loadQrCodes(clientId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').get().then(function(snap){
     var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
+    var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
     snap.forEach(function(doc){var d=doc.data();
       var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?'✅ Activo':'❌ Inactivo';
-      var qrData=baseUrl+'?c='+clientId+'&q='+doc.id;
+      var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
+      var qrData=baseUrl+'?c='+clientId+'&q='+doc.id+'&s='+type;
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
       var subj=encodeURIComponent('Mi código QR - '+esc(d.label||doc.id));
       var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
       html+='<div class="qr-item"><img src="'+qrImg+'" alt="QR" loading="lazy"/>'
-        +'<div class="label">'+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
+        +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
         +'<div class="id">'+qrData+'</div>'
         +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
         +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?'🔴 Desactivar':'🟢 Activar')+'</button>'
@@ -355,18 +385,17 @@ function downloadQr(url,name){
 }
 
 function addQrCode(){
-  if(!_currentClientId){toast('Selecciona un cliente primero');return}
-  var qrId=document.getElementById('newQrId').value.trim()||genId();
-  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    document.getElementById('newQrId').value='';toast('✅ QR generado: '+qrId);loadQrCodes(_currentClientId)
+  var qrId=document.getElementById('newQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:_qrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    document.getElementById('newQrId').value='';toast('✅ QR '+_qrType+' generado: '+qrId);loadQrCodes(_currentClientId)
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function generateManualQr(){
   var clientId=document.getElementById('manualClient').value;
   var qrId=document.getElementById('manualQrId').value.trim()||genId();
-  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    var baseUrl=getBaseUrl();var qrData=baseUrl+'?c='+clientId+'&q='+qrId;
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:'whatsapp',createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    var baseUrl=getBaseUrl();var qrData=baseUrl+'?c='+clientId+'&q='+qrId+'&s=whatsapp';
     var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
     var subj=encodeURIComponent('Mi código QR');
     document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado: <strong>'+qrId+'</strong></p>'
@@ -385,10 +414,11 @@ function generateManualQr(){
 function createClient(){
   var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim().replace(/\D/g,'');
   var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
+  var tgUser=document.getElementById('ncTelegramUser').value.trim().replace(/^@/,'');
   var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,email:email,dashboardPass:pass,waMessage:waMsg,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
     ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg'].forEach(function(id){document.getElementById(id).value=''});
     toast('Cliente creado exitosamente');
@@ -400,6 +430,7 @@ function saveClient(){
   QR_DB.collection('clients').doc(_currentClientId).update({
     name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
     telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+    telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
     waMessage:document.getElementById('editWaMsg').value.trim()
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
