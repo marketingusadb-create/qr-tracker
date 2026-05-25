@@ -89,15 +89,15 @@ function notifyTelegram(token,chatId,data){
 }
 
 function saveScan(clientDoc,qrId){
-  return fetch('https://ip-api.com/json/?fields=query,country,city,isp')
+  return fetch('https://ipapi.co/json/')
     .then(function(r){return r.json()})
     .then(function(geo){
       var info=getDeviceInfo();
       var scan={
-        ip:geo.query||'',
-        country:geo.country||'',
+        ip:geo.ip||'',
+        country:geo.country_name||'',
         city:geo.city||'',
-        isp:geo.isp||'',
+        isp:geo.org||'',
         device:info.device,
         os:info.os,
         browser:info.browser,
