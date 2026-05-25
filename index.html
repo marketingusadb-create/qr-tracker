@@ -131,18 +131,15 @@ if(!clientId||!qrId){
     })
     .then(function(data){
       if(!data) return;
-      var wa=data.client.whatsapp||data.client.phone;
+      var wa=(data.client.whatsapp||data.client.phone||'').replace(/\D/g,'');
       if(!wa){ showError('El contacto no está configurado.'); return; }
       saveScan(clientId,qrId).then(function(scanData){
         if(scanData) notifyTelegram(data.client.telegramToken,data.client.telegramChatId,scanData);
-        var waUrl='https://wa.me/'+wa;
-        var msg=data.client.waMessage||'Hola, escaneé tu código QR';
-        if(msg) waUrl+='?text='+encodeURIComponent(msg);
-        location.href=waUrl;
-      }).catch(function(){
-        var waUrl='https://wa.me/'+wa;
-        location.href=waUrl;
-      });
+      }).catch(function(){});
+      var waUrl='https://wa.me/'+wa;
+      var msg=data.client.waMessage||'Hola, escaneé tu código QR';
+      if(msg) waUrl+='?text='+encodeURIComponent(msg);
+      location.href=waUrl;
     })
     .catch(function(err){
       console.error(err);
