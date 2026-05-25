@@ -346,7 +346,7 @@ function addImage(){
 }
 function addQrFromClient(){if(!_clients.length){toast('No hay clientes');return}selClient(_clients[0]._id);toast('Selecciona un QR de la lista')}
 function addQR(cid,qid){
-  var u=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html?c='+cid+'&q='+qid;
+  var u='https://marketingusadb-create.github.io/qr-tracker/index.html?c='+cid+'&q='+qid;
   var img='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(u);
   _elList[_card].push({t:'qr',c:img,x:20,y:20,w:120,h:120,r:0});renderCanvas();toast('✅ QR agregado');
 }
