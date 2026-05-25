@@ -222,8 +222,9 @@ function selClient(id){
   var found=_clients.find(function(c){return c._id===id});
   if(found) Array.from(document.querySelectorAll('.client-item')).forEach(function(e){if(e.textContent.trim()===found.name)e.classList.add('active')});
   DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){var h='';
-    snap.forEach(function(d){var d2=d.data();
-      h+='<div style="padding:5px 6px;border:1px solid #eee;border-radius:4px;margin-bottom:3px;font-size:11px;cursor:pointer" onclick="addQR(\''+id+'\',\''+d.id+'\')">📲 '+esc(d2.label||d.id)+'</div>'});
+    var svcIcons={whatsapp:'💬',telegram:'✈️',sms:'📱',teams:'💼'};
+    snap.forEach(function(d){var d2=d.data();var svc=d2.type||'whatsapp';
+      h+='<div style="padding:5px 6px;border:1px solid #eee;border-radius:4px;margin-bottom:3px;font-size:11px;cursor:pointer" onclick="addQR(\''+id+'\',\''+d.id+'\',\''+svc+'\')">'+(svcIcons[svc]||'📲')+' '+esc(d2.label||d.id)+'</div>'});
     document.getElementById('qrListSidebar').innerHTML=h||'<p style="font-size:11px;color:#888">Sin QR</p>'});
 }
 
@@ -345,8 +346,9 @@ function addImage(){
     r.readAsDataURL(f)};inp.click();
 }
 function addQrFromClient(){if(!_clients.length){toast('No hay clientes');return}selClient(_clients[0]._id);toast('Selecciona un QR de la lista')}
-function addQR(cid,qid){
-  var u='https://marketingusadb-create.github.io/qr-tracker/index.html?c='+cid+'&q='+qid;
+function addQR(cid,qid,svc){
+  svc=svc||'whatsapp';
+  var u='https://marketingusadb-create.github.io/qr-tracker/index.html?c='+cid+'&q='+qid+'&s='+svc;
   var img='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(u);
   _elList[_card].push({t:'qr',c:img,x:20,y:20,w:120,h:120,r:0});renderCanvas();toast('✅ QR agregado');
 }
