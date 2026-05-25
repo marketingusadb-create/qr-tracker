@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin - QR Tracker CRM</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#222;padding:20px;max-width:1200px;margin:0 auto}
+h1{font-size:24px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+h1 small{font-size:13px;font-weight:400;color:#888}
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{font-size:16px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee}
+input,select,textarea{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:#2563eb}
+textarea{min-height:60px;resize:vertical}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:hover{background:#c0392b}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-outline{background:transparent;border:2px solid #ddd;color:#555}
+.btn-outline:hover{border-color:#2563eb;color:#2563eb}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.client-list{display:grid;gap:12px}
+.client-card{border:2px solid #eee;border-radius:12px;padding:16px;transition:border .2s}
+.client-card:hover{border-color:#2563eb}
+.client-card h3{font-size:15px;margin-bottom:4px}
+.client-card .meta{font-size:12px;color:#888;margin-bottom:10px}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.qr-item{text-align:center;padding:16px;background:#fafafa;border-radius:10px;border:1px solid #eee}
+.qr-item img{width:100%;max-width:200px;border-radius:8px;display:block;margin:0 auto 8px}
+.qr-item .label{font-size:12px;color:#888;margin-bottom:4px}
+.qr-item .id{font-size:10px;color:#aaa;word-break:break-all}
+.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tab{padding:8px 16px;border-radius:8px 8px 0 0;border:none;font-weight:700;font-size:13px;cursor:pointer;background:#eee;color:#666;font-family:inherit;transition:all .2s}
+.tab.active{background:#2563eb;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+#loginBox{max-width:360px;margin:80px auto;text-align:center}
+#loginBox h1{margin-bottom:24px;justify-content:center}
+#loginBox input{margin-bottom:12px}
+#loginBox .btn{width:100%}
+.scan-table{width:100%;border-collapse:collapse;font-size:13px}
+.scan-table th,.scan-table td{padding:8px 10px;text-align:left;border-bottom:1px solid #eee}
+.scan-table th{font-weight:700;color:#888;font-size:11px;text-transform:uppercase}
+.scan-table tr:hover td{background:#f8faff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-mobile{background:#dbeafe;color:#1d4ed8}
+.badge-desktop{background:#f3e8ff;color:#7c3aed}
+.copy-btn{background:none;border:none;cursor:pointer;color:#2563eb;font-size:12px;padding:2px 6px}
+.copy-btn:hover{text-decoration:underline}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h1>🔐 QR Tracker Admin</h1>
+  <input id="loginEmail" type="email" placeholder="Email" />
+  <input id="loginPass" type="password" placeholder="Contraseña" />
+  <button class="btn btn-primary" onclick="login()">Ingresar</button>
+  <p style="margin-top:12px;font-size:12px;color:#888">o <a href="#" onclick="showRegister()" style="color:#2563eb">crear cuenta nueva</a></p>
+  <div id="loginError" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none"></div>
+</div>
+
+<div id="app" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
+    <button class="btn btn-sm btn-outline" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('clients',this)">Clientes</button>
+    <button class="tab" onclick="switchTab('newClient',this)">+ Nuevo Cliente</button>
+    <button class="tab" onclick="switchTab('settings',this)">Config</button>
+  </div>
+
+  <div id="tab-clients" class="tab-content active">
+    <div class="client-list" id="clientList"></div>
+  </div>
+
+  <div id="tab-newClient" class="tab-content">
+    <div class="card">
+      <h2>Crear nuevo cliente</h2>
+      <input id="ncName" placeholder="Nombre del cliente / negocio" />
+      <input id="ncWhatsapp" placeholder="WhatsApp (código país + número, ej: 527771234567)" />
+      <input id="ncTelegramToken" placeholder="Token del bot de Telegram" />
+      <input id="ncTelegramChat" placeholder="Chat ID de Telegram" />
+      <input id="ncEmail" placeholder="Email del cliente (para su dashboard)" />
+      <input id="ncPass" type="password" placeholder="Contraseña del dashboard" />
+      <textarea id="ncWaMsg" placeholder="Mensaje personalizado para WhatsApp (opcional, ej: 'Hola, quiero info sobre tus servicios')"></textarea>
+      <button class="btn btn-primary" onclick="createClient()">Crear Cliente</button>
+      <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-content">
+    <div class="card">
+      <h2>Generar QR manualmente</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:12px">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
+      <select id="manualClient"></select>
+      <input id="manualQrId" placeholder="ID del QR (ej: promo-verano-2026)" />
+      <button class="btn btn-primary" onclick="generateManualQr()">Generar QR</button>
+      <div id="manualQrResult" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="clientModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;overflow-y:auto;padding:20px" onclick="if(event.target===this)closeClientModal()">
+  <div style="max-width:900px;margin:20px auto;background:#fff;border-radius:16px;padding:24px;position:relative">
+    <button style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#888" onclick="closeClientModal()">✕</button>
+    <h2 id="modalClientName" style="margin-bottom:16px"></h2>
+    <div class="tabs">
+      <button class="tab active" onclick="switchModalTab('scans',this)">Scans recibidos</button>
+      <button class="tab" onclick="switchModalTab('qrCodes',this)">Códigos QR</button>
+      <button class="tab" onclick="switchModalTab('edit',this)">Editar</button>
+    </div>
+    <div id="mtab-scans" class="tab-content active">
+      <div id="modalScanList"><p style="color:#888">Cargando...</p></div>
+    </div>
+    <div id="mtab-qrCodes" class="tab-content">
+      <div style="margin-bottom:12px;display:flex;gap:8px">
+        <input id="newQrId" placeholder="ID del nuevo QR (ej: local-1)" style="flex:1;margin:0" />
+        <button class="btn btn-primary btn-sm" onclick="addQrCode()">Generar QR</button>
+      </div>
+      <div id="modalQrList"></div>
+    </div>
+    <div id="mtab-edit" class="tab-content">
+      <input id="editName" placeholder="Nombre" />
+      <input id="editWhatsapp" placeholder="WhatsApp" />
+      <input id="editTelegramToken" placeholder="Telegram Token" />
+      <input id="editTelegramChat" placeholder="Telegram Chat ID" />
+      <textarea id="editWaMsg" placeholder="Mensaje WhatsApp"></textarea>
+      <button class="btn btn-primary" onclick="saveClient()">Guardar cambios</button>
+      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px">Eliminar cliente</button>
+      <div id="editResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+var _currentClientId=null;
+var _clients=[];
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},3000);
+}
+
+function showRegister(){
+  document.getElementById('loginBox').innerHTML='<h1>📝 Crear cuenta</h1>'
+    +'<input id="loginEmail" type="email" placeholder="Email" />'
+    +'<input id="loginPass" type="password" placeholder="Contraseña (mín 6 caracteres)" />'
+    +'<button class="btn btn-primary" onclick="register()">Crear cuenta</button>';
+}
+
+function register(){
+  var e=document.getElementById('loginEmail').value;
+  var p=document.getElementById('loginPass').value;
+  if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
+  QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){
+    document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>';
+  }).catch(function(err){
+    document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block';
+  });
+}
+
+function login(){
+  var e=document.getElementById('loginEmail').value;
+  var p=document.getElementById('loginPass').value;
+  if(!e||!p){document.getElementById('loginError').textContent='Ingresa email y contraseña';document.getElementById('loginError').style.display='block';return}
+  QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){
+    document.getElementById('loginBox').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('adminEmail').textContent=e;
+    loadClients();
+  }).catch(function(err){
+    document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block';
+  });
+}
+
+function logout(){
+  QR_AUTH.signOut();location.reload();
+}
+
+QR_AUTH.onAuthStateChanged(function(user){
+  if(user){
+    document.getElementById('loginBox').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('adminEmail').textContent=user.email;
+    loadClients();
+  }
+});
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active')});
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='newClient'&&btn) populateManualSelect();
+}
+
+function switchModalTab(tab,btn){
+  document.querySelectorAll('#clientModal .tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('#clientModal .tab-content').forEach(function(t){t.classList.remove('active')});
+  btn.classList.add('active');
+  document.getElementById('mtab-'+tab).classList.add('active');
+}
+
+function loadClients(){
+  QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
+    _clients=[];
+    var html='';
+    snap.forEach(function(doc){
+      var d=doc.data();d._id=doc.id;_clients.push(d);
+      html+='<div class="client-card" onclick="openClient(\''+doc.id+'\')">'
+        +'<h3>'+esc(d.name||'Sin nombre')+'</h3>'
+        +'<div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div>'
+        +'<div style="font-size:12px;color:#888">🆔 '+doc.id+'</div>'
+        +'</div>';
+    });
+    if(!html) html='<p style="color:#888;text-align:center;padding:40px">No hay clientes aún. Crea tu primer cliente.</p>';
+    document.getElementById('clientList').innerHTML=html;
+    populateManualSelect();
+  });
+}
+
+function populateManualSelect(){
+  var sel=document.getElementById('manualClient');
+  sel.innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('');
+}
+
+function openClient(id){
+  _currentClientId=id;
+  QR_DB.collection('clients').doc(id).get().then(function(doc){
+    if(!doc.exists) return;
+    var d=doc.data();
+    document.getElementById('modalClientName').textContent='📋 '+esc(d.name||'Cliente');
+    document.getElementById('editName').value=d.name||'';
+    document.getElementById('editWhatsapp').value=d.whatsapp||'';
+    document.getElementById('editTelegramToken').value=d.telegramToken||'';
+    document.getElementById('editTelegramChat').value=d.telegramChatId||'';
+    document.getElementById('editWaMsg').value=d.waMessage||'';
+    document.getElementById('clientModal').style.display='block';
+    loadScans(id);
+    loadQrCodes(id);
+    document.querySelectorAll('#clientModal .tab')[0].click();
+  });
+}
+
+function closeClientModal(){
+  document.getElementById('clientModal').style.display='none';
+  _currentClientId=null;
+}
+
+function loadScans(clientId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').orderBy('timestamp','desc').limit(100).onSnapshot(function(snap){
+    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>IP</th><th>Ubicación</th><th>Dispositivo</th><th>QR</th></tr></thead><tbody>';
+    var count=0;
+    snap.forEach(function(doc){
+      count++;
+      var d=doc.data();
+      var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—';
+      var badge=d.device==='Mobile'?'<span class="badge badge-mobile">📱 Móvil</span>':'<span class="badge badge-desktop">💻 Escritorio</span>';
+      html+='<tr><td style="white-space:nowrap">'+dt+'</td><td>'+esc(d.ip||'—')+'</td><td>'+[d.city,d.country].filter(Boolean).join(', ')+'</td><td>'+badge+' '+esc(d.os||'')+'</td><td style="font-size:11px;color:#888">'+esc(d.qrId||'—')+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    if(!count) html='<p style="color:#888;text-align:center;padding:20px">Aún no hay scans.</p>';
+    document.getElementById('modalScanList').innerHTML=html;
+  });
+}
+
+function loadQrCodes(clientId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').get().then(function(snap){
+    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'tracker.html';
+    var html='<div class="qr-grid">';
+    snap.forEach(function(doc){
+      var d=doc.data();
+      var qrData=baseUrl+'?c='+clientId+'&q='+doc.id;
+      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+      html+='<div class="qr-item">'
+        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+        +'<div class="label">'+esc(d.label||doc.id)+'</div>'
+        +'<div class="id">'+qrData+'</div>'
+        +'<div style="margin-top:6px;display:flex;gap:4px;justify-content:center">'
+        +'<a href="'+qrImg+'" download="qr-'+doc.id+'.png" class="btn btn-sm btn-outline">⬇ Descargar</a>'
+        +'</div></div>';
+    });
+    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno arriba.</p>';
+    document.getElementById('modalQrList').innerHTML=html;
+  });
+}
+
+function addQrCode(){
+  var qrId=document.getElementById('newQrId').value.trim();
+  if(!qrId||!_currentClientId){toast('Escribe un ID para el QR');return}
+  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({
+    label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    document.getElementById('newQrId').value='';
+    toast('QR generado exitosamente');
+    loadQrCodes(_currentClientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function generateManualQr(){
+  var clientId=document.getElementById('manualClient').value;
+  var qrId=document.getElementById('manualQrId').value.trim();
+  if(!qrId){toast('Escribe un ID para el QR');return}
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({
+    label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'tracker.html';
+    var qrData=baseUrl+'?c='+clientId+'&q='+qrId;
+    var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+    document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado:</p>'
+      +'<img src="'+qrImg+'" style="max-width:200px;border-radius:8px;display:block;margin-bottom:8px"/>'
+      +'<a href="'+qrImg+'" download="qr-'+qrId+'.png" class="btn btn-sm btn-primary">⬇ Descargar</a>'
+      +'<p style="font-size:11px;color:#888;margin-top:6px;word-break:break-all">'+qrData+'</p>';
+    document.getElementById('manualQrId').value='';
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function createClient(){
+  var name=document.getElementById('ncName').value.trim();
+  var wa=document.getElementById('ncWhatsapp').value.trim();
+  var tgToken=document.getElementById('ncTelegramToken').value.trim();
+  var tgChat=document.getElementById('ncTelegramChat').value.trim();
+  var email=document.getElementById('ncEmail').value.trim();
+  var pass=document.getElementById('ncPass').value;
+  var waMsg=document.getElementById('ncWaMsg').value.trim();
+  if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
+  var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(newId).set({
+    name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,
+    email:email,dashboardPass:pass,waMessage:waMsg,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
+    document.getElementById('ncName').value='';document.getElementById('ncWhatsapp').value='';
+    document.getElementById('ncTelegramToken').value='';document.getElementById('ncTelegramChat').value='';
+    document.getElementById('ncEmail').value='';document.getElementById('ncPass').value='';
+    document.getElementById('ncWaMsg').value='';
+    toast('Cliente creado exitosamente');
+  }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+}
+
+function saveClient(){
+  if(!_currentClientId) return;
+  var data={
+    name:document.getElementById('editName').value.trim(),
+    whatsapp:document.getElementById('editWhatsapp').value.trim(),
+    telegramToken:document.getElementById('editTelegramToken').value.trim(),
+    telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+    waMessage:document.getElementById('editWaMsg').value.trim()
+  };
+  QR_DB.collection('clients').doc(_currentClientId).update(data).then(function(){
+    document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';
+    toast('Cambios guardados');
+  }).catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+}
+
+function deleteClient(){
+  if(!_currentClientId||!confirm('¿Eliminar este cliente y todos sus datos? No se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(_currentClientId).delete().then(function(){
+    toast('Cliente eliminado');
+    closeClientModal();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+</script>
+</body>
+</html>
