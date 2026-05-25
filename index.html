@@ -142,7 +142,8 @@ function submitLead(){
       ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||'',
       device:info.device,os:info.os,browser:info.browser,screen:info.screen,
       timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
-      leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message
+      leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
+      status:'new',deleted:false
     };
     return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
   }).then(function(scanData){
