@@ -171,6 +171,12 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label data-lang="clientEmail">Email del cliente <small data-lang="forDashboard">(para su dashboard)</small></label><input id="ncEmail" placeholder="cliente@email.com" /></div>
       <div class="form-group"><label data-lang="dashboardPass">Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
       <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto que aparece precargado en el formulario)</small></label><textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+      <h3 style="font-size:14px;margin-bottom:10px" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
+      <div class="form-group"><label>EmailJS Public Key</label><input id="ncEmailjsKey" placeholder="abc123def456" /></div>
+      <div class="form-group"><label>EmailJS Service ID</label><input id="ncEmailjsService" placeholder="service_abc123" /></div>
+      <div class="form-group"><label>EmailJS Template ID</label><input id="ncEmailjsTemplate" placeholder="template_abc123" /></div>
+      <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</small></label><input id="ncAutoReplyPhone" placeholder="953801340" /></div>
       <button class="btn btn-primary" onclick="createClient()" data-lang="createClient">Crear Cliente</button>
       <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
     </div>
@@ -252,6 +258,13 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="editTelegramChat" placeholder="-1001234567890" /></div>
       <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
       <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+      <h3 style="font-size:14px;margin-bottom:10px" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:10px" data-lang="emailAutoReplyDesc">Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.</p>
+      <div class="form-group"><label>EmailJS Public Key</label><input id="editEmailjsKey" placeholder="ej: abc123def456" /></div>
+      <div class="form-group"><label>EmailJS Service ID</label><input id="editEmailjsService" placeholder="ej: service_abc123" /></div>
+      <div class="form-group"><label>EmailJS Template ID</label><input id="editEmailjsTemplate" placeholder="ej: template_abc123" /></div>
+      <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto <small data-lang="autoReplyPhoneDesc">(aparece en el email auto-respuesta)</small></label><input id="editAutoReplyPhone" placeholder="953801340" /></div>
       <button class="btn btn-primary" onclick="saveClient()" data-lang="saveChanges">Guardar cambios</button>
       <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px" data-lang="trash">🗑 Papelera</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
@@ -304,7 +317,9 @@ var _TRANS={
     saveChanges:'Guardar cambios',trash:'🗑 Papelera',
     selectQrType:'Selecciona el tipo de QR y genera:',generateQr:'Generar QR',
     newClientTitle:'Crear nuevo cliente',clientEmail:'Email del cliente',
-    forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente'
+    forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente',
+    emailAutoReply:'📧 Auto-respuesta por Email',emailAutoReplyDesc:'Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.',
+    autoReplyPhoneLabel:'Teléfono de contacto',autoReplyPhoneDesc:'(aparece en el email auto-respuesta)'
   },
   en:{
     code:'en',label:'🇺🇸 English',lang:'en',other:'es',
@@ -330,7 +345,9 @@ var _TRANS={
     saveChanges:'Save changes',trash:'🗑 Trash',
     selectQrType:'Select QR type and generate:',generateQr:'Generate QR',
     newClientTitle:'Create new client',clientEmail:'Client email',
-    forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client'
+    forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client',
+    emailAutoReply:'📧 Email auto-reply',emailAutoReplyDesc:'Configure EmailJS (free: emailjs.com) to send auto-reply to lead when they scan the QR.',
+    autoReplyPhoneLabel:'Contact phone',autoReplyPhoneDesc:'(appears in the auto-reply email)'
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
@@ -460,6 +477,10 @@ function openClient(id){
     document.getElementById('editTelegramToken').value=d.telegramToken||'';document.getElementById('editTelegramChat').value=d.telegramChatId||'';
     document.getElementById('editTelegramUser').value=d.telegramUser||'';
     document.getElementById('editWaMsg').value=d.waMessage||'';
+    document.getElementById('editEmailjsKey').value=d.emailjsKey||'';
+    document.getElementById('editEmailjsService').value=d.emailjsService||'';
+    document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
+    document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
   });
@@ -675,11 +696,13 @@ function createClient(){
   var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
   var tgUser=document.getElementById('ncTelegramUser').value.trim().replace(/^@/,'');
   var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
+  var ejKey=document.getElementById('ncEmailjsKey').value.trim(),ejSvc=document.getElementById('ncEmailjsService').value.trim();
+  var ejTpl=document.getElementById('ncEmailjsTemplate').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg'].forEach(function(id){document.getElementById(id).value=''});
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone'].forEach(function(id){document.getElementById(id).value=''});
     toast('Cliente creado exitosamente');
   }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
@@ -690,7 +713,11 @@ function saveClient(){
     name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
     telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
     telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
-    waMessage:document.getElementById('editWaMsg').value.trim()
+    waMessage:document.getElementById('editWaMsg').value.trim(),
+    emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
+    emailjsService:document.getElementById('editEmailjsService').value.trim(),
+    emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
+    autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim()
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
