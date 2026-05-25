@@ -499,8 +499,12 @@ function loadLeads(){
     var all=[];var pending=snap.size;if(!pending){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">'+__('noClients')+'</p>';return}
     snap.forEach(function(cdoc){
       var cname=cdoc.data().name||'—';
-      QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('status','==','new').limit(50).get().then(function(ssnap){
-        ssnap.forEach(function(sdoc){var d=sdoc.data();if(d.deleted)return;d._clientName=cname;d._clientId=cdoc.id;d._scanId=sdoc.id;d._ts=d.timestamp?d.timestamp.seconds*1000:0;all.push(d)});
+      QR_DB.collection('clients').doc(cdoc.id).collection('scans').limit(50).get().then(function(ssnap){
+        ssnap.forEach(function(sdoc){
+          var d=sdoc.data();if(d.deleted)return;
+          var st=d.status||'new';if(st==='closed')return;
+          d._clientName=cname;d._clientId=cdoc.id;d._scanId=sdoc.id;d._ts=d.timestamp?d.timestamp.seconds*1000:0;all.push(d)
+        });
         pending--;
         if(pending===0){all.sort(function(a,b){return b._ts-a._ts});renderLeads(all)}
       }).catch(function(e){console.warn('Leads query error:',e);pending--;if(pending===0)renderLeads(all)});
