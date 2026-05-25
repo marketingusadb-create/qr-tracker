@@ -35,7 +35,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 .client-card h3{font-size:15px;margin-bottom:4px}
 .client-card .meta{font-size:12px;color:#888;margin-bottom:10px}
 .qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-.qr-item{text-align:center;padding:16px;background:#fafafa;border-radius:10px;border:1px solid #eee}
+.qr-item{text-align:center;padding:16px;background:#fafafa;border-radius:10px;border:1px solid #eee;position:relative}
 .qr-item img{width:100%;max-width:200px;border-radius:8px;display:block;margin:0 auto 8px}
 .qr-item .label{font-size:12px;color:#888;margin-bottom:4px}
 .qr-item .id{font-size:10px;color:#aaa;word-break:break-all}
@@ -134,10 +134,17 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <button class="tab" onclick="switchTab('newClient',this)">+ Nuevo Cliente</button>
     <button class="tab" onclick="switchTab('flyer',this)">Flyer</button>
     <button class="tab" onclick="switchTab('settings',this)">Config</button>
+    <button class="tab" onclick="switchTab('trash',this)">🗑 Papelera</button>
   </div>
 
   <div id="tab-clients" class="tab-content active">
     <div class="client-list" id="clientList"></div>
+  </div>
+
+  <div id="tab-trash" class="tab-content">
+    <h2 style="font-size:18px;margin-bottom:16px">🗑 Papelera</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:16px">Clientes y códigos QR eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+    <div id="trashList"></div>
   </div>
 
   <div id="tab-newClient" class="tab-content">
@@ -229,7 +236,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
       <div class="form-group"><label>Mensaje de WhatsApp <small>(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
       <button class="btn btn-primary" onclick="saveClient()">Guardar cambios</button>
-      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px">Eliminar cliente</button>
+      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px">🗑 Papelera</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
     </div>
   </div>
@@ -273,7 +280,8 @@ QR_AUTH.onAuthStateChanged(function(u){if(u){document.getElementById('loginBox')
 function switchTab(t,btn){
   document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
   document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
-  btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active')
+  btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active');
+  if(t==='trash') loadDeletedClients()
 }
 function switchModalTab(t,btn){
   document.querySelectorAll('#clientModal .tab').forEach(function(e){e.classList.remove('active')});
@@ -284,10 +292,20 @@ function switchModalTab(t,btn){
 function loadClients(){
   QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
     _clients=[];var html='';
-    snap.forEach(function(doc){var d=doc.data();d._id=doc.id;_clients.push(d);
-      html+='<div class="client-card" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div><div style="font-size:12px;color:#888">🆔 '+doc.id+'</div></div>'});
+    snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;d._id=doc.id;_clients.push(d);
+      html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div><div style="font-size:12px;color:#888">🆔 '+doc.id+'</div></div><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" style="flex-shrink:0" title="Enviar a papelera">🗑</button></div></div>'});
     if(!html) html='<p style="color:#888;text-align:center;padding:40px">No hay clientes aún.</p>';
     document.getElementById('clientList').innerHTML=html;populateManualSelect();populateFlyerSelect()
+  });
+}
+
+function loadDeletedClients(){
+  QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
+    var html='';
+    snap.forEach(function(doc){var d=doc.data();if(!d.deleted)return;
+      html+='<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🗑 Eliminado'+(d.deletedAt?' '+new Date(d.deletedAt.seconds*1000).toLocaleString('es-CO'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreClient(\''+doc.id+'\')" class="btn btn-sm btn-success">↩ Restaurar</button><button onclick="permanentDeleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑 Eliminar</button></div></div></div>'});
+    if(!html) html='<p style="color:#888;text-align:center;padding:40px">Papelera vacía.</p>';
+    document.getElementById('trashList').innerHTML=html
   });
 }
 function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
@@ -352,12 +370,18 @@ function loadQrCodes(clientId){
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
       var subj=encodeURIComponent('Mi código QR - '+esc(d.label||doc.id));
       var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
-      html+='<div class="qr-item"><img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+      var deleted=d.deleted?' style="opacity:.4"':'';
+      html+='<div class="qr-item"'+deleted+'>'
+        +(d.deleted?'<div style="position:absolute;top:8px;left:8px;background:#e74c3c;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">🗑 Eliminado</div>':'')
+        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
         +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
         +'<div class="id">'+qrData+'</div>'
         +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
         +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?'🔴 Desactivar':'🟢 Activar')+'</button>'
         +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
+        +(d.deleted
+          ?'<button onclick="restoreQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-success">↩ Restaurar</button>'
+          :'<button onclick="deleteQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑</button>')
         +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline">📧</a>'
         +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
         +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
@@ -374,15 +398,17 @@ function toggleQrStatus(clientId,qrId,newStatus){
     loadQrCodes(clientId);
   }).catch(function(err){toast('Error: '+err.message)});
 }
-
-function genId(){return 'qr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-
-function downloadQr(url,name){
-  fetch(url).then(function(r){return r.blob()}).then(function(b){
-    var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href)
-  }).catch(function(){toast('Error al descargar')});
+function deleteQrCode(clientId,qrId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('QR enviado a la papelera');loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
 }
+function restoreQrCode(clientId,qrId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    toast('QR restaurado');loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
 
 function addQrCode(){
   var qrId=document.getElementById('newQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
@@ -436,9 +462,22 @@ function saveClient(){
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
 
-function deleteClient(){
-  if(!_currentClientId||!confirm('¿Eliminar este cliente y todos sus datos? No se puede deshacer.')) return;
-  QR_DB.collection('clients').doc(_currentClientId).delete().then(function(){toast('Cliente eliminado');closeClientModal()}).catch(function(err){toast('Error: '+err.message)});
+function deleteClient(id){
+  if(!id) id=_currentClientId;
+  if(!id) return;
+  QR_DB.collection('clients').doc(id).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('Cliente enviado a la papelera');
+    if(_currentClientId===id) closeClientModal();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function restoreClient(id){
+  QR_DB.collection('clients').doc(id).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast('Cliente restaurado');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+
+function permanentDeleteClient(id){
+  if(!confirm('¿Eliminar PERMANENTEMENTE este cliente? No se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(id).delete().then(function(){toast('Cliente eliminado permanentemente');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
 }
 
 /* Flyer Pro */
