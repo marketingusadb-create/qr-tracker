@@ -26,6 +26,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .error h2{color:#e74c3c;font-size:18px;margin-bottom:8px}
 .error p{color:#888;font-size:13px;margin-bottom:16px}
 .error .btn{background:#25D366;color:#000;display:inline-block;width:auto;padding:12px 24px}
+.service-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.service-badge.whatsapp{background:#dcfce7;color:#16a34a}
+.service-badge.telegram{background:#dbeafe;color:#1d4ed8}
+.service-badge.sms{background:#fef3c7;color:#b45309}
+.service-badge.teams{background:#f3e8ff;color:#7c3aed}
 .privacy{font-size:11px;color:#555;text-align:center;margin-top:12px}
 </style>
 </head>
@@ -34,6 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div id="formContent">
     <h1>📩 Contacto</h1>
     <p class="sub" id="businessName">-enviando información-</p>
+    <div class="service-badge" id="serviceBadge">💬 WhatsApp</div>
     <div class="form-group">
       <label>Nombre</label>
       <input id="leadName" type="text" placeholder="Tu nombre" required />
@@ -50,7 +56,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <label>Mensaje</label>
       <textarea id="leadMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
     </div>
-    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar y contactar por WhatsApp</button>
+    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar</button>
     <p class="privacy">Tus datos serán compartidos con el negocio que te contacta</p>
   </div>
   <div class="loader" id="loader">
@@ -73,7 +79,10 @@ firebase.initializeApp(FBC,"qrTracker");var DB=firebase.firestore(firebase.app("
 var params=new URLSearchParams(location.search);
 var clientId=params.get('c')||params.get('id');
 var qrId=params.get('q')||params.get('qr');
+var _serviceType=params.get('s')||'whatsapp';
 var _clientData=null;
+var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
+var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
 function $(id){return document.getElementById(id)}
 
@@ -100,9 +109,9 @@ function getDeviceInfo(){
 }
 
 function notifyTelegram(leadData,scanData){
-  var c=_clientData;if(!c){console.warn('no _clientData');return}
+  var c=_clientData;if(!c)return
   var token=c.telegramToken,chatId=c.telegramChatId;
-  if(!token||!chatId){console.warn('Telegram no configurado',token,chatId);return}
+  if(!token||!chatId)return
   var msg='<b>📩 Nuevo Lead recibido</b>\n'
     +'👤 '+esc(leadData.name)+'\n'
     +'📧 '+(leadData.email||'—')+'\n'
@@ -114,7 +123,7 @@ function notifyTelegram(leadData,scanData){
     +'📱 '+scanData.device+' | '+scanData.os+'\n'
     +'🆔 QR: '+(scanData.qrId||'—');
   var url='https://api.telegram.org/bot'+token+'/sendMessage';
-  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'})}).catch(function(e){console.warn('Telegram error',e)});
+  navigator.sendBeacon(url,JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -138,11 +147,23 @@ function submitLead(){
     return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
   }).then(function(scanData){
     notifyTelegram(lead,scanData);
-    var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
-    var waUrl='https://wa.me/'+wa;
-    var msg=lead.message||_clientData.waMessage||'Hola';
-    if(msg)waUrl+='?text='+encodeURIComponent(msg+' - '+lead.name);
-    location.href=waUrl;
+    var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
+    var url='';
+    if(_serviceType==='telegram'){
+      var tu=_clientData.telegramUser||'';
+      if(tu) url='https://t.me/'+tu+'?text='+msg;
+      else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+    }else if(_serviceType==='sms'){
+      url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
+    }else if(_serviceType==='teams'){
+      var em=encodeURIComponent(_clientData.email||'');
+      if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
+      else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
+    }else{
+      url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+    }
+    if(url) location.href=url;
+    else showError('El servicio no está configurado.');
   }).catch(function(){
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
     if(wa) location.href='https://wa.me/'+wa;
@@ -163,6 +184,8 @@ else{
     if(!clientDoc.exists){showError('El negocio no está registrado.');return}
     _clientData=clientDoc.data();
     $('businessName').textContent=_clientData.name||'Contáctanos';
+    var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
+    $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');
     $('leadMsg').placeholder=_clientData.waMessage||'Hola, escaneé tu código QR y me gustaría recibir información...';
     if(_clientData.waMessage) $('leadMsg').value=_clientData.waMessage;
   }).catch(function(err){showError('Error de conexión.');console.error(err)});
