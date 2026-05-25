@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Redireccionando...</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}
+.loader{text-align:center;padding:40px}
+.spinner{width:48px;height:48px;border:4px solid #222;border-top-color:#25D366;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader h2{font-size:20px;margin-bottom:8px;color:#fff}
+.loader p{font-size:14px;color:#666}
+.error{display:none;max-width:400px;margin:40px auto;padding:30px;background:#1a1a1a;border-radius:16px;text-align:center}
+.error h2{color:#e74c3c;margin-bottom:10px}
+.error p{color:#999;font-size:14px;margin-bottom:20px}
+.error a{display:inline-block;padding:12px 28px;background:#25D366;color:#fff;text-decoration:none;border-radius:10px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <h2>Conectando...</h2>
+  <p>Te estamos redirigiendo al contacto</p>
+</div>
+<div class="error" id="error">
+  <h2>⚠️ Error</h2>
+  <p id="errorMsg">Este código QR no es válido, ha expirado o ha sido desactivado.</p>
+  <a href="https://wa.me/1234567890">Contactar por WhatsApp</a>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+var QR_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
+  authDomain: "qr-tracker-crm.firebaseapp.com",
+  projectId: "qr-tracker-crm",
+  storageBucket: "qr-tracker-crm.firebasestorage.app",
+  messagingSenderId: "1085744853871",
+  appId: "1:1085744853871:web:9a9f8413ee352ca55cae9a"
+};
+firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
+var QR_DB = firebase.firestore(firebase.app("qrTracker"));
+</script>
+<script>
+var params=new URLSearchParams(location.search);
+var clientId=params.get('c')||params.get('id');
+var qrId=params.get('q')||params.get('qr');
+
+function showError(msg){
+  document.getElementById('loader').style.display='none';
+  var e=document.getElementById('error');
+  e.style.display='block';
+  document.getElementById('errorMsg').textContent=msg||'Este código QR no es válido.';
+}
+
+function getDeviceInfo(){
+  var ua=navigator.userAgent;
+  var mobile=/Mobi|Android/i.test(ua)?'Mobile':'Desktop';
+  var os='Unknown';
+  if(/Windows/.test(ua)) os='Windows';
+  else if(/Mac OS/.test(ua)) os='macOS';
+  else if(/Android/.test(ua)) os='Android';
+  else if(/iPhone|iPad/.test(ua)) os='iOS';
+  else if(/Linux/.test(ua)) os='Linux';
+  var browser='Unknown';
+  if(/Chrome/.test(ua)&&!/Edg/.test(ua)) browser='Chrome';
+  else if(/Firefox/.test(ua)) browser='Firefox';
+  else if(/Safari/.test(ua)&&!/Chrome/.test(ua)) browser='Safari';
+  else if(/Edg/.test(ua)) browser='Edge';
+  var scr=screen.width+'x'+screen.height;
+  return{device:mobile,os:os,browser:browser,screen:scr,userAgent:ua};
+}
+
+function notifyTelegram(token,chatId,data){
+  if(!token||!chatId) return;
+  var msg='🔍 *Nuevo Scan QR*\n'
+    +'📅 '+new Date().toLocaleString('es-CO')+'\n'
+    +'🌐 IP: '+data.ip+'\n'
+    +'📍 '+[data.country,data.city,data.isp].filter(Boolean).join(', ')+'\n'
+    +'📱 '+data.device+' | '+data.os+'\n'
+    +'🌍 '+data.browser+'\n'
+    +'🖥 '+data.screen+'\n'
+    +'🆔 QR: '+(data.qrId||'—');
+  var url='https://api.telegram.org/bot'+token+'/sendMessage';
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:'Markdown'})}).catch(function(){});
+}
+
+function saveScan(clientDoc,qrId){
+  return fetch('https://ipapi.co/json/')
+    .then(function(r){return r.json()})
+    .then(function(geo){
+      var info=getDeviceInfo();
+      var scan={
+        ip:geo.ip||'',
+        country:geo.country_name||'',
+        city:geo.city||'',
+        isp:geo.org||'',
+        device:info.device,
+        os:info.os,
+        browser:info.browser,
+        screen:info.screen,
+        userAgent:info.userAgent,
+        qrId:qrId||'',
+        timestamp:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      return QR_DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){
+        return scan;
+      });
+    });
+}
+
+if(!clientId||!qrId){
+  showError();
+} else {
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get()
+    .then(function(qrDoc){
+      if(!qrDoc.exists){ showError('Este código QR no está registrado.'); return null; }
+      var qrData=qrDoc.data();
+      if(qrData.active===false){ showError('Este código QR ha sido desactivado.'); return null; }
+      return qrDoc;
+    })
+    .then(function(qrDoc){
+      if(!qrDoc) return;
+      return QR_DB.collection('clients').doc(clientId).get().then(function(clientDoc){
+        if(!clientDoc.exists){ showError('El cliente no está registrado.'); return null; }
+        return {client:clientDoc.data(),qrId:qrDoc.id};
+      });
+    })
+    .then(function(data){
+      if(!data) return;
+      var wa=data.client.whatsapp||data.client.phone;
+      if(!wa){ showError('El contacto no está configurado.'); return; }
+      saveScan(clientId,qrId).then(function(scanData){
+        if(scanData) notifyTelegram(data.client.telegramToken,data.client.telegramChatId,scanData);
+        var waUrl='https://wa.me/'+wa;
+        var msg=data.client.waMessage||'Hola, escaneé tu código QR';
+        if(msg) waUrl+='?text='+encodeURIComponent(msg);
+        location.href=waUrl;
+      }).catch(function(){
+        var waUrl='https://wa.me/'+wa;
+        location.href=waUrl;
+      });
+    })
+    .catch(function(err){
+      console.error(err);
+      showError('Error de conexión. Intenta de nuevo.');
+    });
+}
+</script>
+</body>
+</html>
