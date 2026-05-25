@@ -118,24 +118,27 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   <h1>🔐 QR Tracker Admin</h1>
   <input id="loginEmail" type="email" placeholder="Email" />
   <input id="loginPass" type="password" placeholder="Contraseña" />
-  <button class="btn btn-primary" onclick="login()">Ingresar</button>
-  <p style="margin-top:12px;font-size:12px;color:#888">o <a href="#" onclick="showRegister()" style="color:#2563eb">crear cuenta nueva</a></p>
+  <button class="btn btn-primary" onclick="login()"><span data-lang="loginBtn">Ingresar</span></button>
+  <p style="margin-top:12px;font-size:12px;color:#888">o <a href="#" onclick="showRegister()" style="color:#2563eb" data-lang="createAccount">crear cuenta nueva</a></p>
   <div id="loginError" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none"></div>
 </div>
 
 <div id="app" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
-    <button class="btn btn-sm btn-outline no-print" onclick="logout()">Cerrar sesión</button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-sm btn-outline no-print" onclick="toggleLang()" id="langBtn">🇺🇸 EN</button>
+      <button class="btn btn-sm btn-outline no-print" onclick="logout()"><span data-lang="logout">Cerrar sesión</span></button>
+    </div>
   </div>
 
   <div class="tabs no-print">
-    <button class="tab active" onclick="switchTab('clients',this)">Clientes</button>
-    <button class="tab" onclick="switchTab('newClient',this)">+ Nuevo Cliente</button>
-    <button class="tab" onclick="switchTab('flyer',this)">Flyer</button>
-    <button class="tab" onclick="switchTab('leads',this)">📩 Leads</button>
-    <button class="tab" onclick="switchTab('settings',this)">Config</button>
-    <button class="tab" onclick="switchTab('trash',this)">🗑 Papelera</button>
+    <button class="tab active" onclick="switchTab('clients',this)"><span data-lang="clientsTitle">Clientes</span></button>
+    <button class="tab" onclick="switchTab('newClient',this)"><span data-lang="newClient">+ Nuevo Cliente</span></button>
+    <button class="tab" onclick="switchTab('flyer',this)"><span data-lang="flyerTitle">Flyer</span></button>
+    <button class="tab" onclick="switchTab('leads',this)"><span data-lang="leadsTitle">📩 Leads</span></button>
+    <button class="tab" onclick="switchTab('settings',this)"><span data-lang="configTitle">Config</span></button>
+    <button class="tab" onclick="switchTab('trash',this)"><span data-lang="trashTitle">🗑 Papelera</span></button>
   </div>
 
   <div id="tab-clients" class="tab-content active">
@@ -144,31 +147,31 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 
   <div id="tab-leads" class="tab-content">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h2 style="font-size:18px">📩 Leads nuevos</h2>
-      <button class="btn btn-sm btn-success" onclick="exportLeads()">📊 Exportar Excel</button>
+      <h2 style="font-size:18px" data-lang="leadNew">📩 Leads nuevos</h2>
+      <button class="btn btn-sm btn-success" onclick="exportLeads()" data-lang="exportLeadsBtn">📊 Exportar Excel</button>
     </div>
-    <p style="font-size:13px;color:#888;margin-bottom:16px">Todos los scans sin contactar de todos los clientes.</p>
+    <p style="font-size:13px;color:#888;margin-bottom:16px" data-lang="leadDesc">Todos los scans sin contactar de todos los clientes.</p>
     <div id="leadsList"><p style="color:#888;text-align:center;padding:40px">Cargando...</p></div>
   </div>
 
   <div id="tab-trash" class="tab-content">
-    <h2 style="font-size:18px;margin-bottom:16px">🗑 Papelera</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:16px">Clientes y códigos QR eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+    <h2 style="font-size:18px;margin-bottom:16px" data-lang="trashTitle">🗑 Papelera</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:16px" data-lang="trashDesc">Clientes, QR y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
     <div id="trashList"></div>
   </div>
 
   <div id="tab-newClient" class="tab-content">
     <div class="card">
-      <h2>Crear nuevo cliente</h2>
-      <div class="form-group"><label>Nombre del negocio</label><input id="ncName" placeholder="Ej: Mi Empresa" /></div>
-      <div class="form-group"><label>WhatsApp <small>(a donde redirige el QR)</small></label><input id="ncWhatsapp" placeholder="Código país + número, sin + ni espacios. Ej: 573001234567" /></div>
+      <h2 data-lang="newClientTitle">Crear nuevo cliente</h2>
+      <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="ncName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="ncWhatsapp" placeholder="Código país + número, sin + ni espacios. Ej: 573001234567" /></div>
       <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="ncTelegramToken" placeholder="123456789:ABCdefGHIjklMNO..." /></div>
       <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="ncTelegramChat" placeholder="-1001234567890" /></div>
       <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="ncTelegramUser" placeholder="usuario_sin_@" /></div>
-      <div class="form-group"><label>Email del cliente <small>(para su dashboard)</small></label><input id="ncEmail" placeholder="cliente@email.com" /></div>
-      <div class="form-group"><label>Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
-      <div class="form-group"><label>Mensaje de WhatsApp <small>(texto que aparece precargado en el formulario)</small></label><textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
-      <button class="btn btn-primary" onclick="createClient()">Crear Cliente</button>
+      <div class="form-group"><label data-lang="clientEmail">Email del cliente <small data-lang="forDashboard">(para su dashboard)</small></label><input id="ncEmail" placeholder="cliente@email.com" /></div>
+      <div class="form-group"><label data-lang="dashboardPass">Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
+      <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto que aparece precargado en el formulario)</small></label><textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <button class="btn btn-primary" onclick="createClient()" data-lang="createClient">Crear Cliente</button>
       <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
     </div>
   </div>
@@ -217,19 +220,19 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <button style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#888" onclick="closeClientModal()">✕</button>
     <h2 id="modalClientName" style="margin-bottom:16px"></h2>
     <div class="tabs">
-      <button class="tab active" onclick="switchModalTab('scans',this)">Scans recibidos</button>
-      <button class="tab" onclick="switchModalTab('qrCodes',this)">Códigos QR</button>
-      <button class="tab" onclick="switchModalTab('edit',this)">Editar</button>
+      <button class="tab active" onclick="switchModalTab('scans',this)"><span data-lang="scansReceived">Scans recibidos</span></button>
+      <button class="tab" onclick="switchModalTab('qrCodes',this)"><span data-lang="qrCodes">Códigos QR</span></button>
+      <button class="tab" onclick="switchModalTab('edit',this)"><span data-lang="editClient">Editar</span></button>
     </div>
     <div id="mtab-scans" class="tab-content active">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:600">Escaneos recibidos</span>
-        <button class="btn btn-sm btn-success" onclick="exportClientScans()">📊 Exportar</button>
+        <span style="font-size:14px;font-weight:600" data-lang="scansReceived">Escaneos recibidos</span>
+        <button class="btn btn-sm btn-success" onclick="exportClientScans()"><span data-lang="exportBtn">📊 Exportar</span></button>
       </div>
       <div id="modalScanList"><p style="color:#888">Cargando...</p></div>
     </div>
     <div id="mtab-qrCodes" class="tab-content">
-      <p style="font-size:12px;color:#888;margin-bottom:8px">Selecciona el tipo de QR y genera:</p>
+      <p style="font-size:12px;color:#888;margin-bottom:8px" data-lang="selectQrType">Selecciona el tipo de QR y genera:</p>
       <div class="qr-type-select">
         <label class="active"><input type="radio" name="qrType" value="whatsapp" checked onchange="setQrType('whatsapp')" /> 💬 WhatsApp</label>
         <label><input type="radio" name="qrType" value="telegram" onchange="setQrType('telegram')" /> ✈️ Telegram</label>
@@ -238,19 +241,19 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       </div>
       <div style="margin-bottom:12px;display:flex;gap:8px">
         <input id="newQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" style="flex:1;margin:0" />
-        <button class="btn btn-primary btn-sm" onclick="addQrCode()">Generar QR</button>
+        <button class="btn btn-primary btn-sm" onclick="addQrCode()" data-lang="generateQr">Generar QR</button>
       </div>
       <div id="modalQrList"></div>
     </div>
     <div id="mtab-edit" class="tab-content">
-      <div class="form-group"><label>Nombre del negocio</label><input id="editName" placeholder="Ej: Mi Empresa" /></div>
-      <div class="form-group"><label>WhatsApp <small>(a donde redirige el QR)</small></label><input id="editWhatsapp" placeholder="573001234567" /></div>
+      <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="editName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label data-lang="whatsappRedirect">WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="editWhatsapp" placeholder="573001234567" /></div>
       <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="editTelegramToken" placeholder="123456789:ABC..." /></div>
       <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="editTelegramChat" placeholder="-1001234567890" /></div>
       <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
-      <div class="form-group"><label>Mensaje de WhatsApp <small>(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
-      <button class="btn btn-primary" onclick="saveClient()">Guardar cambios</button>
-      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px">🗑 Papelera</button>
+      <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <button class="btn btn-primary" onclick="saveClient()" data-lang="saveChanges">Guardar cambios</button>
+      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px" data-lang="trash">🗑 Papelera</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
     </div>
   </div>
@@ -275,21 +278,82 @@ var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
 </script>
 <script>
-var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp';
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es';
+var _TRANS={
+  es:{
+    code:'es',label:'🇪🇸 Español',lang:'es',other:'en',
+    noClients:'No hay clientes.',emptyTrash:'No hay nada en la papelera.',
+    restore:'Restaurar',deletePerm:'Eliminar permanentemente',deleted:'✅ Eliminado',restored:'✅ Restaurado',deletedPerm:'✅ Eliminado permanentemente',
+    clientsTitle:'Clientes',newClient:'+ Nuevo Cliente',flyerTitle:'Flyer',leadsTitle:'📩 Leads',configTitle:'Config',trashTitle:'🗑 Papelera',
+    loginMsg:'Ingresa email y contraseña',createAccount:'Crear cuenta',loginBtn:'Ingresar',
+    scansReceived:'Escaneos recibidos',exportBtn:'📊 Exportar',exportLeadsBtn:'📊 Exportar Excel',
+    fecha:'Fecha',nombre:'Nombre',emailTel:'Email / Tel',mensaje:'Mensaje',estado:'Estado',nota:'Nota',accion:'Acción',
+    statusNew:'🆕 Nuevo',statusContacted:'📞 Contactado',statusClosed:'✅ Cerrado',
+    leadNew:'Leads nuevos',leadDesc:'Todos los scans sin contactar de todos los clientes.',
+    whatsapp:'WhatsApp',email:'Email',sms:'SMS',
+    search:'Buscar cliente...',noResults:'Sin resultados',
+    editClient:'Editar cliente',save:'Guardar',cancel:'Cancelar',
+    trashDesc:'Clientes, QR y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.',
+    client:'Cliente',date:'Fecha',action:'Acción',passwordPlaceholder:'Contraseña (mín 6 caracteres)',
+    noScans:'Aún no hay scans.',clickEdit:'Click para editar',delete:'Eliminar',
+    noNewLeads:'No hay leads nuevos.',markContacted:'Marcar contactado',
+    qrCodes:'Códigos QR',logout:'Cerrar sesión',errorLoginRequired:'Ingresa email y contraseña',
+    deletedScans:'Scans eliminados',noDeletedScans:'No hay scans eliminados.',
+    businessName:'Nombre del negocio',whatsappRedirect:'WhatsApp',qrRedirect:'a donde redirige el QR',
+    waMessageLabel:'Mensaje de WhatsApp',waMessageDesc:'texto precargado en formulario',
+    saveChanges:'Guardar cambios',trash:'🗑 Papelera',
+    selectQrType:'Selecciona el tipo de QR y genera:',generateQr:'Generar QR',
+    newClientTitle:'Crear nuevo cliente',clientEmail:'Email del cliente',
+    forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente'
+  },
+  en:{
+    code:'en',label:'🇺🇸 English',lang:'en',other:'es',
+    noClients:'No clients found.',emptyTrash:'Trash is empty.',
+    restore:'Restore',deletePerm:'Delete permanently',deleted:'✅ Deleted',restored:'✅ Restored',deletedPerm:'✅ Permanently deleted',
+    clientsTitle:'Clients',newClient:'+ New Client',flyerTitle:'Flyer',leadsTitle:'📩 Leads',configTitle:'Settings',trashTitle:'🗑 Trash',
+    loginMsg:'Enter email and password',createAccount:'Create account',loginBtn:'Sign in',
+    scansReceived:'Scans received',exportBtn:'📊 Export',exportLeadsBtn:'📊 Export Excel',
+    fecha:'Date',nombre:'Name',emailTel:'Email / Phone',mensaje:'Message',estado:'Status',nota:'Note',accion:'Action',
+    statusNew:'🆕 New',statusContacted:'📞 Contacted',statusClosed:'✅ Closed',
+    leadNew:'New leads',leadDesc:'All uncontacted scans across all clients.',
+    whatsapp:'WhatsApp',email:'Email',sms:'SMS',
+    search:'Search client...',noResults:'No results',
+    editClient:'Edit client',save:'Save',cancel:'Cancel',
+    trashDesc:'Deleted clients, QR codes and scans. You can restore or permanently delete them.',
+    client:'Client',date:'Date',action:'Action',passwordPlaceholder:'Password (min 6 characters)',
+    noScans:'No scans yet.',clickEdit:'Click to edit',delete:'Delete',
+    noNewLeads:'No new leads.',markContacted:'Mark contacted',
+    qrCodes:'QR Codes',logout:'Sign out',errorLoginRequired:'Enter email and password',
+    deletedScans:'Deleted scans',noDeletedScans:'No deleted scans.',
+    businessName:'Business name',whatsappRedirect:'WhatsApp',qrRedirect:'QR redirect target',
+    waMessageLabel:'WhatsApp message',waMessageDesc:'preloaded message text',
+    saveChanges:'Save changes',trash:'🗑 Trash',
+    selectQrType:'Select QR type and generate:',generateQr:'Generate QR',
+    newClientTitle:'Create new client',clientEmail:'Client email',
+    forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client'
+  }
+};
+function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
+function toggleLang(){_LANG=_LANG==='es'?'en':'es';applyLang()}
+function applyLang(){
+  document.querySelectorAll('[data-lang]').forEach(function(e){e.textContent=__(e.dataset.lang)});
+  document.documentElement.lang=_LANG;
+  document.getElementById('langBtn').textContent=_LANG==='es'?'🇺🇸 EN':'🇪🇸 ES';
+}
 function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
 
-function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 Crear cuenta</h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="Contraseña (mín 6 caracteres)" /><button class="btn btn-primary" onclick="register()">Crear cuenta</button>'}
+function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 <span data-lang="createAccount">Crear cuenta</span></h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="'+__('passwordPlaceholder')+'" /><button class="btn btn-primary" onclick="register()"><span data-lang="createAccount">Crear cuenta</span></button>'}
 
 function register(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
 QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>'}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
 
-function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Ingresa email y contraseña';document.getElementById('loginError').style.display='block';return}
-QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent=__('errorLoginRequired');document.getElementById('loginError').style.display='block';return}
+QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients();applyLang()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
 
 function logout(){QR_AUTH.signOut();location.reload()}
-QR_AUTH.onAuthStateChanged(function(u){if(u){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=u.email;loadClients()}})
+QR_AUTH.onAuthStateChanged(function(u){if(u){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=u.email;loadClients();applyLang()}})
 
 function switchTab(t,btn){
   document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
@@ -309,18 +373,61 @@ function loadClients(){
     _clients=[];var html='';
     snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;d._id=doc.id;_clients.push(d);
       html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div><div style="font-size:12px;color:#888">🆔 '+doc.id+'</div></div><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" style="flex-shrink:0" title="Enviar a papelera">🗑</button></div></div>'});
-    if(!html) html='<p style="color:#888;text-align:center;padding:40px">No hay clientes aún.</p>';
+    if(!html) html='<p style="color:#888;text-align:center;padding:40px" data-lang="noClients">No hay clientes aún.</p>';
     document.getElementById('clientList').innerHTML=html;populateManualSelect();populateFlyerSelect()
   });
 }
 
+function clientTrashItem(id,d){
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.name||'—')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🗑 '+(d.deletedAt?new Date(d.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreClient(\''+id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permanentDeleteClient(\''+id+'\')" class="btn btn-sm btn-danger">🗑 '+__('deletePerm')+'</button></div></div></div>';
+}
+function qrTrashItem(cid,cname,qid,qd){
+  var baseUrl=getBaseUrl();var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+  var qrData=baseUrl+'?c='+cid+'&q='+qid+'&s='+(qd.type||'whatsapp');
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button></div></div></div>';
+}
 function loadDeletedClients(){
-  QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
-    var html='';
-    snap.forEach(function(doc){var d=doc.data();if(!d.deleted)return;
-      html+='<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🗑 Eliminado'+(d.deletedAt?' '+new Date(d.deletedAt.seconds*1000).toLocaleString('es-CO'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreClient(\''+doc.id+'\')" class="btn btn-sm btn-success">↩ Restaurar</button><button onclick="permanentDeleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑 Eliminar</button></div></div></div>'});
-    if(!html) html='<p style="color:#888;text-align:center;padding:40px">Papelera vacía.</p>';
-    document.getElementById('trashList').innerHTML=html
+  QR_DB.collectionGroup('qrCodes').where('deleted','==',true).get().then(function(qrSnap){
+    var deletedQrs={};
+    qrSnap.forEach(function(doc){var p=doc.ref.path;var cid=p.split('/')[1];if(!deletedQrs[cid])deletedQrs[cid]=[];deletedQrs[cid].push({id:doc.id,data:doc.data()})});
+    QR_DB.collection('clients').where('deleted','==',true).get().then(function(clientSnap){
+      var html='';
+      var deletedClients={};
+      clientSnap.forEach(function(doc){deletedClients[doc.id]=doc.data().name||'—';html+=clientTrashItem(doc.id,doc.data())});
+      // also show qr codes from non-deleted clients
+      QR_DB.collection('clients').where('deleted','!=',true).get().then(function(activeSnap){
+        activeSnap.forEach(function(doc){
+          var cid=doc.id;var qrs=deletedQrs[cid]||[];
+          qrs.forEach(function(q){html+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
+        });
+        // also show qr codes from deleted clients
+        clientSnap.forEach(function(doc){
+          var cid=doc.id;var qrs=deletedQrs[cid]||[];
+          qrs.forEach(function(q){html+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
+        });
+        // deleted scans
+        html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>';
+        var scanPromises=[];
+        QR_DB.collection('clients').get().then(function(allClients){
+          var sc=0;
+          allClients.forEach(function(cdoc){
+            scanPromises.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
+              ssnap.forEach(function(sdoc){
+                var d=sdoc.data();sc++;
+                html+='<div class="client-card" style="opacity:.6"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.leadName||'—')+'</h3>'
+                  +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cdoc.data().name||'—')+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
+                  +'<div><button onclick="restoreScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
+                  +'<button onclick="permDeleteScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
+              });
+            }));
+          });
+          Promise.all(scanPromises).then(function(){
+            if(!sc) html+= '<p style="color:#888;padding:10px" data-lang="noDeletedScans">No hay scans eliminados.</p>';
+            document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
+          });
+        });
+      });
+    });
   });
 }
 function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
@@ -359,61 +466,61 @@ function openClient(id){
 }
 function closeClientModal(){document.getElementById('clientModal').style.display='none';_currentClientId=null}
 
-function statusTxt(s){return s==='contacted'?'📞 Contactado':s==='closed'?'✅ Cerrado':'🆕 Nuevo'}
+function statusTxt(s){return s==='contacted'?__('statusContacted'):s==='closed'?__('statusClosed'):__('statusNew')}
 function statusCls(s){return s==='contacted'?'badge-active':s==='closed'?'badge-inactive':'badge-mobile'}
 
 function loadScans(clientId){
   QR_DB.collection('clients').doc(clientId).collection('scans').orderBy('timestamp','desc').limit(100).onSnapshot(function(snap){
-    var html='<table class="scan-table"><thead><tr><th>Fecha</th><th>Nombre</th><th>Email / Tel</th><th>Mensaje</th><th>Estado</th><th>Nota</th><th>Acción</th></tr></thead><tbody>';var c=0;
+    var html='<table class="scan-table"><thead><tr><th>'+__('fecha')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>'+__('estado')+'</th><th>'+__('nota')+'</th><th>'+__('accion')+'</th></tr></thead><tbody>';var c=0;
     snap.forEach(function(doc){c++;var d=doc.data();if(d.deleted)return;
       var st=d.status||'new';var ph=d.leadPhone||'';var em=d.leadEmail||'';
       var msg=encodeURIComponent(d.leadMessage||'Hola, gracias por contactarnos');
-      html+='<tr'+(st==='closed'?' style="opacity:.5"':'')+'><td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—')+'</td>'
+      html+='<tr'+(st==='closed'?' style="opacity:.5"':'')+'><td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
         +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
         +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
         +'<td style="font-size:11px;color:#555;max-width:200px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
         +'<td><span class="badge '+statusCls(st)+'" onclick="updateScanStatus(\''+clientId+'\',\''+doc.id+'\',\''+st+'\')" style="cursor:pointer">'+statusTxt(st)+'</span></td>'
-        +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#888;min-width:80px;cursor:text" title="Click para editar">'+esc(d.note||'')+'</td>'
+        +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#888;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
         +'<td style="white-space:nowrap">'
-        +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="WhatsApp">📲</a>':'')
-        +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="SMS">💬</a>':'')
+        +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+        +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
         +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Google Voice">📞</a>':'')
         +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Microsoft SMS">💻</a>':'')
-        +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Email">📧</a>':'')
-        +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="Eliminar">🗑</button>'
+        +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+        +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
         +'</td></tr>'});
-    html+='</tbody></table>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">Aún no hay scans.</p>';
+    html+='</tbody></table>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">'+__('noScans')+'</p>';
     document.getElementById('modalScanList').innerHTML=html;
   });
 }
 
 function loadLeads(){
   QR_DB.collection('clients').orderBy('createdAt','desc').get().then(function(snap){
-    var all=[];var pending=snap.size;if(!pending){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">No hay clientes.</p>';return}
+    var all=[];var pending=snap.size;if(!pending){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">'+__('noClients')+'</p>';return}
     snap.forEach(function(cdoc){
       var cname=cdoc.data().name||'—';
-      QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('status','==','new').orderBy('timestamp','desc').limit(50).get().then(function(ssnap){
-        ssnap.forEach(function(sdoc){var d=sdoc.data();if(d.deleted)return;d._clientName=cname;d._clientId=cdoc.id;d._scanId=sdoc.id;all.push(d)});
+      QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('status','==','new').limit(50).get().then(function(ssnap){
+        ssnap.forEach(function(sdoc){var d=sdoc.data();if(d.deleted)return;d._clientName=cname;d._clientId=cdoc.id;d._scanId=sdoc.id;d._ts=d.timestamp?d.timestamp.seconds*1000:0;all.push(d)});
         pending--;
-        if(pending===0) renderLeads(all);
-      }).catch(function(){pending--;if(pending===0)renderLeads(all)});
+        if(pending===0){all.sort(function(a,b){return b._ts-a._ts});renderLeads(all)}
+      }).catch(function(e){console.warn('Leads query error:',e);pending--;if(pending===0)renderLeads(all)});
     });
   });
 }
 function renderLeads(all){
-  if(!all.length){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">No hay leads nuevos. 🎉</p>';return}
-  var html='<table class="scan-table"><thead><tr><th>Cliente</th><th>Fecha</th><th>Nombre</th><th>Email / Tel</th><th>Mensaje</th><th>Acción</th></tr></thead><tbody>';
+  if(!all.length){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">🎉 '+__('noNewLeads')+'</p>';return}
+  var html='<table class="scan-table"><thead><tr><th>'+__('client')+'</th><th>'+__('date')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>'+__('action')+'</th></tr></thead><tbody>';
   all.forEach(function(d){
     var ph=d.leadPhone||'';var em=d.leadEmail||'';var msg=encodeURIComponent(d.leadMessage||'Hola');
     html+='<tr><td style="font-size:11px;color:#2563eb"><b>'+esc(d._clientName)+'</b></td>'
-      +'<td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'—')+'</td>'
+      +'<td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
       +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
       +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
       +'<td style="font-size:11px;color:#555">'+esc((d.leadMessage||'—').slice(0,80))+'</td>'
       +'<td style="white-space:nowrap">'
-      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="WhatsApp">📲</a>':'')
-      +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Email">📧</a>':'')
-      +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="Marcar contactado">📞</button>'
+      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+      +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+      +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('markContacted')+'">📞</button>'
       +'</td></tr>';
   });
   html+='</tbody></table>';
@@ -468,7 +575,13 @@ function updateScanNote(clientId,scanId,note){
   QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({note:note}).catch(function(err){toast('Error: '+err.message)});
 }
 function deleteScan(clientId,scanId){
-  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true}).then(function(){toast('Scan eliminado')}).catch(function(err){toast('Error: '+err.message)});
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){toast(__('deleted'))}).catch(function(err){toast('Error: '+err.message)});
+}
+function restoreScan(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast(__('restored'));loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+function permDeleteScan(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).delete().then(function(){toast(__('deletedPerm'));loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
 }
 
 function loadQrCodes(clientId){
