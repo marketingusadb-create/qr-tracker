@@ -123,7 +123,7 @@ textarea{min-height:60px;resize:vertical}
     </div>
     <div id="mtab-qrCodes" class="tab-content">
       <div style="margin-bottom:12px;display:flex;gap:8px">
-        <input id="newQrId" placeholder="ID del nuevo QR (ej: local-1)" style="flex:1;margin:0" />
+        <input id="newQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" style="flex:1;margin:0" />
         <button class="btn btn-primary btn-sm" onclick="addQrCode()">Generar QR</button>
       </div>
       <div id="modalQrList"></div>
@@ -146,7 +146,19 @@ textarea{min-height:60px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="firebase-config.js"></script>
+<script>
+var QR_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
+  authDomain: "qr-tracker-crm.firebaseapp.com",
+  projectId: "qr-tracker-crm",
+  storageBucket: "qr-tracker-crm.firebasestorage.app",
+  messagingSenderId: "1085744853871",
+  appId: "1:1085744853871:web:9a9f8413ee352ca55cae9a"
+};
+firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
+var QR_DB = firebase.firestore(firebase.app("qrTracker"));
+var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
+</script>
 <script>
 var _currentClientId=null;
 var _clients=[];
@@ -282,18 +294,24 @@ function loadScans(clientId){
 
 function loadQrCodes(clientId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').get().then(function(snap){
-    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'tracker.html';
+    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html';
     var html='<div class="qr-grid">';
     snap.forEach(function(doc){
       var d=doc.data();
       var qrData=baseUrl+'?c='+clientId+'&q='+doc.id;
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+      var subj=encodeURIComponent('Mi código QR - '+esc(d.label||doc.id));
+      var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
       html+='<div class="qr-item">'
         +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
         +'<div class="label">'+esc(d.label||doc.id)+'</div>'
         +'<div class="id">'+qrData+'</div>'
-        +'<div style="margin-top:6px;display:flex;gap:4px;justify-content:center">'
-        +'<a href="'+qrImg+'" download="qr-'+doc.id+'.png" class="btn btn-sm btn-outline">⬇ Descargar</a>'
+        +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
+        +'<a href="'+qrImg+'" download="qr-'+doc.id+'.png" class="btn btn-sm btn-outline">⬇</a>'
+        +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline" title="Enviar por Email">📧</a>'
+        +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline" title="Enviar por WhatsApp">💬</a>'
+        +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline" title="Enviar por Telegram">✈️</a>'
+        +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline" title="Enviar por SMS">📱</a>'
         +'</div></div>';
     });
     if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno arriba.</p>';
@@ -301,31 +319,39 @@ function loadQrCodes(clientId){
   });
 }
 
+function genId(){return 'qr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
 function addQrCode(){
-  var qrId=document.getElementById('newQrId').value.trim();
-  if(!qrId||!_currentClientId){toast('Escribe un ID para el QR');return}
+  if(!_currentClientId){toast('Selecciona un cliente primero');return}
+  var qrId=document.getElementById('newQrId').value.trim()||genId();
   QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({
     label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){
     document.getElementById('newQrId').value='';
-    toast('QR generado exitosamente');
+    toast('✅ QR generado: '+qrId);
     loadQrCodes(_currentClientId);
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function generateManualQr(){
   var clientId=document.getElementById('manualClient').value;
-  var qrId=document.getElementById('manualQrId').value.trim();
-  if(!qrId){toast('Escribe un ID para el QR');return}
+  var qrId=document.getElementById('manualQrId').value.trim()||genId();
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({
     label:qrId,createdAt:firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){
-    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'tracker.html';
+    var baseUrl=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html';
     var qrData=baseUrl+'?c='+clientId+'&q='+qrId;
     var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
-    document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado:</p>'
+    var subj=encodeURIComponent('Mi código QR');
+    document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado: <strong>'+qrId+'</strong></p>'
       +'<img src="'+qrImg+'" style="max-width:200px;border-radius:8px;display:block;margin-bottom:8px"/>'
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">'
       +'<a href="'+qrImg+'" download="qr-'+qrId+'.png" class="btn btn-sm btn-primary">⬇ Descargar</a>'
+      +'<a href="mailto:?subject='+subj+'&body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📧 Email</a>'
+      +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬 WhatsApp</a>'
+      +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️ Telegram</a>'
+      +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱 SMS</a>'
+      +'</div>'
       +'<p style="font-size:11px;color:#888;margin-top:6px;word-break:break-all">'+qrData+'</p>';
     document.getElementById('manualQrId').value='';
   }).catch(function(err){toast('Error: '+err.message)});
