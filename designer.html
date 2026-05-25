@@ -6,49 +6,63 @@
 <title>Diseñador - QR Tracker Pro</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f0f0;color:#222;overflow:hidden;height:100vh}
-.topbar{background:#1a1a2e;color:#fff;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.topbar h1{font-size:15px;font-weight:800}
-.topbar .sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
-.topbar select,.topbar button{background:rgba(255,255,255,.1);border:none;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f0f0;color:#222;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.topbar{background:#1a1a2e;color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.topbar h1{font-size:14px;font-weight:800}
+.topbar .sep{width:1px;height:22px;background:rgba(255,255,255,.2)}
+.topbar select,.topbar button{background:rgba(255,255,255,.1);border:none;color:#fff;padding:4px 8px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit}
 .topbar select option{background:#1a1a2e;color:#fff}
 .topbar button:hover{background:rgba(255,255,255,.2)}
-.topbar .right{display:flex;gap:6px;margin-left:auto}
-.toolbar{background:#fff;border-bottom:1px solid #ddd;padding:6px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;flex-wrap:wrap}
-.toolbar .group{display:flex;gap:2px;align-items:center;padding:0 6px;border-right:1px solid #eee}
+.topbar input[type=color]{width:22px;height:22px;border:none;padding:0;cursor:pointer;border-radius:3px;background:0;vertical-align:middle}
+.topbar .right{display:flex;gap:4px;margin-left:auto}
+.topbar label{font-size:10px;color:rgba(255,255,255,.6)}
+.toolbar{background:#fff;border-bottom:1px solid #ddd;padding:5px 14px;display:flex;align-items:center;gap:3px;flex-shrink:0;flex-wrap:wrap}
+.toolbar .group{display:flex;gap:2px;align-items:center;padding:0 5px;border-right:1px solid #eee}
 .toolbar .group:last-child{border-right:none}
-.toolbar button{background:none;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;color:#555;display:inline-flex;align-items:center;gap:4px}
+.toolbar button{background:none;border:none;padding:4px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;color:#555}
 .toolbar button:hover{background:#f0f0f0;color:#222}
 .toolbar label{font-size:10px;color:#888;margin-right:2px}
-.toolbar input[type=color]{width:24px;height:24px;border:none;padding:0;cursor:pointer;border-radius:4px}
-.toolbar input[type=number]{width:48px;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px}
-.main{display:flex;height:calc(100vh - 86px);flex:1}
-.sidebar{width:220px;background:#fff;border-right:1px solid #ddd;padding:12px;overflow-y:auto;flex-shrink:0}
-.sidebar h3{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.sidebar .sect{margin-bottom:16px}
-.sidebar .client-item{padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;margin-bottom:2px;border:1px solid transparent}
+.toolbar input[type=color]{width:20px;height:20px;border:none;padding:0;cursor:pointer;border-radius:3px}
+.toolbar input[type=number]{width:44px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;font-size:11px}
+.toolbar input[type=range]{width:60px;vertical-align:middle}
+.toolbar select{font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:3px}
+.main{display:flex;flex:1;min-height:0}
+.sidebar{width:200px;background:#fff;border-right:1px solid #ddd;padding:10px;overflow-y:auto;flex-shrink:0}
+.sidebar h3{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.sidebar .sect{margin-bottom:12px}
+.sidebar .client-item{padding:5px 8px;border-radius:5px;font-size:11px;cursor:pointer;margin-bottom:2px;border:1px solid transparent}
 .sidebar .client-item:hover{background:#f5f5f5}
 .sidebar .client-item.active{background:#2563eb;color:#fff}
-.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;background:#d4d4d4;background-image:radial-gradient(circle,#bbb 1px,transparent 1px);background-size:20px 20px}
-.card-canvas{background:#fff;box-shadow:0 4px 30px rgba(0,0,0,.15);position:relative;overflow:hidden;border:1px solid #ccc}
-.card-canvas.drag-over{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.2),0 4px 30px rgba(0,0,0,.15)}
-.card-canvas .el{position:absolute;min-width:16px;min-height:16px;border:1px solid transparent}
-.card-canvas .el{position:absolute;min-width:16px;min-height:16px}
-.card-canvas .el:hover{outline:2px solid #2563eb;outline-offset:1px}
-.card-canvas .el.selected{outline:2px solid #2563eb;outline-offset:1px;background:rgba(37,99,235,.04)}
-.card-canvas .el-text{overflow:hidden;cursor:move}
-.card-canvas .el-text.is-editing{cursor:text}
-.card-canvas .el-text:focus{outline:none;cursor:text}
-.card-canvas .el-img img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
-.card-canvas .el-qr img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
-.card-canvas .el-del{position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;background:#e74c3c;color:#fff;border:none;font-size:10px;cursor:pointer;display:none;z-index:10;line-height:18px;text-align:center}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#d4d4d4;background-image:radial-gradient(circle,#bbb 1px,transparent 1px);background-size:20px 20px}
+.card-canvas{background:#fff;box-shadow:0 4px 30px rgba(0,0,0,.15);position:relative;overflow:hidden;border:2px solid #888;border-radius:1px}
+.card-canvas .el{position:absolute;cursor:move;border-radius:3px;min-width:8px;min-height:8px}
+.card-canvas .el-text{padding:6px;overflow:hidden}
+.card-canvas .el-text:hover{outline:1px solid rgba(37,99,235,.3)}
+.card-canvas .el.selected{outline:2px solid #2563eb;outline-offset:1px;z-index:5}
+.card-canvas .el-img,.card-canvas .el-qr{border:1px solid #ddd;background:#fafafa;overflow:hidden}
+.card-canvas .el-img img,.card-canvas .el-qr img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.card-canvas .el-del{position:absolute;top:-10px;right:-10px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:2px solid #fff;font-size:10px;cursor:pointer;display:none;z-index:12;line-height:16px;text-align:center;font-weight:700}
 .card-canvas .el.selected .el-del{display:block}
-.pagination{display:flex;align-items:center;justify-content:center;padding:8px;gap:6px;background:#fff;border-top:1px solid #ddd;flex-shrink:0}
-.pagination button{background:none;border:1px solid #ddd;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+.card-canvas .el .resize-handle{position:absolute;width:10px;height:10px;background:#2563eb;border:2px solid #fff;border-radius:2px;z-index:11;display:none}
+.card-canvas .el.selected .resize-handle{display:block}
+.handle-nw{top:-5px;left:-5px;cursor:nwse-resize}
+.handle-n{top:-5px;left:50%;margin-left:-5px;cursor:ns-resize}
+.handle-ne{top:-5px;right:-5px;cursor:nesw-resize}
+.handle-e{top:50%;right:-5px;margin-top:-5px;cursor:ew-resize}
+.handle-se{bottom:-5px;right:-5px;cursor:nwse-resize}
+.handle-s{bottom:-5px;left:50%;margin-left:-5px;cursor:ns-resize}
+.handle-sw{bottom:-5px;left:-5px;cursor:nesw-resize}
+.handle-w{top:50%;left:-5px;margin-top:-5px;cursor:ew-resize}
+.empty-hint{display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:18px;font-weight:300;flex-direction:column;gap:8px;pointer-events:none;padding:20px}
+.empty-hint span{text-align:center}
+.empty-hint .big{font-size:48px}
+.empty-hint .sub{font-size:13px;color:#ccc}
+.pagination{display:flex;align-items:center;justify-content:center;padding:6px;gap:4px;background:#fff;border-top:1px solid #ddd;flex-shrink:0}
+.pagination button{background:none;border:1px solid #ddd;padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit}
 .pagination button:hover{background:#f0f0f0}
-.pagination .page-num{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.pagination .page-num{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;min-width:24px;text-align:center}
 .pagination .page-num.active{background:#2563eb;color:#fff}
-#loginBox{max-width:360px;margin:120px auto;background:#fff;border-radius:16px;padding:30px;box-shadow:0 2px 20px rgba(0,0,0,.1)}
+#loginBox{max-width:360px;margin:80px auto;background:#fff;border-radius:16px;padding:30px;box-shadow:0 2px 20px rgba(0,0,0,.1)}
 #loginBox h1{font-size:22px;margin-bottom:6px;text-align:center}
 #loginBox p{text-align:center;color:#888;font-size:13px;margin-bottom:20px}
 #loginBox input{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none}
@@ -57,8 +71,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 #loginBox .btn:hover{background:#1d4ed8}
 #loginBox .link{text-align:center;margin-top:10px;font-size:12px}
 #loginBox .link a{color:#2563eb;cursor:pointer;text-decoration:none}
-.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;z-index:9999;opacity:0;transform:translateY(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateY(0)}
+@media print{body{visibility:hidden} #cardCanvas{visibility:visible;position:fixed;top:0;left:0;width:100%;height:100%} .no-print{display:none!important}}
 </style>
 </head>
 <body>
@@ -73,7 +88,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <div id="app" style="display:none;height:100vh;flex-direction:column">
-  <div class="topbar">
+  <div class="topbar no-print">
     <h1>🎨 Diseñador</h1>
     <div class="sep"></div>
     <select id="fmtSelect" onchange="changeFormat()">
@@ -83,10 +98,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <option value="id">2.5×3.5 ID</option>
     </select>
     <select id="cardsSelect" onchange="changeCards()">
-      <option value="1">1 tarjeta</option>
-      <option value="2">2 tarjetas</option>
-      <option value="4" selected>4 tarjetas</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="4" selected>4</option>
     </select>
+    <label>Fondo:</label>
+    <input type="color" id="bgColorInput" value="#ffffff" onchange="setBgColor(this.value)" />
+    <button onclick="toggleOrientation()">🔄 Orientación</button>
     <div class="right">
       <button onclick="saveTemplate()">💾 Guardar</button>
       <button onclick="loadTemplate()">📂 Cargar</button>
@@ -94,13 +112,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button onclick="window.print()">🖨 Imprimir</button>
     </div>
   </div>
-  <div class="toolbar">
+  <div class="toolbar no-print">
     <div class="group">
-      <button onclick="addText('h1')">H1</button>
-      <button onclick="addText('h2')">H2</button>
-      <button onclick="addText('h3')">H3</button>
-      <button onclick="addText('normal')">Texto</button>
-      <button onclick="addText('p')">Párrafo</button>
+      <button onclick="addEl('h1')"><b>H1</b></button>
+      <button onclick="addEl('h2')"><b>H2</b></button>
+      <button onclick="addEl('h3')"><b>H3</b></button>
+      <button onclick="addEl('normal')">Texto</button>
+      <button onclick="addEl('p')">Párrafo</button>
     </div>
     <div class="group">
       <button onclick="addImage()">🖼 Imagen</button>
@@ -108,30 +126,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="group">
       <button onclick="duplicateEl()">📋 Duplicar</button>
-      <button onclick="deleteEl()" style="color:#e74c3c">🗑 Eliminar</button>
+      <button onclick="deleteEl2()" style="color:#e74c3c">🗑 Eliminar</button>
     </div>
     <div class="group">
-      <label>Font:</label>
-      <select id="propFont" onchange="setProp('fontFamily',this.value)" style="font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:4px">
+      <label>Fuente:</label>
+      <select id="propFont" onchange="setProp('fontFamily',this.value)">
         <option value="Arial">Arial</option>
         <option value="'Segoe UI'">Segoe UI</option>
         <option value="Georgia">Georgia</option>
         <option value="'Times New Roman'">Times</option>
-        <option value="monospace">Monospace</option>
+        <option value="monospace">Mono</option>
       </select>
       <label>Tam:</label>
-      <input type="number" id="propSize" value="16" min="6" max="200" onchange="setProp('fontSize',this.value+'px')" style="width:48px" />
+      <input type="number" id="propSize" value="16" min="4" max="300" onchange="setProp('fontSize',this.value+'px')" />
       <label>Color:</label>
       <input type="color" id="propColor" value="#222222" onchange="setProp('color',this.value)" />
-      <button onclick="setProp('fontWeight','bold')"><b>B</b></button>
-      <button onclick="setProp('fontStyle','italic')"><i>I</i></button>
-      <button onclick="setProp('textAlign','left')" title="Izquierda">☰</button>
-      <button onclick="setProp('textAlign','center')" title="Centro">☰</button>
-      <button onclick="setProp('textAlign','right')" title="Derecha">☰</button>
+      <button onclick="setProp('fontWeight','bold')" title="Negrita"><b>B</b></button>
+      <button onclick="setProp('fontStyle','italic')" title="Cursiva"><i>I</i></button>
+      <button onclick="setProp('textAlign','left')" title="Izquierda">≡</button>
+      <button onclick="setProp('textAlign','center')" title="Centro">≡</button>
+      <button onclick="setProp('textAlign','right')" title="Derecha">≡</button>
+    </div>
+    <div class="group">
+      <label>Girar:</label>
+      <input type="range" id="propRotate" min="0" max="360" value="0" oninput="setProp('r',this.value);document.getElementById('rotVal').textContent=this.value+'°'" />
+      <span id="rotVal" style="font-size:10px;color:#888;min-width:30px">0°</span>
     </div>
   </div>
   <div class="main">
-    <div class="sidebar">
+    <div class="sidebar no-print">
       <div class="sect"><h3>Clientes</h3><div id="clientListSidebar"></div></div>
       <div class="sect"><h3>QR del cliente</h3><div id="qrListSidebar"><p style="font-size:11px;color:#888">Selecciona un cliente</p></div></div>
     </div>
@@ -147,188 +170,273 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
+/* Firebase */
 var FBC={apiKey:"AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",authDomain:"qr-tracker-crm.firebaseapp.com",projectId:"qr-tracker-crm",storageBucket:"qr-tracker-crm.firebasestorage.app",messagingSenderId:"1085744853871",appId:"1:1085744853871:web:9a9f8413ee352ca55cae9a"};
 firebase.initializeApp(FBC,"qrTracker");var DB=firebase.firestore(firebase.app("qrTracker"));var AUTH=firebase.auth(firebase.app("qrTracker"));
-var _user=null,_clients=[],_selIdx=null,_drag=null,_cardEls=[],_totalCards=4,_curCard=0,_idSeq=0;
+
+/* State */
+var _user=null,_clients=[],_selIdx=null,_drag=null,_resize=null,_elList=[],_cards=4,_card=0,_bgColor='#ffffff',_zoom=1;
 var _fmts={letter:{w:8.5,h:11},postcard:{w:4,h:6},card:{w:3.5,h:2},id:{w:2.5,h:3.5}};
-var _curFmt=_fmts.letter;
-function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').style.display='block';return}
-AUTH.signInWithEmailAndPassword(e,p).then(function(u){_user=u.user;document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='flex';initApp()}).catch(function(){document.getElementById('loginError').style.display='block'})}
-AUTH.onAuthStateChanged(function(u){if(u){_user=u;document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='flex';initApp()}});
+var _fmt=_fmts.letter;
 
-function initApp(){for(var i=0;i<_totalCards;i++) if(!_cardEls[i]) _cardEls[i]=[];loadSidebar();renderAll()}
-function changeFormat(){_curFmt=_fmts[document.getElementById('fmtSelect').value]||_fmts.letter;renderAll()}
-function changeCards(){_totalCards=parseInt(document.getElementById('cardsSelect').value);if(_curCard>=_totalCards)_curCard=0;for(var i=0;i<_totalCards;i++)if(!_cardEls[i])_cardEls[i]=[];renderAll()}
-function renderAll(){renderCanvas();renderPagination()}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show')},2500)}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-function loadSidebar(){
-  DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){_clients=[];var h='';
-    snap.forEach(function(d){var d2=d.data();d2._id=d.id;_clients.push(d2);h+='<div class="client-item" onclick="selClient(\''+d.id+'\')">'+esc(d2.name||'—')+'</div>'});
-    document.getElementById('clientListSidebar').innerHTML=h||'<p style="font-size:11px;color:#888">Sin clientes</p>'});
+/* Auth */
+function login(){
+  var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;
+  if(!e||!p){document.getElementById('loginError').textContent='Completa los campos';document.getElementById('loginError').style.display='block';return}
+  AUTH.signInWithEmailAndPassword(e,p).then(function(u){_user=u.user;showApp()}).catch(function(){document.getElementById('loginError').textContent='Email o contraseña incorrectos';document.getElementById('loginError').style.display='block'});
+}
+AUTH.onAuthStateChanged(function(u){if(u){_user=u;showApp()}});
+
+function showApp(){
+  document.getElementById('loginBox').style.display='none';
+  var a=document.getElementById('app');a.style.display='flex';
+  initCards();loadClients();renderAll();
+}
+
+function initCards(){for(var i=0;i<_cards;i++)if(!_elList[i])_elList[i]=[]}
+
+/* Format */
+function changeFormat(){_fmt=_fmts[document.getElementById('fmtSelect').value]||_fmts.letter;renderAll()}
+function changeCards(){
+  _cards=parseInt(document.getElementById('cardsSelect').value);
+  if(_card>=_cards)_card=0;
+  for(var i=0;i<_cards;i++)if(!_elList[i])_elList[i]=[];
+  renderAll();
+}
+function toggleOrientation(){var t=_fmt.w;_fmt.w=_fmt.h;_fmt.h=t;renderAll();toast('✅ Orientación cambiada')}
+
+/* Sidebar */
+function loadClients(){
+  DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
+    _clients=[];var h='';
+    snap.forEach(function(d){var d2=d.data();d2._id=d.id;_clients.push(d2);
+      h+='<div class="client-item" onclick="selClient(\''+d.id+'\')">'+esc(d2.name||'—')+'</div>'});
+    document.getElementById('clientListSidebar').innerHTML=h||'<p style="font-size:11px;color:#888">Sin clientes</p>';
+  });
 }
 function selClient(id){
   document.querySelectorAll('.client-item').forEach(function(e){e.classList.remove('active')});
-  var el=Array.from(document.querySelectorAll('.client-item')).find(function(e){return e.textContent.trim()===_clients.find(function(c){return c._id===id}).name});
-  if(el) el.classList.add('active');
+  var found=_clients.find(function(c){return c._id===id});
+  if(found) Array.from(document.querySelectorAll('.client-item')).forEach(function(e){if(e.textContent.trim()===found.name)e.classList.add('active')});
   DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){var h='';
     snap.forEach(function(d){var d2=d.data();
-      h+='<div draggable="true" style="padding:6px 8px;border:1px solid #eee;border-radius:6px;margin-bottom:4px;font-size:11px;cursor:grab;display:flex;align-items:center;gap:6px"'
-        +' ondragstart="dragQrStart(event,\''+id+'\',\''+d.id+'\')"'
-        +' onclick="addQrDirect(\''+id+'\',\''+d.id+'\')">📲 <span>'+esc(d2.label||d.id)+'</span></div>'});
+      h+='<div style="padding:5px 6px;border:1px solid #eee;border-radius:4px;margin-bottom:3px;font-size:11px;cursor:pointer" onclick="addQR(\''+id+'\',\''+d.id+'\')">📲 '+esc(d2.label||d.id)+'</div>'});
     document.getElementById('qrListSidebar').innerHTML=h||'<p style="font-size:11px;color:#888">Sin QR</p>'});
 }
 
-// Canvas rendering
-function getScale(){
-  var w=document.getElementById('canvasWrap');var mw=w.clientWidth-40,mh=w.clientHeight-40;
-  var s=Math.min(mw/(_curFmt.w*96),mh/(_curFmt.h*96),1.5);return Math.max(s,.25)
+/* Canvas */
+function calcZoom(){
+  var wr=document.getElementById('canvasWrap');if(!wr)return 0.3;
+  var w=_fmt.w*96,h=_fmt.h*96;
+  return Math.max(0.1,Math.min(2,Math.min((wr.clientWidth-60)/w,(wr.clientHeight-60)/h)));
 }
-function renderCanvas(){
-  var cv=document.getElementById('cardCanvas');var dpi=96;
-  cv.style.width=(_curFmt.w*dpi)+'px';cv.style.height=(_curFmt.h*dpi)+'px';
-  var sc=getScale();cv.style.transform='scale('+sc+')';cv.style.transformOrigin='top left';
-  var wr=document.getElementById('canvasWrap');cv.style.margin=((wr.clientHeight-_curFmt.h*dpi*sc)/2)+'px auto';
-  cv.innerHTML='';var els=_cardEls[_curCard]||[];
-  if(!els.length){cv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:18px;font-weight:300;flex-direction:column;gap:10px"><span style="font-size:40px">🎨</span><span>Haz clic en los botones de arriba para agregar elementos</span><span style="font-size:13px">o arrastra un QR desde la barra lateral</span></div>';renderPagination();return}
-  els.forEach(function(el,i){
-    var d=document.createElement('div');d.className='el'+(el.type==='text'?' el-text':'')+(el.type==='image'||el.type==='qr'?' el-'+el.type:'')+(i===_selIdx?' selected':'');
-      d.style.left=(el.x||10)+'px';d.style.top=(el.y||10)+'px';d.style.width=(el.w||150)+'px';d.style.height=(el.h||40)+'px';d.dataset.idx=i;
-    if(el.type==='text'){
-      d.contentEditable=true;d.style.fontFamily=el.fontFamily||'Arial';d.style.fontSize=(el.fontSize||16)+'px';
-      d.style.color=el.color||'#222';d.style.textAlign=el.textAlign||'left';d.style.fontWeight=el.fontWeight||'normal';d.style.fontStyle=el.fontStyle||'normal';
-      d.style.border='1px dashed #2563eb';d.style.padding='4px';d.style.borderRadius='4px';
-      d.innerHTML=el.content||'Texto';
-    } else if(el.type==='image'||el.type==='qr'){
-      d.style.border='1px solid #ddd';d.style.borderRadius='4px';d.style.background='#fafafa';
-      var img=document.createElement('img');img.src=el.content||'';img.draggable=false;img.style.cssText='width:100%;height:100%;object-fit:contain;display:block';d.appendChild(img);
-    }
-    var del=document.createElement('button');del.className='el-del';del.textContent='✕';del.onclick=function(e){e.stopPropagation();delEl(parseInt(this.parentElement.dataset.idx))};
-    d.appendChild(del);
-    // Click = select
-    d.addEventListener('click',function(e){if(e.target.closest('.el-del'))return;selectEl(parseInt(this.dataset.idx))});
-    // Double-click image = change
-    if(el.type==='image'||el.type==='qr'){
-      d.addEventListener('dblclick',function(){var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-        inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){_cardEls[_curCard][parseInt(this.parentElement.dataset.idx)].content=ev.target.result;this.querySelector('img').src=ev.target.result}.bind(d);r.readAsDataURL(f)};inp.click()});
-    }
-    // Drag
-    d.addEventListener('pointerdown',function(e){if(e.target.closest('.el-del')||e.target.closest('[contenteditable]'))return;startDrag(e,parseInt(this.dataset.idx))});
-    cv.appendChild(d);
+function renderAll(){renderCanvas();renderPages()}
+
+function addResizeHandles(dom,idx){
+  var sides=['nw','n','ne','e','se','s','sw','w'];
+  sides.forEach(function(s){
+    var h=document.createElement('div');
+    h.className='resize-handle handle-'+s;
+    h.addEventListener('pointerdown',function(e){e.stopPropagation();doResize(e,idx,s)});
+    h.addEventListener('click',function(e){e.stopPropagation()});
+    dom.appendChild(h);
   });
 }
-function renderPagination(){
-  var p=document.getElementById('pagination');var h='<button onclick="prevCard()">◀</button>';
-  for(var i=0;i<_totalCards;i++)h+='<span class="page-num'+(i===_curCard?' active':'')+'" onclick="goCard('+i+')">'+(i+1)+'</span>';
-  h+='<button onclick="nextCard()">▶</button>';
-  h+='<span style="margin-left:12px;font-size:11px;color:#888">'+(document.getElementById('fmtSelect').value)+' · '+Math.round(_curFmt.w*96)+'×'+Math.round(_curFmt.h*96)+'px</span>';
-  if(_selIdx!==null){var el=_cardEls[_curCard][_selIdx];if(el)h+='<span style="margin-left:12px;font-size:11px;color:#888">| '+el.type+' ('+Math.round(el.x)+','+Math.round(el.y)+') '+Math.round(el.w)+'×'+Math.round(el.h)+'</span>'}
+
+function renderCanvas(){
+  var cv=document.getElementById('cardCanvas');if(!cv)return;
+  var w=_fmt.w*96,h=_fmt.h*96;
+  _zoom=calcZoom();
+  cv.style.width=w+'px';cv.style.height=h+'px';
+  cv.style.zoom=_zoom;
+  cv.style.background=_bgColor;
+  cv.innerHTML='';
+  var items=_elList[_card]||[];
+  if(!items.length){
+    cv.innerHTML='<div class="empty-hint"><span class="big">🎨</span><span>Haz clic en los botones de la barra de herramientas</span><span class="sub">Agrega texto, imágenes o QR a tu diseño</span></div>';
+    renderPages();return
+  }
+  items.forEach(function(el,i){
+    var d=document.createElement('div');
+    d.className='el'+(el.t==='text'?' el-text':'')+(el.t==='img'||el.t==='qr'?' el-'+el.t:'')+(i===_selIdx?' selected':'');
+    d.style.left=Math.round(el.x||10)+'px';d.style.top=Math.round(el.y||10)+'px';
+    d.style.width=Math.round(el.w||150)+'px';d.style.height=Math.round(el.h||40)+'px';
+    if(el.r){d.style.transform='rotate('+el.r+'deg)';d.style.transformOrigin='center center'}
+    d.dataset.idx=i;
+    if(el.t==='text'){
+      d.innerHTML=el.c||'Texto';
+      for(var k in el.s||{})d.style[k]=el.s[k];
+      d.addEventListener('dblclick',function(){
+        var idx=parseInt(this.dataset.idx),el=_elList[_card][idx];
+        if(!el||el.t!=='text')return;
+        this.contentEditable=true;this.focus();
+        var r=document.createRange();r.selectNodeContents(this);
+        var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+        var me=this;
+        function fin(){me.contentEditable=false;el.c=me.innerHTML;me.removeEventListener('blur',fin);me.removeEventListener('keydown',kh)}
+        function kh(e){if(e.key==='Escape'){me.innerHTML=el.c;fin()}if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();me.blur()}}
+        me.addEventListener('blur',fin);me.addEventListener('keydown',kh);
+      });
+    }else{
+      var img=document.createElement('img');img.src=el.c||'';img.draggable=false;d.appendChild(img);
+      if(el.t==='img'){
+        d.addEventListener('dblclick',function(){
+          var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+          inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();
+            r.onload=function(ev){var idx=parseInt(d.dataset.idx);_elList[_card][idx].c=ev.target.result;d.querySelector('img').src=ev.target.result};
+            r.readAsDataURL(f)};inp.click()});
+      }
+    }
+    addResizeHandles(d,i);
+    var del=document.createElement('span');del.className='el-del';del.textContent='✕';
+    del.onclick=function(e){e.stopPropagation();doDel(parseInt(this.parentElement.dataset.idx))};
+    d.appendChild(del);
+    d.addEventListener('click',function(e){if(e.target.closest('.el-del')||e.target.closest('.resize-handle'))return;doSel(parseInt(this.dataset.idx))});
+    d.addEventListener('pointerdown',function(e){
+      if(e.target.closest('.el-del')||e.target.closest('.resize-handle')||this.contentEditable==='true')return;
+      doDrag(e,parseInt(this.dataset.idx))
+    });
+    cv.appendChild(d);
+  });
+  cv.addEventListener('click',function(e){if(e.target===cv)doUnsel()});
+}
+
+function renderPages(){
+  var p=document.getElementById('pagination');if(!p)return;
+  var h='<button onclick="pg(-1)">◀</button>';
+  for(var i=0;i<_cards;i++)h+='<span class="page-num'+(i===_card?' active':'')+'" onclick="goPg('+i+')">'+(i+1)+'</span>';
+  h+='<button onclick="pg(1)">▶</button>';
+  h+='<span style="margin-left:10px;font-size:10px;color:#888">'+Math.round(_fmt.w*96)+'×'+Math.round(_fmt.h*96)+'px · zoom '+Math.round(_zoom*100)+'%</span>';
+  if(_selIdx!==null){var el=_elList[_card][_selIdx];if(el)h+='<span style="margin-left:10px;font-size:10px;color:#888">| x:'+Math.round(el.x)+' y:'+Math.round(el.y)+' w:'+Math.round(el.w)+' h:'+Math.round(el.h)+(el.r?' r:'+el.r+'°':'')+'</span>'}
   p.innerHTML=h;
 }
-function selectEl(idx){
-  _selIdx=idx;
-  _cardEls[_curCard].forEach(function(e,i){e.selected=i===idx});
-  document.querySelectorAll('.card-canvas .el').forEach(function(e,i){e.classList.toggle('selected',i===idx)});
-  renderPagination();
-  var el=_cardEls[_curCard][idx];
-  if(el&&el.type==='text'){
-    document.getElementById('propFont').value=el.fontFamily||'Arial';
-    document.getElementById('propSize').value=parseInt(el.fontSize)||16;
-    document.getElementById('propColor').value=el.color||'#222222';
-  }
-}
-function deselectAll(){_selIdx=null;_cardEls[_curCard].forEach(function(e){e.selected=false});document.querySelectorAll('.card-canvas .el').forEach(function(e){e.classList.remove('selected')});renderPagination()}
 
-// Element CRUD
-function addText(style){
-  var m={h1:{s:28,w:'bold',h:40,c:'Título'},h2:{s:22,w:'bold',h:34,c:'Subtítulo'},h3:{s:18,w:'bold',h:28,c:'Encabezado'},normal:{s:16,w:'normal',h:24,c:'Texto'},p:{s:14,w:'normal',h:60,c:'Párrafo de ejemplo. Escribe aquí tu contenido.'}};
+/* Selection */
+function doSel(idx){
+  _selIdx=idx;
+  (_elList[_card]||[]).forEach(function(e,i){e.sel=i===idx});
+  var els=document.querySelectorAll('.card-canvas .el');
+  for(var i=0;i<els.length;i++)els[i].classList.toggle('selected',i===idx);
+  renderPages();
+  var el=_elList[_card][idx];
+  if(el&&el.t==='text'&&el.s){
+    document.getElementById('propFont').value=el.s.fontFamily||'Arial';
+    document.getElementById('propSize').value=parseInt(el.s.fontSize)||16;
+    document.getElementById('propColor').value=el.s.color||'#222222';
+  }
+  if(el&&el.r!==undefined){document.getElementById('propRotate').value=el.r;document.getElementById('rotVal').textContent=el.r+'°'}
+}
+function doUnsel(){_selIdx=null;(_elList[_card]||[]).forEach(function(e){e.sel=false});var els=document.querySelectorAll('.card-canvas .el');for(var i=0;i<els.length;i++)els[i].classList.remove('selected');renderPages()}
+
+/* Add elements */
+function addEl(style){
+  var m={h1:{fs:28,fw:'bold',h:40,ct:'Título Principal'},h2:{fs:22,fw:'bold',h:34,ct:'Subtítulo'},h3:{fs:18,fw:'bold',h:28,ct:'Encabezado'},normal:{fs:16,fw:'normal',h:24,ct:'Texto normal'},p:{fs:14,fw:'normal',h:60,ct:'Párrafo de ejemplo. Haz doble clic para editar.'}};
   var t=m[style]||m.normal;
-  _cardEls[_curCard].push({type:'text',content:t.c,x:20,y:20,w:300,h:t.h,fontSize:t.s,fontWeight:t.w,color:'#222',fontFamily:'Arial',textAlign:'left'});
-  renderCanvas();renderPagination();toast('✅ Texto agregado');
+  _elList[_card].push({t:'text',c:t.ct,x:20,y:20,w:300,h:t.h,s:{fontSize:t.fs+'px',fontWeight:t.fw,color:'#222',fontFamily:'Arial',textAlign:'left'},r:0});
+  renderCanvas();toast('✅ '+style.toUpperCase()+' agregado');
 }
 function addImage(){
   var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();
-    r.onload=function(ev){_cardEls[_curCard].push({type:'image',content:ev.target.result,x:20,y:20,w:150,h:150});renderCanvas();renderPagination();toast('✅ Imagen')};
+    r.onload=function(ev){_elList[_card].push({t:'img',c:ev.target.result,x:20,y:20,w:150,h:150,r:0});renderCanvas();toast('✅ Imagen agregada')};
     r.readAsDataURL(f)};inp.click();
 }
 function addQrFromClient(){if(!_clients.length){toast('No hay clientes');return}selClient(_clients[0]._id);toast('Selecciona un QR de la lista')}
-function addQrDirect(cid,qid){
+function addQR(cid,qid){
   var u=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html?c='+cid+'&q='+qid;
   var img='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(u);
-  _cardEls[_curCard].push({type:'qr',content:img,x:20,y:20,w:120,h:120});renderCanvas();renderPagination();toast('✅ QR agregado');
+  _elList[_card].push({t:'qr',c:img,x:20,y:20,w:120,h:120,r:0});renderCanvas();toast('✅ QR agregado');
 }
 function duplicateEl(){
-  if(_selIdx===null){toast('Selecciona un elemento');return}
-  var o=_cardEls[_curCard][_selIdx];if(!o)return;var c=JSON.parse(JSON.stringify(o));c.x+=20;c.y+=20;c.selected=false;
-  _cardEls[_curCard].push(c);_selIdx=null;renderCanvas();renderPagination();toast('📋 Duplicado');
+  if(_selIdx===null){toast('Selecciona un elemento primero');return}
+  var o=_elList[_card][_selIdx];if(!o)return;
+  var c=JSON.parse(JSON.stringify(o));c.x+=20;c.y+=20;c.sel=false;
+  _elList[_card].push(c);_selIdx=null;renderCanvas();toast('📋 Duplicado');
 }
-function delEl(idx){_cardEls[_curCard].splice(idx,1);if(_selIdx===idx)_selIdx=null;renderCanvas();renderPagination()}
-function deleteEl(){if(_selIdx===null){toast('Selecciona un elemento');return}delEl(_selIdx)}
+function deleteEl2(){if(_selIdx===null){toast('Selecciona un elemento');return}doDel(_selIdx)}
+function doDel(idx){_elList[_card].splice(idx,1);if(_selIdx===idx)_selIdx=null;if(_selIdx!==null&&_selIdx>=_elList[_card].length)_selIdx=_elList[_card].length-1;renderCanvas()}
 
-// Drag (direct DOM update, no rebuild)
-function startDrag(e,idx){
-  _drag={idx:idx,sx:e.clientX,sy:e.clientY,ox:(_cardEls[_curCard][idx]||{}).x||0,oy:(_cardEls[_curCard][idx]||{}).y||0};
-  var el=document.querySelector('.card-canvas .el[data-idx="'+idx+'"]');
-  if(el){el.setPointerCapture(e.pointerId);el.addEventListener('pointermove',onDrag);el.addEventListener('pointerup',endDrag)}
+/* Drag */
+function doDrag(e,idx){
+  var el=_elList[_card][idx];if(!el)return;
+  _drag={idx:idx,sx:e.clientX,sy:e.clientY,ox:el.x,oy:el.y};
+  var dom=document.querySelector('.card-canvas .el[data-idx="'+idx+'"]');
+  if(dom){dom.setPointerCapture(e.pointerId);dom.addEventListener('pointermove',onDrag);dom.addEventListener('pointerup',endDrag)}
 }
 function onDrag(e){
-  if(!_drag)return;var el=_cardEls[_curCard][_drag.idx];if(!el)return;
-  el.x=_drag.ox+(e.clientX-_drag.sx);el.y=_drag.oy+(e.clientY-_drag.sy);
+  if(!_drag)return;var el=_elList[_card][_drag.idx];if(!el)return;
+  el.x=_drag.ox+(e.clientX-_drag.sx)/_zoom;
+  el.y=_drag.oy+(e.clientY-_drag.sy)/_zoom;
   var dom=document.querySelector('.card-canvas .el[data-idx="'+_drag.idx+'"]');
-  if(dom){dom.style.left=el.x+'px';dom.style.top=el.y+'px'}
+  if(dom){dom.style.left=Math.round(Math.max(0,el.x))+'px';dom.style.top=Math.round(Math.max(0,el.y))+'px'}
 }
 function endDrag(e){
   if(!_drag)return;var dom=document.querySelector('.card-canvas .el[data-idx="'+_drag.idx+'"]');
   if(dom){dom.removeEventListener('pointermove',onDrag);dom.removeEventListener('pointerup',endDrag)}
-  _drag=null;renderPagination()
+  _drag=null;renderPages()
 }
 
-// Properties
-function setProp(p,v){if(_selIdx===null)return;var el=_cardEls[_curCard][_selIdx];if(!el)return;el[p]=v;renderCanvas()}
+/* Resize */
+function doResize(e,idx,side){
+  var el=_elList[_card][idx];if(!el)return;
+  _resize={idx:idx,side:side,sx:e.clientX,sy:e.clientY,ox:el.x,oy:el.y,ow:el.w,oh:el.h};
+  var dom=document.querySelector('.card-canvas .el[data-idx="'+idx+'"]');
+  if(dom){dom.setPointerCapture(e.pointerId);dom.addEventListener('pointermove',onResize);dom.addEventListener('pointerup',endResize)}
+}
+function onResize(e){
+  if(!_resize)return;var el=_elList[_card][_resize.idx];if(!el)return;
+  var dx=(e.clientX-_resize.sx)/_zoom,dy=(e.clientY-_resize.sy)/_zoom,s=_resize.side;
+  var nx=el.x,ny=el.y,nw=el.w,nh=el.h;
+  if(s.indexOf('e')>=0)nw=Math.max(20,_resize.ow+dx);
+  if(s.indexOf('w')>=0){nw=Math.max(20,_resize.ow-dx);nx=_resize.ox+(_resize.ow-nw)}
+  if(s.indexOf('s')>=0)nh=Math.max(20,_resize.oh+dy);
+  if(s.indexOf('n')>=0){nh=Math.max(20,_resize.oh-dy);ny=_resize.oy+(_resize.oh-nh)}
+  el.x=Math.round(nx);el.y=Math.round(ny);el.w=Math.round(nw);el.h=Math.round(nh);
+  var dom=document.querySelector('.card-canvas .el[data-idx="'+_resize.idx+'"]');
+  if(dom){dom.style.left=el.x+'px';dom.style.top=el.y+'px';dom.style.width=el.w+'px';dom.style.height=el.h+'px'}
+}
+function endResize(e){
+  if(!_resize)return;var dom=document.querySelector('.card-canvas .el[data-idx="'+_resize.idx+'"]');
+  if(dom){dom.removeEventListener('pointermove',onResize);dom.removeEventListener('pointerup',endResize)}
+  _resize=null;renderPages()
+}
 
-// Pagination
-function goCard(i){_curCard=i;_selIdx=null;renderAll()}
-function prevCard(){goCard(Math.max(0,_curCard-1))}
-function nextCard(){goCard(Math.min(_totalCards-1,_curCard+1))}
+/* Properties */
+function setProp(p,v){
+  if(_selIdx===null)return;var el=_elList[_card][_selIdx];if(!el)return;
+  if(p==='r'){el.r=parseFloat(v)||0;renderCanvas();return}
+  if(!el.s)return;el.s[p]=v;renderCanvas();
+}
+function setBgColor(c){_bgColor=c;var cv=document.getElementById('cardCanvas');if(cv)cv.style.background=_bgColor}
 
-// Canvas drop zone for sidebar drag
-var _dragQrData=null;
-function dragQrStart(e,cid,qid){_dragQrData={cid:cid,qid:qid};e.dataTransfer.effectAllowed='copy'}
-document.addEventListener('DOMContentLoaded',function(){
-  var cv=document.getElementById('cardCanvas');
-  cv.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='copy';this.classList.add('drag-over')});
-  cv.addEventListener('dragleave',function(){this.classList.remove('drag-over')});
-  cv.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');
-    if(!_dragQrData)return;var r=this.getBoundingClientRect();
-    var x=e.clientX-r.x,y=e.clientY-r.y;
-    var sc=getScale();x=x/sc;y=y/sc;
-    var u=location.origin+location.pathname.replace(/\/[^/]*$/,'/')+'index.html?c='+_dragQrData.cid+'&q='+_dragQrData.qid;
-    var img='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(u);
-    _cardEls[_curCard].push({type:'qr',content:img,x:x-60,y:y-60,w:120,h:120});renderCanvas();renderPagination();toast('✅ QR agregado');_dragQrData=null});
-});
+/* Pagination */
+function pg(d){goPg(Math.max(0,Math.min(_cards-1,_card+d)))}
+function goPg(i){_card=i;_selIdx=null;renderCanvas()}
 
-// Save
+/* Save */
 function saveTemplate(){
-  var name=prompt('Nombre del diseño:', 'Mi diseño '+new Date().toLocaleDateString('es-CO'));if(!name)return;
+  var name=prompt('Nombre del diseño:','Mi diseño '+new Date().toLocaleDateString('es-CO'));if(!name)return;
   var uid=_user?(_user.uid||'anon'):'anon';
-  var data={name:name,format:document.getElementById('fmtSelect').value,cards:_totalCards,elements:JSON.parse(JSON.stringify(_cardEls)),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-  DB.collection('designs').doc(uid).collection('templates').add(data).then(function(){toast('✅ Guardado')}).catch(function(err){toast('Error: '+err.message)})
+  DB.collection('designs').doc(uid).collection('templates').add({
+    name:name,format:document.getElementById('fmtSelect').value,cards:_cards,items:JSON.parse(JSON.stringify(_elList)),bgColor:_bgColor,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){toast('✅ Guardado')}).catch(function(err){toast('Error: '+err.message)})
 }
 
-// Load
+/* Load */
 function loadTemplate(){
   var uid=_user?(_user.uid||'anon'):'anon';
   DB.collection('designs').doc(uid).collection('templates').orderBy('createdAt','desc').limit(20).get().then(function(snap){
-    if(snap.empty){toast('No hay diseños');return}
-    var opt='',ids=[];
-    snap.forEach(function(d){var d2=d.data();opt+='<option value="'+d.id+'">'+esc(d2.name||'?')+'</option>';ids.push(d.id)});
+    if(snap.empty){toast('No hay diseños guardados');return}
+    var opts='';
+    snap.forEach(function(d){var d2=d.data();opts+='<option value="'+d.id+'">'+esc(d2.name||'?')+'</option>'});
     var div=document.createElement('div');div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px';
-    var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:24px;max-width:400px;width:100%';
-    box.innerHTML='<h3 style="margin-bottom:12px">📂 Cargar diseño</h3><select id="loadSel" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">'+opt+'</select>'
-      +'<button onclick="doLoad()" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">Cargar</button>'
-      +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="margin-top:6px;padding:6px;background:none;border:none;color:#888;cursor:pointer;font-size:12px">Cancelar</button>';
+    var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%';
+    box.innerHTML='<h3 style="margin-bottom:12px">📂 Cargar diseño</h3><select id="loadSel" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:5px;font-size:14px">'+opts+'</select>'
+      +'<button onclick="doLoad()" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-family:inherit;width:100%">Cargar</button>'
+      +'<button onclick="this.parentElement.parentElement.remove()" style="margin-top:4px;padding:6px;background:none;border:none;color:#888;cursor:pointer;font-size:12px">Cancelar</button>';
     div.appendChild(box);document.body.appendChild(div);
   }).catch(function(err){toast('Error: '+err.message)})
 }
@@ -337,21 +445,26 @@ function doLoad(){
   DB.collection('designs').doc(uid).collection('templates').doc(id).get().then(function(doc){
     if(!doc.exists){toast('No encontrado');return}
     var d=doc.data();document.getElementById('fmtSelect').value=d.format||'letter';document.getElementById('cardsSelect').value=String(d.cards||4);
-    _curFmt=_fmts[d.format]||_fmts.letter;_totalCards=d.cards||4;_curCard=0;_cardEls=JSON.parse(JSON.stringify(d.elements||{}));
-    for(var i=0;i<_totalCards;i++)if(!_cardEls[i])_cardEls[i]=[];
-    document.querySelector('[style*=fixed]').remove();renderAll();toast('✅ Cargado');
+    _fmt=_fmts[d.format]||_fmts.letter;_cards=d.cards||4;_card=0;
+    _elList=JSON.parse(JSON.stringify(d.items||{}));
+    _bgColor=d.bgColor||'#ffffff';document.getElementById('bgColorInput').value=_bgColor;
+    for(var i=0;i<_cards;i++)if(!_elList[i])_elList[i]=[];
+    var overlay=document.querySelector('[style*="fixed"]');if(overlay)overlay.remove();
+    renderAll();toast('✅ Diseño cargado');
   })
 }
 
-// Export
+/* Export */
 function exportPng(){
-  var cv=document.getElementById('cardCanvas');
-  if(!cv.children.length){toast('El canvas está vacío');return}
-  html2canvas(cv,{scale:3,useCORS:true,backgroundColor:'#fff',width:cv.offsetWidth,height:cv.offsetHeight}).then(function(c){
+  var cv=document.getElementById('cardCanvas');if(!cv){toast('No hay canvas');return}
+  var oldZoom=cv.style.zoom;cv.style.zoom='1';
+  var w=cv.offsetWidth,h=cv.offsetHeight;
+  html2canvas(cv,{scale:2,useCORS:true,backgroundColor:_bgColor,width:w,height:h}).then(function(c){
+    cv.style.zoom=oldZoom;
     var a=document.createElement('a');a.href=c.toDataURL('image/png');
-    a.download='diseno-'+(document.getElementById('fmtSelect').value)+'-'+(Date.now())+'.png';
+    a.download='flyer-'+document.getElementById('fmtSelect').value+'-'+Date.now()+'.png';
     document.body.appendChild(a);a.click();document.body.removeChild(a);toast('✅ PNG descargado')
-  }).catch(function(){toast('Error al generar. Revisa la consola.')})
+  }).catch(function(e){cv.style.zoom=oldZoom;toast('Error: '+e.message)});
 }
 </script>
 </body>
