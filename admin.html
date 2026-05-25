@@ -525,6 +525,7 @@ function renderLeads(all){
       +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
       +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
       +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('markContacted')+'">📞</button>'
+      +'<button onclick="deleteLead(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
       +'</td></tr>';
   });
   html+='</tbody></table>';
@@ -580,6 +581,9 @@ function updateScanNote(clientId,scanId,note){
 }
 function deleteScan(clientId,scanId){
   QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){toast(__('deleted'))}).catch(function(err){toast('Error: '+err.message)});
+}
+function deleteLead(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){toast(__('deleted'));loadLeads()}).catch(function(err){toast('Error: '+err.message)});
 }
 function restoreScan(clientId,scanId){
   QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast(__('restored'));loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
