@@ -100,10 +100,10 @@ function getDeviceInfo(){
 }
 
 function notifyTelegram(leadData,scanData){
-  var c=_clientData;if(!c)return;
+  var c=_clientData;if(!c){console.warn('no _clientData');return}
   var token=c.telegramToken,chatId=c.telegramChatId;
-  if(!token||!chatId)return;
-  var msg='📩 *Nuevo Lead recibido*\n'
+  if(!token||!chatId){console.warn('Telegram no configurado',token,chatId);return}
+  var msg='<b>📩 Nuevo Lead recibido</b>\n'
     +'👤 '+esc(leadData.name)+'\n'
     +'📧 '+(leadData.email||'—')+'\n'
     +'📱 '+(leadData.phone||'—')+'\n'
@@ -114,7 +114,7 @@ function notifyTelegram(leadData,scanData){
     +'📱 '+scanData.device+' | '+scanData.os+'\n'
     +'🆔 QR: '+(scanData.qrId||'—');
   var url='https://api.telegram.org/bot'+token+'/sendMessage';
-  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:'Markdown'})}).catch(function(){});
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'})}).catch(function(e){console.warn('Telegram error',e)});
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
