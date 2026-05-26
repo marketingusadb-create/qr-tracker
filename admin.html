@@ -543,10 +543,10 @@ function loadScans(clientId){
         +'<td><span class="badge '+statusCls(st)+'" onclick="updateScanStatus(\''+clientId+'\',\''+doc.id+'\',\''+st+'\')" style="cursor:pointer">'+statusTxt(st)+'</span></td>'
         +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#888;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
         +'<td style="white-space:nowrap">'
-        +(ph?'<a href="https://wa.me/'+ph.replace(/\D,g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+        +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
         +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-        +(ph?'<a href="tel:'+ph.replace(/\D,g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
-        +(ph?'<a href="https://t.me/'+ph.replace(/\D,g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
+        +(ph?'<a href="tel:'+ph.replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
+        +(ph?'<a href="https://t.me/'+ph.replace(/\D/g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
         +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
         +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
         +'</td></tr>'});
@@ -587,10 +587,10 @@ function renderLeads(all){
       +'<td style="font-size:11px;color:#e2e8f0">'+esc(loc||'—')+mapLink+'</td>'
       +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.os||'—')+'</td>'
       +'<td style="white-space:nowrap">'
-      +(ph?'<a href="https://wa.me/'+ph.replace(/\D,g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
       +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-      +(ph?'<a href="tel:'+ph.replace(/\D,g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
-      +(ph?'<a href="https://t.me/'+ph.replace(/\D,g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
+      +(ph?'<a href="tel:'+ph.replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
+      +(ph?'<a href="https://t.me/'+ph.replace(/\D/g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
       +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
       +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('markContacted')+'">📞</button>'
       +'<button onclick="deleteLead(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
