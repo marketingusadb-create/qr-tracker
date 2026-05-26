@@ -180,6 +180,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>EmailJS Service ID</label><input id="ncEmailjsService" placeholder="service_abc123" /></div>
       <div class="form-group"><label>EmailJS Template ID</label><input id="ncEmailjsTemplate" placeholder="template_abc123" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</small></label><input id="ncAutoReplyPhone" placeholder="953801340" /></div>
+      <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="ncGoogleVoice" placeholder="17866811651" /></div>
       <button class="btn btn-primary" onclick="createClient()" data-lang="createClient">Crear Cliente</button>
       <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
     </div>
@@ -289,6 +290,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>EmailJS Service ID</label><input id="editEmailjsService" placeholder="ej: service_abc123" /></div>
       <div class="form-group"><label>EmailJS Template ID</label><input id="editEmailjsTemplate" placeholder="ej: template_abc123" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto <small data-lang="autoReplyPhoneDesc">(aparece en el email auto-respuesta)</small></label><input id="editAutoReplyPhone" placeholder="953801340" /></div>
+      <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="editGoogleVoice" placeholder="17866811651" /></div>
       <button class="btn btn-primary" onclick="saveClient()" data-lang="saveChanges">Guardar cambios</button>
       <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px" data-lang="trash">🗑 Papelera</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
@@ -518,6 +520,7 @@ function openClient(id){
     document.getElementById('editEmailjsService').value=d.emailjsService||'';
     document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
     document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
+    document.getElementById('editGoogleVoice').value=d.googleVoice||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
   });
@@ -545,7 +548,7 @@ function loadScans(clientId){
         +'<td style="white-space:nowrap">'
         +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
         +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-        +(ph?'<a href="tel:'+ph.replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
+        +(ph?'<a href="tel:'+(d.googleVoice||ph).replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+(d.googleVoice?'Google Voice':'Llamar')+'">📞</a>':'')
         +(ph?'<a href="https://t.me/'+ph.replace(/\D/g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
         +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
         +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
@@ -589,7 +592,7 @@ function renderLeads(all){
       +'<td style="white-space:nowrap">'
       +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
       +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-      +(ph?'<a href="tel:'+ph.replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Llamar">📞</a>':'')
+      +(ph?'<a href="tel:'+(d.googleVoice||ph).replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+(d.googleVoice?'Google Voice':'Llamar')+'">📞</a>':'')
       +(ph?'<a href="https://t.me/'+ph.replace(/\D/g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
       +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
       +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('markContacted')+'">📞</button>'
@@ -747,9 +750,10 @@ function createClient(){
   var ejTpl=document.getElementById('ncEmailjsTemplate').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  var gv=document.getElementById('ncGoogleVoice').value.trim().replace(/\D/g,'');
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone'].forEach(function(id){document.getElementById(id).value=''});
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice'].forEach(function(id){document.getElementById(id).value=''});
     toast('Cliente creado exitosamente');
   }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
@@ -764,7 +768,8 @@ function saveClient(){
     emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
     emailjsService:document.getElementById('editEmailjsService').value.trim(),
     emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
-    autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim()
+    autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim(),
+    googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,'')
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
