@@ -113,6 +113,9 @@ function notifyTelegram(leadData,scanData){
   var c=_clientData;if(!c)return
   var token=c.telegramToken,chatId=c.telegramChatId;
   if(!token||!chatId)return
+  var locationStr=scanData.gpsLat
+    ? scanData.city+', '+scanData.country+' (https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+')'
+    : [scanData.country,scanData.city,scanData.isp].filter(Boolean).join(', ');
   var msg='<b>📩 Nuevo Lead recibido</b>\n'
     +'👤 '+esc(leadData.name)+'\n'
     +'📧 '+(leadData.email||'—')+'\n'
@@ -120,7 +123,7 @@ function notifyTelegram(leadData,scanData){
     +'💬 '+(leadData.message||'—')+'\n'
     +'━━━━━━━━━━━\n'
     +'🌐 IP: '+(scanData.ip||'—')+'\n'
-    +'📍 '+[scanData.country,scanData.city,scanData.isp].filter(Boolean).join(', ')+'\n'
+    +'📍 '+locationStr+'\n'
     +'📱 '+scanData.device+' | '+scanData.os+'\n'
     +'🆔 QR: '+(scanData.qrId||'—');
   var url='https://api.telegram.org/bot'+token+'/sendMessage';
@@ -150,6 +153,26 @@ function sendAutoReply(lead){
   }).then(function(){console.log('EmailJS OK')},function(err){console.warn('EmailJS:',err)});
 }
 
+function getGpsData(){
+  return new Promise(function(resolve){
+    if(!navigator.geolocation){resolve(null);return}
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat=pos.coords.latitude;
+      var lng=pos.coords.longitude;
+      var data={gpsLat:lat,gpsLng:lng,gpsAccuracy:pos.coords.accuracy};
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=es',{
+        headers:{'User-Agent':'QR-Tracker-CRM/1.0'}
+      }).then(function(r){return r.json()}).then(function(geo){
+        if(geo&&geo.address){
+          data.gpsCity=geo.address.city||geo.address.town||geo.address.village||geo.address.municipality||'';
+          data.gpsCountry=geo.address.country||'';
+        }
+        resolve(data);
+      }).catch(function(){resolve(data)});
+    },function(){resolve(null)},{timeout:10000,enableHighAccuracy:true});
+  });
+}
+
 function submitLead(){
   var name=$('leadName').value.trim();
   if(!name){$('leadName').style.borderColor='#e74c3c';return}
@@ -158,42 +181,50 @@ function submitLead(){
 
   var lead={name:name,email:$('leadEmail').value.trim(),phone:$('leadPhone').value.trim(),message:$('leadMsg').value.trim()};
 
-  fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
-    var info=getDeviceInfo();
-    var scan={
-      ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||'',
-      device:info.device,os:info.os,browser:info.browser,screen:info.screen,
-      timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
-      leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
-      status:'new',deleted:false
-    };
-    return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
-  }).then(function(scanData){
-    notifyTelegram(lead,scanData);
-    return sendAutoReply(lead).then(function(){
-      var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
-      var url='';
-      if(_serviceType==='telegram'){
-        var tu=_clientData.telegramUser||'';
-        if(tu) url='https://t.me/'+tu+'?text='+msg;
-        else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }else if(_serviceType==='sms'){
-        url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
-      }else if(_serviceType==='teams'){
-        var em=encodeURIComponent(_clientData.email||'');
-        if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
-        else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
-      }else{
-        url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }
-      if(url) location.href=url;
-      else showError('El servicio no está configurado.');
+  getGpsData().then(function(gps){
+    fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
+      var info=getDeviceInfo();
+      var scan={
+        ip:geo.ip||'',
+        country:(gps&&gps.gpsCountry)||geo.country_name||'',
+        city:(gps&&gps.gpsCity)||geo.city||'',
+        isp:geo.org||'',
+        gpsLat:(gps&&gps.gpsLat)||'',
+        gpsLng:(gps&&gps.gpsLng)||'',
+        gpsAccuracy:(gps&&gps.gpsAccuracy)||'',
+        device:info.device,os:info.os,browser:info.browser,screen:info.screen,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
+        leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
+        status:'new',deleted:false
+      };
+      return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
+    }).then(function(scanData){
+      notifyTelegram(lead,scanData);
+      return sendAutoReply(lead).then(function(){
+        var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
+        var url='';
+        if(_serviceType==='telegram'){
+          var tu=_clientData.telegramUser||'';
+          if(tu) url='https://t.me/'+tu+'?text='+msg;
+          else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+        }else if(_serviceType==='sms'){
+          url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
+        }else if(_serviceType==='teams'){
+          var em=encodeURIComponent(_clientData.email||'');
+          if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
+          else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
+        }else{
+          url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+        }
+        if(url) location.href=url;
+        else showError('El servicio no está configurado.');
+      });
+    }).catch(function(){
+      var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
+      if(wa) location.href='https://wa.me/'+wa;
+      else showError('Error al enviar. Intenta de nuevo.');
+      $('loader').style.display='none';$('error').style.display='block';
     });
-  }).catch(function(){
-    var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
-    if(wa) location.href='https://wa.me/'+wa;
-    else showError('Error al enviar. Intenta de nuevo.');
-    $('loader').style.display='none';$('error').style.display='block';
   });
 }
 
