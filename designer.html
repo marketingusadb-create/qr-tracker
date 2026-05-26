@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Diseñador - QR Tracker Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f0f0;color:#222;overflow:hidden;height:100vh;display:flex;flex-direction:column}
@@ -40,9 +43,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .card-canvas .el-text:hover{outline:1px solid rgba(37,99,235,.3)}
 .card-canvas .el.selected{outline:2px solid #2563eb;outline-offset:1px;z-index:5}
 .card-canvas .el-img,.card-canvas .el-qr{border:1px solid #ddd;background:#fafafa;overflow:hidden}
+.card-canvas .el-img img,.card-canvas .el-qr img{width:100%;height:100%;object-fit:cover}
 .card-canvas .el-img img,.card-canvas .el-qr img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
-.card-canvas .el-del{position:absolute;top:-10px;right:-10px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:2px solid #fff;font-size:10px;cursor:pointer;display:none;z-index:12;line-height:16px;text-align:center;font-weight:700}
-.card-canvas .el.selected .el-del{display:block}
+.card-canvas .el-del{position:absolute;top:-10px;right:-10px;width:22px;height:22px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;font-size:12px;cursor:pointer;z-index:12;line-height:18px;text-align:center;font-weight:700;opacity:0;transition:opacity .2s;box-shadow:0 2px 6px rgba(239,68,68,.4)}
+.card-canvas .el:hover .el-del{opacity:1}
+.card-canvas .el .el-del:hover{transform:scale(1.2);background:#dc2626}
 .card-canvas .el .resize-handle{position:absolute;width:10px;height:10px;background:#2563eb;border:2px solid #fff;border-radius:2px;z-index:11;display:none}
 .card-canvas .el.selected .resize-handle{display:block}
 .handle-nw{top:-5px;left:-5px;cursor:nwse-resize}
@@ -71,19 +76,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 #loginBox .btn:hover{background:#1d4ed8}
 #loginBox .link{text-align:center;margin-top:10px;font-size:12px}
 #loginBox .link a{color:#2563eb;cursor:pointer;text-decoration:none}
+#loadingOverlay{position:fixed;inset:0;background:#f0f0f0;z-index:1000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#loadingOverlay .spinner{width:36px;height:36px;border:4px solid #ddd;border-top-color:#8b5cf6;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;z-index:9999;opacity:0;transform:translateY(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateY(0)}
 @media print{body{visibility:hidden} #cardCanvas{visibility:visible;position:fixed;top:0;left:0;width:100%;height:100%} .no-print{display:none!important}}
 </style>
 </head>
 <body>
-<div id="loginBox">
+<div id="loadingOverlay"><div class="spinner"></div><span style="color:#888;font-size:14px">Verificando sesión...</span></div>
+
+<div id="loginBox" style="display:none">
   <h1>🎨 Diseñador Pro</h1>
   <p>Crea flyers, tarjetas y diseños con QR</p>
   <input id="loginEmail" type="email" placeholder="Email" />
   <input id="loginPass" type="password" placeholder="Contraseña" />
   <button class="btn" onclick="login()">Ingresar</button>
-  <div class="link"><a href="admin.html">Ir al Admin</a></div>
+  <div class="link"><a href="admin.html#tab-flyer">Ir al Admin</a></div>
   <div id="loginError" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none"></div>
 </div>
 
@@ -110,6 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button onclick="loadTemplate()">📂 Cargar</button>
       <button onclick="exportPng()">⬇ PNG</button>
       <button onclick="window.print()">🖨 Imprimir</button>
+      <a href="admin.html#tab-flyer" style="color:#8b5cf6;font-size:11px;font-weight:600;text-decoration:none;padding:4px 8px;border-radius:5px;background:rgba(139,92,246,.1)">← Admin</a>
     </div>
   </div>
   <div class="toolbar no-print">
@@ -120,13 +131,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button onclick="addEl('normal')">Texto</button>
       <button onclick="addEl('p')">Párrafo</button>
     </div>
+    <div class="group" style="border-left:2px solid #8b5cf6;padding-left:6px">
+      <button onclick="addStyledText('gold')" style="color:#d4a017;font-weight:700">✨ Título Dorado</button>
+      <button onclick="addStyledText('shadow')" style="color:#222;text-shadow:0 1px 2px rgba(0,0,0,.3)">🌓 Sombra</button>
+      <button onclick="addStyledText('gradient')" style="background:linear-gradient(90deg,#8b5cf6,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">🌈 Degradado</button>
+      <button onclick="addStyledText('elegant')" style="font-family:Georgia;font-style:italic;color:#555">✒️ Elegante</button>
+      <button onclick="addStyledText('modern')" style="font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:11px">🔤 Moderno</button>
+    </div>
+    <div class="group">
+      <button onclick="addTemplate('cover')">📄 Portada</button>
+      <button onclick="addTemplate('info')">ℹ️ Info</button>
+    </div>
     <div class="group">
       <button onclick="addImage()">🖼 Imagen</button>
       <button onclick="addQrFromClient()">📲 QR</button>
+      <button onclick="loadBgUrl()" style="color:#8b5cf6">🤖 IA Fondo</button>
     </div>
     <div class="group">
       <button onclick="duplicateEl()">📋 Duplicar</button>
-      <button onclick="deleteEl2()" style="color:#e74c3c">🗑 Eliminar</button>
+      <button onclick="deleteEl2()" style="color:#fff;background:#ef4444;border-radius:5px;padding:4px 10px;font-weight:700">🗑 Eliminar</button>
     </div>
     <div class="group">
       <label>Fuente:</label>
@@ -136,6 +159,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <option value="Georgia">Georgia</option>
         <option value="'Times New Roman'">Times</option>
         <option value="monospace">Mono</option>
+        <option value="'Playfair Display'">Playfair</option>
+        <option value="'Montserrat'">Montserrat</option>
       </select>
       <label>Tam:</label>
       <input type="number" id="propSize" value="16" min="4" max="300" onchange="setProp('fontSize',this.value+'px')" />
@@ -188,12 +213,18 @@ function login(){
   if(!e||!p){document.getElementById('loginError').textContent='Completa los campos';document.getElementById('loginError').style.display='block';return}
   AUTH.signInWithEmailAndPassword(e,p).then(function(u){_user=u.user;showApp()}).catch(function(){document.getElementById('loginError').textContent='Email o contraseña incorrectos';document.getElementById('loginError').style.display='block'});
 }
-AUTH.onAuthStateChanged(function(u){if(u){_user=u;showApp()}});
+AUTH.onAuthStateChanged(function(u){
+  document.getElementById('loadingOverlay').style.display='none';
+  if(u){_user=u;showApp()}
+  else document.getElementById('loginBox').style.display='block';
+});
 
 function showApp(){
   document.getElementById('loginBox').style.display='none';
   var a=document.getElementById('app');a.style.display='flex';
   initCards();loadClients();renderAll();
+  var p=new URLSearchParams(location.search);
+  if(p.get('bg'))addBgImage(p.get('bg'));
 }
 
 function initCards(){for(var i=0;i<_cards;i++)if(!_elList[i])_elList[i]=[]}
@@ -302,7 +333,12 @@ function renderCanvas(){
     });
     cv.appendChild(d);
   });
-  cv.addEventListener('click',function(e){if(e.target===cv)doUnsel()});
+    cv.addEventListener('click',function(e){if(e.target===cv)doUnsel()});
+  document.addEventListener('keydown',function(e){
+    if((e.key==='Delete'||e.key==='Backspace')&&_selIdx!==null&&!document.querySelector('.el-text[contenteditable]')){
+      e.preventDefault();deleteEl2();
+    }
+  });
 }
 
 function renderPages(){
@@ -332,6 +368,46 @@ function doSel(idx){
 }
 function doUnsel(){_selIdx=null;(_elList[_card]||[]).forEach(function(e){e.sel=false});var els=document.querySelectorAll('.card-canvas .el');for(var i=0;i<els.length;i++)els[i].classList.remove('selected');renderPages()}
 
+/* Styled text presets */
+function addStyledText(style){
+  var presets={
+    gold:{fs:36,fw:'bold',h:48,ct:'TÍTULO PRINCIPAL',      ff:'Georgia, serif',c:'#d4a017',ts:'2px 2px 4px rgba(0,0,0,.3)',ta:'center'},
+    shadow:{fs:32,fw:'bold',h:44,ct:'Título con Sombra',ff:'Arial, sans-serif',c:'#1e293b',ts:'3px 3px 6px rgba(0,0,0,.25)',ta:'center'},
+    gradient:{fs:34,fw:'bold',h:46,ct:'Título Degradado',ff:'Montserrat, sans-serif',c:'#8b5cf6',ta:'center'},
+    elegant:{fs:30,fw:'normal',h:42,ct:'Título Elegante',ff:'"Playfair Display", Georgia, serif',c:'#334155',fsi:'italic',ta:'center'},
+    modern:{fs:22,fw:'bold',h:36,ct:'TÍTULO MODERNO',ff:'Montserrat, sans-serif',c:'#222',ls:'3px',ta:'center'}
+  };
+  var p=presets[style]||presets.shadow;
+  _elList[_card].push({
+    t:'text',c:p.ct,x:20,y:20,w:400,h:p.h||44,
+    s:{fontSize:(p.fs||28)+'px',fontWeight:p.fw||'bold',color:p.c||'#222',fontFamily:p.ff||'Arial',textAlign:p.ta||'center',textShadow:p.ts||'none',letterSpacing:p.ls||'0px',fontStyle:p.fsi||'normal'},
+    r:0
+  });
+  renderCanvas();
+  toast('✨ '+p.ct+' agregado');
+}
+function addTemplate(type){
+  var y=20;
+  function add(cfg){
+    cfg.x=cfg.x||20;cfg.y=y;_elList[_card].push(cfg);
+    y+=cfg.h+10;
+  }
+  if(type==='cover'){
+    add({t:'text',c:'MASTER BAEZ',x:20,y:20,w:400,h:60,s:{fontSize:'48px',fontWeight:'bold',color:'#d4a017',fontFamily:'"Playfair Display",Georgia,serif',textAlign:'center',textShadow:'3px 3px 6px rgba(0,0,0,.3)',letterSpacing:'3px'},r:0});
+    add({t:'text',c:'MARTIAL ARTS',w:400,h:36,s:{fontSize:'22px',fontWeight:'700',color:'#1e293b',fontFamily:'Montserrat,sans-serif',textAlign:'center',letterSpacing:'8px'},r:0});
+    add({t:'text',c:'Entrenamiento profesional para todas las edades',w:400,h:28,s:{fontSize:'16px',fontWeight:'normal',color:'#555',fontFamily:'Arial',textAlign:'center',fontStyle:'italic'},r:0});
+    add({t:'text',c:'📱 Escanea el QR y contáctanos',w:400,h:24,s:{fontSize:'13px',fontWeight:'600',color:'#8b5cf6',fontFamily:'Arial',textAlign:'center'},r:0});
+  } else if(type==='info'){
+    add({t:'text',c:'Información',x:20,y:20,w:400,h:36,s:{fontSize:'28px',fontWeight:'bold',color:'#1e293b',fontFamily:'Montserrat',textAlign:'left',letterSpacing:'1px'},r:0});
+    add({t:'text',c:'Horarios: Lunes a Viernes 9:00 - 20:00',w:400,h:24,s:{fontSize:'14px',fontWeight:'normal',color:'#444',fontFamily:'Arial',textAlign:'left'},r:0});
+    add({t:'text',c:'Dirección: [dirección del negocio]',w:400,h:24,s:{fontSize:'14px',fontWeight:'normal',color:'#444',fontFamily:'Arial',textAlign:'left'},r:0});
+    add({t:'text',c:'Teléfono: [número de contacto]',w:400,h:24,s:{fontSize:'14px',fontWeight:'normal',color:'#444',fontFamily:'Arial',textAlign:'left'},r:0});
+    add({t:'text',c:'💬 Escanea el QR para más información',w:400,h:24,s:{fontSize:'13px',fontWeight:'600',color:'#8b5cf6',fontFamily:'Arial',textAlign:'left'},r:0});
+  }
+  renderCanvas();
+  toast('📄 Template agregado — editá cada texto con doble click');
+}
+
 /* Add elements */
 function addEl(style){
   var m={h1:{fs:28,fw:'bold',h:40,ct:'Título Principal'},h2:{fs:22,fw:'bold',h:34,ct:'Subtítulo'},h3:{fs:18,fw:'bold',h:28,ct:'Encabezado'},normal:{fs:16,fw:'normal',h:24,ct:'Texto normal'},p:{fs:14,fw:'normal',h:60,ct:'Párrafo de ejemplo. Haz doble clic para editar.'}};
@@ -344,6 +420,16 @@ function addImage(){
   inp.onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();
     r.onload=function(ev){_elList[_card].push({t:'img',c:ev.target.result,x:20,y:20,w:150,h:150,r:0});renderCanvas();toast('✅ Imagen agregada')};
     r.readAsDataURL(f)};inp.click();
+}
+function addBgImage(url){
+  var w=_fmt.w*96,h=_fmt.h*96;
+  _elList[_card].push({t:'img',c:url,x:0,y:0,w:w,h:h,r:0});
+  renderCanvas();
+  toast('✅ Fondo de IA cargado');
+}
+function loadBgUrl(){
+  var u=prompt('Pegá la URL de la imagen de fondo (de IA o cualquier imagen):');
+  if(u&&u.trim())addBgImage(u.trim());
 }
 function addQrFromClient(){if(!_clients.length){toast('No hay clientes');return}selClient(_clients[0]._id);toast('Selecciona un QR de la lista')}
 function addQR(cid,qid,svc){
