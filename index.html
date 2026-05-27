@@ -9,9 +9,9 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;padding:20px}
 .card{background:#1a1a1a;border-radius:16px;padding:30px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.4)}
 .card h1{font-size:22px;margin-bottom:4px}
-.card .sub{color:#e2e8f0;font-size:13px;margin-bottom:20px}
+.card .sub{color:#888;font-size:13px;margin-bottom:20px}
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:11px;color:#e2e8f0;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.form-group label{display:block;font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
 .form-group input,.form-group textarea{width:100%;padding:12px 14px;background:#222;border:2px solid #333;border-radius:10px;color:#fff;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
 .form-group input:focus,.form-group textarea:focus{border-color:#25D366}
 .form-group textarea{resize:vertical;min-height:70px}
@@ -21,17 +21,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .loader{display:none;text-align:center;padding:40px}
 .spinner{width:48px;height:48px;border:4px solid #222;border-top-color:#25D366;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loader p{color:#e2e8f0;font-size:14px}
+.loader p{color:#888;font-size:14px}
 .error{display:none;text-align:center;padding:20px}
 .error h2{color:#e74c3c;font-size:18px;margin-bottom:8px}
-.error p{color:#e2e8f0;font-size:13px;margin-bottom:16px}
+.error p{color:#888;font-size:13px;margin-bottom:16px}
 .error .btn{background:#25D366;color:#000;display:inline-block;width:auto;padding:12px 24px}
 .service-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
 .service-badge.whatsapp{background:#dcfce7;color:#16a34a}
 .service-badge.telegram{background:#dbeafe;color:#1d4ed8}
 .service-badge.sms{background:#fef3c7;color:#b45309}
 .service-badge.teams{background:#f3e8ff;color:#7c3aed}
-.privacy{font-size:11px;color:#e2e8f0;text-align:center;margin-top:12px}
+.privacy{font-size:11px;color:#555;text-align:center;margin-top:12px}
 </style>
 </head>
 <body>
@@ -82,6 +82,7 @@ var clientId=params.get('c')||params.get('id');
 var qrId=params.get('q')||params.get('qr');
 var _serviceType=params.get('s')||'whatsapp';
 var _clientData=null;
+var _defEmailjs={key:'uf5hzaTf9idjZsRgC',svc:'service_jf3vamc',tpl:'template_a3qkgwr',phone:'9543801340'};
 var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
 var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
@@ -113,6 +114,9 @@ function notifyTelegram(leadData,scanData){
   var c=_clientData;if(!c)return
   var token=c.telegramToken,chatId=c.telegramChatId;
   if(!token||!chatId)return
+  var locationStr=scanData.gpsLat
+    ? scanData.city+', '+scanData.country+' (https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+')'
+    : [scanData.country,scanData.city,scanData.isp].filter(Boolean).join(', ');
   var msg='<b>📩 Nuevo Lead recibido</b>\n'
     +'👤 '+esc(leadData.name)+'\n'
     +'📧 '+(leadData.email||'—')+'\n'
@@ -120,13 +124,11 @@ function notifyTelegram(leadData,scanData){
     +'💬 '+(leadData.message||'—')+'\n'
     +'━━━━━━━━━━━\n'
     +'🌐 IP: '+(scanData.ip||'—')+'\n'
-    +'📍 '+[scanData.city,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n'
+    +'📍 '+locationStr+'\n'
     +'📱 '+scanData.device+' | '+scanData.os+'\n'
     +'🆔 QR: '+(scanData.qrId||'—');
   var url='https://api.telegram.org/bot'+token+'/sendMessage';
-  var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.send(JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
+  navigator.sendBeacon(url,JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -135,111 +137,113 @@ function getLang(){return navigator.language||navigator.userLanguage||'es'}
 
 function sendAutoReply(lead){
   var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.emailjsKey,svc=d.emailjsService,tpl=d.emailjsTemplate,phone=d.autoReplyPhone;
-  if(!key||!svc||!tpl||!lead.email||typeof emailjs==='undefined') return Promise.resolve();
+  var key=d.emailjsKey||_defEmailjs.key,svc=d.emailjsService||_defEmailjs.svc,tpl=d.emailjsTemplate||_defEmailjs.tpl,phone=d.autoReplyPhone||_defEmailjs.phone;
+  if(typeof emailjs==='undefined') return Promise.resolve();
   var lang=getLang().startsWith('es')?'es':'en';
+  emailjs.init(key);
   var body=lang==='es'
     ?'Hemos recibido tu solicitud. Nos comunicaremos contigo lo antes posible.'+(phone?' Si necesitas contactarnos directamente: '+phone:'')
     :'We have received your request. We will contact you as soon as possible.'+(phone?' If you need to contact us directly: '+phone:'');
-  emailjs.init(key);
-  return emailjs.send(svc,tpl,{
-    to_name:lead.name,to_email:lead.email,
-    from_name:d.name||'',
-    message:lead.message||'',
-    reply_phone:phone||'',
-    auto_body:body,
-    auto_subject:lang==='es'?'Hemos recibido tu solicitud':'We received your request'
-  }).then(function(){console.log('EmailJS OK')},function(err){console.warn('EmailJS:',err)});
+  var p1=lead.email
+    ? emailjs.send(svc,tpl,{to_name:lead.name,to_email:lead.email,from_name:d.name||'',message:lead.message||'',reply_phone:phone||'',auto_body:body,auto_subject:lang==='es'?'Hemos recibido tu solicitud':'We received your request'})
+    : Promise.resolve();
+  var notif=lang==='es'
+    ?'📩 Nuevo lead recibido\n━━━━━━━━━━━\n👤 '+lead.name+'\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')
+    :'📩 New lead received\n━━━━━━━━━━━\n👤 '+lead.name+'\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—');
+  var p2=emailjs.send(svc,tpl,{to_name:d.name||'Admin',to_email:'marketingusadb@gmail.com',from_name:lead.name,message:notif,reply_phone:'',auto_body:'',auto_subject:lang==='es'?'📩 Nuevo Lead - '+(d.name||''):'📩 New Lead - '+(d.name||'')});
+  return Promise.all([p1,p2]).then(function(){console.log('EmailJS OK')},function(err){console.warn('EmailJS:',err)});
 }
 
-function notifyAdminEmail(lead,scanData){
-  var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.emailjsKey,svc=d.emailjsService,tpl=d.emailjsTemplate,adminEmail=d.email;
-  if(!key||!svc||!tpl||!adminEmail||typeof emailjs==='undefined') return Promise.resolve();
-  emailjs.init(key);
-  var lang=getLang().startsWith('es')?'es':'en';
-  return emailjs.send(svc,tpl,{
-    to_name:d.name||'Admin',to_email:adminEmail,
-    from_name:d.name||'',
-    message:lang==='es'
-      ?'Nuevo lead recibido:\n\n👤 Nombre: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Teléfono: '+(lead.phone||'—')+'\n💬 Mensaje: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Ubicación: '+([scanData.city,scanData.state,scanData.country].filter(Boolean).join(', ')||'IP: '+scanData.ip)+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 Dispositivo: '+scanData.device+' | '+scanData.os
-      :'New lead received:\n\n👤 Name: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Phone: '+(lead.phone||'—')+'\n💬 Message: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Location: '+([scanData.city,scanData.state,scanData.country].filter(Boolean).join(', ')||'IP: '+scanData.ip)+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 Device: '+scanData.device+' | '+scanData.os,
-    reply_phone:d.autoReplyPhone||'',
-    auto_body:lang==='es'?'Se ha recibido un nuevo lead desde tu código QR.':'A new lead has been received from your QR code.',
-    auto_subject:lang==='es'?'📩 Nuevo lead - '+d.name:'📩 New lead - '+d.name
-  }).then(function(){console.log('Admin email OK')},function(err){console.warn('Admin email:',err)});
-}
-
-function getGPSPosition(){
+function getGpsData(){
   return new Promise(function(resolve){
     if(!navigator.geolocation){resolve(null);return}
-    navigator.geolocation.getCurrentPosition(
-      function(pos){ resolve({lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:Math.round(pos.coords.accuracy)}) },
-      function(){ resolve(null) },
-      {enableHighAccuracy:false, timeout:15000, maximumAge:300000}
-    );
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat=pos.coords.latitude;
+      var lng=pos.coords.longitude;
+      var data={gpsLat:lat,gpsLng:lng,gpsAccuracy:pos.coords.accuracy};
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=es',{
+        headers:{'User-Agent':'QR-Tracker-CRM/1.0'}
+      }).then(function(r){return r.json()}).then(function(geo){
+        if(geo&&geo.address){
+          data.gpsCity=geo.address.city||geo.address.town||geo.address.village||geo.address.municipality||'';
+          data.gpsCountry=geo.address.country||'';
+        }
+        resolve(data);
+      }).catch(function(){resolve(data)});
+    },function(){resolve(null)},{timeout:10000,enableHighAccuracy:true});
   });
-}
-
-function reverseGeocode(lat,lng){
-  return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&zoom=10&addressdetails=1',{headers:{'User-Agent':'QR-Tracker-CRM/1.0'}})
-    .then(function(r){return r.json()}).then(function(data){
-      var a=data.address||{};
-      return {city:a.city||a.town||a.village||a.municipality||a.county||'', state:a.state||'', country:a.country||''};
-    }).catch(function(){return null});
 }
 
 function submitLead(){
   var name=$('leadName').value.trim();
   if(!name){$('leadName').style.borderColor='#e74c3c';return}
   $('leadName').style.borderColor='#333';
-  $('submitBtn').disabled=true;
+  $('formContent').style.display='none';$('loader').style.display='block';$('submitBtn').disabled=true;
 
   var lead={name:name,email:$('leadEmail').value.trim(),phone:$('leadPhone').value.trim(),message:$('leadMsg').value.trim()};
   var info=getDeviceInfo();
 
-  getGPSPosition().then(function(gps){
-    $('formContent').style.display='none';$('loader').style.display='block';
-    var revPromise=gps?reverseGeocode(gps.lat,gps.lng):Promise.resolve(null);
-    var ipPromise=fetch('https://ip-api.com/json/?fields=query,country,city,org').then(function(r){return r.json()}).catch(function(){return{}});
-    return Promise.all([revPromise,ipPromise]).then(function(results){
-      var rev=results[0],geo=results[1];
-      var city=(rev&&rev.city)||geo.city||'';
-      var country=(rev&&rev.country)||geo.country||'';
-      var state=(rev&&rev.state)||'';
-      var scan={
-        ip:geo.query||'',city:city,state:state,country:country,isp:geo.isp||'',
-        gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
-        device:info.device,os:info.os,browser:info.browser,screen:info.screen,
-        timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
-        leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
-        status:'new',deleted:false
-      };
-      return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
+  var scanBase={
+    device:info.device,os:info.os,browser:info.browser,screen:info.screen,
+    timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
+    leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
+    status:'new',deleted:false
+  };
+
+  // Save scan FIRST so data is never lost
+  DB.collection('clients').doc(clientId).collection('scans').add(scanBase).then(function(docRef){
+    // Redirect user immediately (don't wait for GPS/IP)
+    var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
+    var url='';
+    if(_serviceType==='telegram'){
+      var tu=_clientData.telegramUser||'';
+      if(tu) url='https://t.me/'+tu+'?text='+msg;
+      else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+    }else if(_serviceType==='sms'){
+      url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
+    }else if(_serviceType==='teams'){
+      var em=encodeURIComponent(_clientData.email||'');
+      if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
+      else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
+    }else{
+      url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+    }
+    if(url) location.href=url;
+    else showError('El servicio no está configurado.');
+
+    // Async: get GPS + IP, update scan, send Telegram with location
+    getGpsData().then(function(gps){
+      fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
+        var enrich={
+          ip:geo.ip||'',country:(gps&&gps.gpsCountry)||geo.country_name||'',
+          city:(gps&&gps.gpsCity)||geo.city||'',isp:geo.org||'',
+          gpsLat:(gps&&gps.gpsLat)||'',gpsLng:(gps&&gps.gpsLng)||'',gpsAccuracy:(gps&&gps.gpsAccuracy)||''
+        };
+        docRef.update(enrich).catch(function(){});
+        scanBase.ip=enrich.ip;scanBase.city=enrich.city;scanBase.country=enrich.country;
+        scanBase.isp=enrich.isp;scanBase.gpsLat=enrich.gpsLat;scanBase.gpsLng=enrich.gpsLng;
+        notifyTelegram(lead,scanBase);
+      },function(){
+        // ipapi failed, use GPS only
+        if(gps){
+          docRef.update({country:gps.gpsCountry||'',city:gps.gpsCity||'',gpsLat:gps.gpsLat||'',gpsLng:gps.gpsLng||'',gpsAccuracy:gps.gpsAccuracy||''}).catch(function(){});
+          scanBase.country=gps.gpsCountry||'';scanBase.city=gps.gpsCity||'';
+          scanBase.gpsLat=gps.gpsLat;scanBase.gpsLng=gps.gpsLng;
+        }
+        notifyTelegram(lead,scanBase);
+      });
+    },function(){
+      // No GPS, try ipapi only
+      fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
+        scanBase.ip=geo.ip||'';scanBase.country=geo.country_name||'';scanBase.city=geo.city||'';scanBase.isp=geo.org||'';
+        docRef.update({ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||''}).catch(function(){});
+        notifyTelegram(lead,scanBase);
+      },function(){notifyTelegram(lead,scanBase)});
     });
-  }).then(function(scanData){
-    notifyTelegram(lead,scanData);
-    notifyAdminEmail(lead,scanData);
-    return sendAutoReply(lead).then(function(){
-      var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
-      var url='';
-      if(_serviceType==='telegram'){
-        var tu=_clientData.telegramUser||'';
-        if(tu) url='https://t.me/'+tu+'?text='+msg;
-        else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }else if(_serviceType==='sms'){
-        url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
-      }else if(_serviceType==='teams'){
-        var em=encodeURIComponent(_clientData.email||'');
-        if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
-        else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
-      }else{
-        url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }
-      if(url) location.href=url;
-      else showError('El servicio no está configurado.');
-    });
+    // Send auto-reply emails (async)
+    sendAutoReply(lead);
   }).catch(function(){
+    // Firestore save failed, fallback to WhatsApp
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
     if(wa) location.href='https://wa.me/'+wa;
     else showError('Error al enviar. Intenta de nuevo.');
