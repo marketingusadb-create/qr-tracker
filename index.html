@@ -190,9 +190,8 @@ function submitLead(){
     status:'new',deleted:false
   };
 
-  // Save scan FIRST so data is never lost
-  DB.collection('clients').doc(clientId).collection('scans').add(scanBase).then(function(docRef){
-    // Redirect user immediately (don't wait for GPS/IP)
+  // Get data and save, then redirect
+  function redirectToService(){
     var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
     var url='';
     if(_serviceType==='telegram'){
@@ -208,43 +207,37 @@ function submitLead(){
     }else{
       url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
     }
-    if(url){window.open(url,'_blank');$('loader').innerHTML='<div class="spinner"></div><p>✅ Información enviada</p>'}
+    if(url) location.href=url;
     else showError('El servicio no está configurado.');
+  }
 
-    // Async: get GPS + IP, update Firestore, send Telegram
-    function tryIpApi(idx){
-      var apis=[
-        {url:'https://ipapi.co/json/',fn:function(d){return{ip:d.ip,country:d.country_name||d.country,city:d.city,isp:d.org}}},
-        {url:'https://ip-api.com/json/',fn:function(d){return{ip:d.query,country:d.country,city:d.city,isp:d.isp}}}
-      ];
-      if(idx>=apis.length)return Promise.reject();
-      return fetch(apis[idx].url,{mode:'cors'}).then(function(r){if(!r.ok)return Promise.reject();return r.json()}).then(function(d){
-        try{return apis[idx].fn(d)}catch(e){return Promise.reject()}
-      }).catch(function(){return tryIpApi(idx+1)});
-    }
-    var _gps=null,_ip=null,_done=0;
-    function finishGeo(){
-      _done++;if(_done<2)return;
-      if(_ip){scanBase.ip=_ip.ip;scanBase.isp=_ip.isp||'';scanBase.country=_ip.country||'';scanBase.city=_ip.city||''}
-      if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.country=_gps.gpsCountry||scanBase.country;scanBase.city=_gps.gpsCity||scanBase.city}
-      var upd={};
-      if(_ip){upd.ip=_ip.ip;upd.isp=_ip.isp||''}
-      if(_gps){upd.gpsLat=_gps.gpsLat;upd.gpsLng=_gps.gpsLng;upd.gpsAccuracy=_gps.gpsAccuracy}
-      upd.country=(_gps&&_gps.gpsCountry)||(_ip&&_ip.country)||'';
-      upd.city=(_gps&&_gps.gpsCity)||(_ip&&_ip.city)||'';
-      docRef.update(upd).catch(function(){});
+  function tryIpApi(idx){
+    var apis=[
+      {url:'https://ipapi.co/json/',fn:function(d){return{ip:d.ip,country:d.country_name||d.country,city:d.city,isp:d.org}}},
+      {url:'https://ip-api.com/json/',fn:function(d){return{ip:d.query,country:d.country,city:d.city,isp:d.isp}}}
+    ];
+    if(idx>=apis.length)return Promise.reject();
+    return fetch(apis[idx].url,{mode:'cors'}).then(function(r){if(!r.ok)return Promise.reject();return r.json()}).then(function(d){
+      try{return apis[idx].fn(d)}catch(e){return Promise.reject()}
+    }).catch(function(){return tryIpApi(idx+1)});
+  }
+
+  // Run GPS + IP in parallel, save & redirect when ready (max 4s wait)
+  var _gps=null,_ip=null,_gpsDone=false,_ipDone=false,_saved=false;
+  function saveAndGo(){
+    if(_saved)return;_saved=true;
+    if(_ip){scanBase.ip=_ip.ip;scanBase.isp=_ip.isp||'';scanBase.country=_ip.country||'';scanBase.city=_ip.city||''}
+    if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.city=_gps.gpsCity||scanBase.city;scanBase.country=_gps.gpsCountry||scanBase.country}
+    DB.collection('clients').doc(clientId).collection('scans').add(scanBase).then(function(){
       notifyTelegram(lead,scanBase);
-    }
-    getGpsData().then(function(g){_gps=g;finishGeo()},function(){finishGeo()});
-    tryIpApi(0).then(function(g){_ip=g;finishGeo()},function(){finishGeo()});
-    // Send auto-reply emails (async)
-    sendAutoReply(lead);
-  }).catch(function(){
-    // Firestore save failed, fallback to WhatsApp
-    var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
-    if(wa){window.open('https://wa.me/'+wa,'_blank');$('loader').innerHTML='<div class="spinner"></div><p>✅ Redirigiendo...</p>'}
-    else showError('Error al enviar. Intentar de nuevo.');
-  });
+      sendAutoReply(lead);
+    }).catch(function(){});
+    redirectToService();
+  }
+  var _t=setTimeout(function(){saveAndGo()},4000);
+  function ck(){if(_gpsDone&&_ipDone){clearTimeout(_t);saveAndGo()}}
+  getGpsData().then(function(g){_gps=g;_gpsDone=true;ck()},function(){_gpsDone=true;ck()});
+  tryIpApi(0).then(function(g){_ip=g;_ipDone=true;ck()},function(){_ipDone=true;ck()});
 }
 
 /* Init */
