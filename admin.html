@@ -327,7 +327,7 @@ var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
 </script>
 <script>
-var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es',_googleVoice='';
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es',_googleVoice='',_telegramUser='';
 var _TRANS={
   es:{
     code:'es',label:'🇪🇸 Español',lang:'es',other:'en',
@@ -514,14 +514,14 @@ function openClient(id){
     document.getElementById('editEmailjsService').value=d.emailjsService||'';
     document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
     document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
-    document.getElementById('editGoogleVoice').value=d.googleVoice||'';_googleVoice=d.googleVoice||'';
+    document.getElementById('editGoogleVoice').value=d.googleVoice||'';_googleVoice=d.googleVoice||'';_telegramUser=d.telegramUser||'';
     document.getElementById('editLicenciaActiva').checked=d.licenciaActiva||false;
     document.getElementById('editLicenciaVence').value=d.licenciaVence||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
   });
 }
-function closeClientModal(){document.getElementById('clientModal').style.display='none';_currentClientId=null;_googleVoice=''}
+function closeClientModal(){document.getElementById('clientModal').style.display='none';_currentClientId=null;_googleVoice='';_telegramUser=''}
 
 function statusTxt(s){return s==='contacted'?__('statusContacted'):s==='closed'?__('statusClosed'):__('statusNew')}
 function statusCls(s){return s==='contacted'?'badge-active':s==='closed'?'badge-inactive':'badge-mobile'}
@@ -544,8 +544,8 @@ function loadScans(clientId){
         +'<td style="white-space:nowrap">'
         +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
         +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-        +(ph?'<a href="tel:'+(_googleVoice||ph).replace(/\D/g,'')+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+(_googleVoice?'Google Voice':'Llamar')+'">📞</a>':'')
-        +(ph?'<a href="https://t.me/'+ph.replace(/\D/g,'')+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
+        +(ph?'<a href="'+(_googleVoice?'https://voice.google.com/u/0/voicemail':'tel:'+ph.replace(/\D/g,''))+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+(_googleVoice?'Google Voice':'Llamar')+'">📞</a>':'')
+        +(ph?'<a href="https://t.me/'+(_telegramUser||ph).replace(/^@/,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Telegram">✈️</a>':'')
         +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
         +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
         +'</td></tr>'});
