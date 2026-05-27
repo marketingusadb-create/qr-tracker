@@ -181,6 +181,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>EmailJS Template ID</label><input id="ncEmailjsTemplate" placeholder="template_abc123" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</small></label><input id="ncAutoReplyPhone" placeholder="953801340" /></div>
       <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="ncGoogleVoice" placeholder="17866811651" /></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
+      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
+      <div class="form-group"><label><input id="ncLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
+      <div class="form-group"><label>Vence el</label><input id="ncLicenciaVence" type="date" /></div>
       <button class="btn btn-primary" onclick="createClient()" data-lang="createClient">Crear Cliente</button>
       <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
     </div>
@@ -291,6 +295,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>EmailJS Template ID</label><input id="editEmailjsTemplate" placeholder="ej: template_abc123" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto <small data-lang="autoReplyPhoneDesc">(aparece en el email auto-respuesta)</small></label><input id="editAutoReplyPhone" placeholder="953801340" /></div>
       <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="editGoogleVoice" placeholder="17866811651" /></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
+      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
+      <div class="form-group"><label><input id="editLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
+      <div class="form-group"><label>Vence el</label><input id="editLicenciaVence" type="date" /></div>
       <button class="btn btn-primary" onclick="saveClient()" data-lang="saveChanges">Guardar cambios</button>
       <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px" data-lang="trash">🗑 Papelera</button>
       <div id="editResult" style="margin-top:10px;font-size:13px"></div>
@@ -521,6 +529,8 @@ function openClient(id){
     document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
     document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
     document.getElementById('editGoogleVoice').value=d.googleVoice||'';
+    document.getElementById('editLicenciaActiva').checked=d.licenciaActiva||false;
+    document.getElementById('editLicenciaVence').value=d.licenciaVence||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
     document.querySelectorAll('#clientModal .tab')[0].click();
   });
@@ -751,9 +761,11 @@ function createClient(){
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   var gv=document.getElementById('ncGoogleVoice').value.trim().replace(/\D/g,'');
-  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  var la=document.getElementById('ncLicenciaActiva').checked;
+  var lv=document.getElementById('ncLicenciaVence').value;
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice'].forEach(function(id){document.getElementById(id).value=''});
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
     toast('Cliente creado exitosamente');
   }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
@@ -769,7 +781,9 @@ function saveClient(){
     emailjsService:document.getElementById('editEmailjsService').value.trim(),
     emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
     autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim(),
-    googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,'')
+    googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,''),
+    licenciaActiva:document.getElementById('editLicenciaActiva').checked,
+    licenciaVence:document.getElementById('editLicenciaVence').value
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
