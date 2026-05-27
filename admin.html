@@ -537,7 +537,7 @@ function loadScans(clientId){
         +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0;max-width:200px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.ip||'—')+'</td>'
-        +'<td style="font-size:11px;color:#e2e8f0">'+(d.gpsLat?'<a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a> ':'')+esc([d.city,d.country,d.isp].filter(Boolean).join(', ')||'—')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0">'+esc([d.city,d.state,d.country].filter(Boolean).join(', ')||'—')+(d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a>':'')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.os||'—')+'</td>'
         +'<td><span class="badge '+statusCls(st)+'" onclick="updateScanStatus(\''+clientId+'\',\''+doc.id+'\',\''+st+'\')" style="cursor:pointer">'+statusTxt(st)+'</span></td>'
         +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#e2e8f0;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
@@ -576,8 +576,8 @@ function renderLeads(all){
   var html='<div style="overflow-x:auto"><table class="scan-table"><thead><tr><th>'+__('client')+'</th><th>'+__('date')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>IP</th><th>'+__('ubicacion')+'</th><th>'+__('dispositivo')+'</th><th>'+__('action')+'</th></tr></thead><tbody>';
   all.forEach(function(d){
     var ph=d.leadPhone||'';var em=d.leadEmail||'';var msg=encodeURIComponent(d.leadMessage||'Hola');
-    var loc=[d.city,d.country].filter(Boolean).join(', ');
-    var mapLink=d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a> ':'';
+    var loc=[d.city,d.state,d.country].filter(Boolean).join(', ');
+    var mapLink=d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a>':'';
     html+='<tr><td style="font-size:11px;color:#2563eb"><b>'+esc(d._clientName)+'</b></td>'
       +'<td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
       +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
@@ -605,7 +605,7 @@ function exportLeads(){
       p.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').orderBy('timestamp','desc').get().then(function(ssnap){
         ssnap.forEach(function(sdoc){
           var d=sdoc.data();if(d.deleted)return;
-          var line=[cname,d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new'];
+          var line=[cname,d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.state,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new'];
           csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
         });
       }));
@@ -624,7 +624,7 @@ function exportClientScans(){
     var csv='\uFEFFFecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,GPS Lat,GPS Lng,Dispositivo,Estado,Nota\n';
     ssnap.forEach(function(sdoc){
       var d=sdoc.data();if(d.deleted)return;
-      var line=[d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new',d.note||''];
+      var line=[d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.state,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new',d.note||''];
       csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
     });
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');
