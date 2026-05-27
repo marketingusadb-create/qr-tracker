@@ -82,6 +82,7 @@ var clientId=params.get('c')||params.get('id');
 var qrId=params.get('q')||params.get('qr');
 var _serviceType=params.get('s')||'whatsapp';
 var _clientData=null;
+var _defEmailjs={key:'uf5hzaTf9idjZsRgC',svc:'service_jf3vamc',tpl:'template_a3qkgwr',phone:'9543801340'};
 var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
 var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
@@ -136,8 +137,8 @@ function getLang(){return navigator.language||navigator.userLanguage||'es'}
 
 function sendAutoReply(lead){
   var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.emailjsKey,svc=d.emailjsService,tpl=d.emailjsTemplate,phone=d.autoReplyPhone;
-  if(!key||!svc||!tpl||typeof emailjs==='undefined') return Promise.resolve();
+  var key=d.emailjsKey||_defEmailjs.key,svc=d.emailjsService||_defEmailjs.svc,tpl=d.emailjsTemplate||_defEmailjs.tpl,phone=d.autoReplyPhone||_defEmailjs.phone;
+  if(typeof emailjs==='undefined') return Promise.resolve();
   var lang=getLang().startsWith('es')?'es':'en';
   emailjs.init(key);
   var body=lang==='es'
