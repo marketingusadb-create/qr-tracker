@@ -346,6 +346,7 @@ var _TRANS={
     client:'Cliente',date:'Fecha',action:'Acción',passwordPlaceholder:'Contraseña (mín 6 caracteres)',
     noScans:'Aún no hay scans.',clickEdit:'Click para editar',delete:'Eliminar',
     noNewLeads:'No hay leads nuevos.',markContacted:'Marcar contactado',
+    deletedQrs:'QR eliminados',
     qrCodes:'Códigos QR',logout:'Cerrar sesión',errorLoginRequired:'Ingresa email y contraseña',
     deletedScans:'Scans eliminados',noDeletedScans:'No hay scans eliminados.',
     businessName:'Nombre del negocio',whatsappRedirect:'WhatsApp',qrRedirect:'a donde redirige el QR',
@@ -374,6 +375,7 @@ var _TRANS={
     client:'Client',date:'Date',action:'Action',passwordPlaceholder:'Password (min 6 characters)',
     noScans:'No scans yet.',clickEdit:'Click to edit',delete:'Delete',
     noNewLeads:'No new leads.',markContacted:'Mark contacted',
+    deletedQrs:'Deleted QR codes',
     qrCodes:'QR Codes',logout:'Sign out',errorLoginRequired:'Enter email and password',
     deletedScans:'Deleted scans',noDeletedScans:'No deleted scans.',
     businessName:'Business name',whatsappRedirect:'WhatsApp',qrRedirect:'QR redirect target',
@@ -444,57 +446,39 @@ function clientTrashItem(id,d){
 function qrTrashItem(cid,cname,qid,qd){
   var baseUrl=getBaseUrl();var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
   var qrData=baseUrl+'?c='+cid+'&q='+qid+'&s='+(qd.type||'whatsapp');
-  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button></div></div></div>';
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
 }
 function loadDeletedClients(){
   var html='';
-  // Cargar QRs eliminados (puede fallar si falta índice)
-  var qrPromise = QR_DB.collectionGroup('qrCodes').where('deleted','==',true).get().then(function(qrSnap){
-    var deletedQrs={}; var qrHtml='';
-    qrSnap.forEach(function(doc){var p=doc.ref.path;var cid=p.split('/')[1];if(!deletedQrs[cid])deletedQrs[cid]=[];deletedQrs[cid].push({id:doc.id,data:doc.data()})});
-    // QRs de clientes activos
-    return QR_DB.collection('clients').where('deleted','!=',true).get().then(function(activeSnap){
-      activeSnap.forEach(function(doc){
-        var cid=doc.id;var qrs=deletedQrs[cid]||[];
-        qrs.forEach(function(q){qrHtml+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
-      });
-      // QRs de clientes eliminados
-      return QR_DB.collection('clients').where('deleted','==',true).get().then(function(deletedSnap){
-        deletedSnap.forEach(function(doc){
-          html+=clientTrashItem(doc.id,doc.data()); // clientes eliminados
-          var cid=doc.id;var qrs=deletedQrs[cid]||[];
-          qrs.forEach(function(q){qrHtml+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
-        });
-        html+=qrHtml; // agregar QRs al html
-      });
-    });
-  }).catch(function(e){ console.warn('Error cargando QRs eliminados:',e); });
-  // Cargar scans eliminados
-  var scanPromise = QR_DB.collection('clients').get().then(function(allClients){
-    var scanPromises=[]; var sc=0; var scanHtml='';
+  QR_DB.collection('clients').get().then(function(allClients){
+    var promises=[]; var sc=0; var scanHtml=''; var allQrHtml='';
     allClients.forEach(function(cdoc){
-      scanPromises.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
+      var cname=cdoc.data().name||'—';
+      // Scans eliminados
+      promises.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
         ssnap.forEach(function(sdoc){
           var d=sdoc.data();sc++;
           scanHtml+='<div class="client-card" style="opacity:.6"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.leadName||'—')+'</h3>'
-            +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cdoc.data().name||'—')+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
+            +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cname)+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
             +'<div><button onclick="restoreScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
             +'<button onclick="permDeleteScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
         });
       }));
+      // QRs eliminados
+      promises.push(QR_DB.collection('clients').doc(cdoc.id).collection('qrCodes').where('deleted','==',true).get().then(function(qSnap){
+        qSnap.forEach(function(qDoc){
+          var qd=qDoc.data();
+          allQrHtml+=qrTrashItem(cdoc.id,cname,qDoc.id,qd);
+        });
+      }));
     });
-    return Promise.all(scanPromises).then(function(){
-      if(scanHtml){
-        html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+scanHtml;
-      } else {
-        html+='<p style="color:#888;padding:10px" data-lang="noDeletedScans">No hay scans eliminados.</p>';
-      }
+    return Promise.all(promises).then(function(){
+      if(allQrHtml) html+='<h3 style="font-size:16px;margin:12px 0 12px">📱 <span data-lang="deletedQrs">QR eliminados</span></h3>'+allQrHtml;
+      if(scanHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+scanHtml;
+      if(!html) html='<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
+      document.getElementById('trashList').innerHTML=html;
     });
-  }).catch(function(e){ console.warn('Error cargando scans eliminados:',e); });
-  // Cuando todo termine, mostrar
-  Promise.all([qrPromise, scanPromise]).then(function(){
-    document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
-  });
+  }).catch(function(e){ console.warn('Error cargando papelera:',e); document.getElementById('trashList').innerHTML='<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>' });
 }
 function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
 
@@ -721,10 +705,15 @@ function deleteQrCode(clientId,qrId){
 }
 function restoreQrCode(clientId,qrId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
-    toast('QR restaurado');loadQrCodes(clientId);
+    toast('QR restaurado');loadQrCodes(clientId);loadDeletedClients();
   }).catch(function(err){toast('Error: '+err.message)});
 }
-
+function permDeleteQrCode(clientId,qrId){
+  if(!confirm('¿Eliminar PERMANENTEMENTE este QR? No se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).delete().then(function(){
+    toast(__('deletedPerm'));loadDeletedClients();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
 
 function addQrCode(){
   var qrId=document.getElementById('newQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
