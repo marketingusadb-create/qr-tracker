@@ -208,7 +208,7 @@ function submitLead(){
     }else{
       url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
     }
-    if(url) location.href=url;
+    if(url){window.open(url,'_blank');$('loader').innerHTML='<div class="spinner"></div><p>✅ Información enviada</p>'}
     else showError('El servicio no está configurado.');
 
     // Async: get GPS + IP, update Firestore, send Telegram
@@ -239,9 +239,8 @@ function submitLead(){
   }).catch(function(){
     // Firestore save failed, fallback to WhatsApp
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
-    if(wa) location.href='https://wa.me/'+wa;
-    else showError('Error al enviar. Intenta de nuevo.');
-    $('loader').style.display='none';$('error').style.display='block';
+    if(wa){window.open('https://wa.me/'+wa,'_blank');$('loader').innerHTML='<div class="spinner"></div><p>✅ Redirigiendo...</p>'}
+    else showError('Error al enviar. Intentar de nuevo.');
   });
 }
 
