@@ -211,35 +211,29 @@ function submitLead(){
     if(url) location.href=url;
     else showError('El servicio no está configurado.');
 
-    // Async: get GPS + IP, update scan, send Telegram with location
-    getGpsData().then(function(gps){
-      fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
-        var enrich={
-          ip:geo.ip||'',country:(gps&&gps.gpsCountry)||geo.country_name||'',
-          city:(gps&&gps.gpsCity)||geo.city||'',isp:geo.org||'',
-          gpsLat:(gps&&gps.gpsLat)||'',gpsLng:(gps&&gps.gpsLng)||'',gpsAccuracy:(gps&&gps.gpsAccuracy)||''
-        };
-        docRef.update(enrich).catch(function(){});
-        scanBase.ip=enrich.ip;scanBase.city=enrich.city;scanBase.country=enrich.country;
-        scanBase.isp=enrich.isp;scanBase.gpsLat=enrich.gpsLat;scanBase.gpsLng=enrich.gpsLng;
-        notifyTelegram(lead,scanBase);
-      },function(){
-        // ipapi failed, use GPS only
-        if(gps){
-          docRef.update({country:gps.gpsCountry||'',city:gps.gpsCity||'',gpsLat:gps.gpsLat||'',gpsLng:gps.gpsLng||'',gpsAccuracy:gps.gpsAccuracy||''}).catch(function(){});
-          scanBase.country=gps.gpsCountry||'';scanBase.city=gps.gpsCity||'';
-          scanBase.gpsLat=gps.gpsLat;scanBase.gpsLng=gps.gpsLng;
-        }
-        notifyTelegram(lead,scanBase);
-      });
-    },function(){
-      // No GPS, try ipapi only
-      fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
-        scanBase.ip=geo.ip||'';scanBase.country=geo.country_name||'';scanBase.city=geo.city||'';scanBase.isp=geo.org||'';
-        docRef.update({ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||''}).catch(function(){});
-        notifyTelegram(lead,scanBase);
-      },function(){notifyTelegram(lead,scanBase)});
-    });
+    // Async: get GPS + IP, update Firestore, send Telegram
+    function tryIpApi(idx){
+      var apis=[
+        {url:'https://ipapi.co/json/',fn:function(d){return{ip:d.ip,country:d.country_name||d.country,city:d.city,isp:d.org}}},
+        {url:'https://ip-api.com/json/',fn:function(d){return{ip:d.query,country:d.country,city:d.city,isp:d.isp}}}
+      ];
+      if(idx>=apis.length)return Promise.reject();
+      return fetch(apis[idx].url,{mode:'cors'}).then(function(r){if(!r.ok)return Promise.reject();return r.json()}).then(function(d){
+        try{return apis[idx].fn(d)}catch(e){return Promise.reject()}
+      }).catch(function(){return tryIpApi(idx+1)});
+    }
+    var _gps=null,_ip=null,_done=0;
+    function finishGeo(){
+      _done++;if(_done<2)return;
+      if(_ip){scanBase.ip=_ip.ip;scanBase.country=_ip.country||'';scanBase.city=_ip.city||'';scanBase.isp=_ip.isp||''}
+      if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.country=_gps.gpsCountry||'';scanBase.city=_gps.gpsCity||''}
+      var upd={};if(_ip){upd.ip=_ip.ip;upd.country=_ip.country||'';upd.city=_ip.city||'';upd.isp=_ip.isp||''}
+      if(_gps){upd.gpsLat=_gps.gpsLat;upd.gpsLng=_gps.gpsLng;upd.gpsAccuracy=_gps.gpsAccuracy;if(!_ip){upd.country=_gps.gpsCountry||'';upd.city=_gps.gpsCity||''}}
+      if(Object.keys(upd).length) docRef.update(upd).catch(function(){});
+      notifyTelegram(lead,scanBase);
+    }
+    getGpsData().then(function(g){_gps=g;finishGeo()},function(){finishGeo()});
+    tryIpApi(0).then(function(g){_ip=g;finishGeo()},function(){finishGeo()});
     // Send auto-reply emails (async)
     sendAutoReply(lead);
   }).catch(function(){
