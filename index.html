@@ -176,7 +176,7 @@ function getGPSPosition(){
     navigator.geolocation.getCurrentPosition(
       function(pos){ resolve({lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:Math.round(pos.coords.accuracy)}) },
       function(){ resolve(null) },
-      {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
+      {enableHighAccuracy:false, timeout:15000, maximumAge:300000}
     );
   });
 }
@@ -185,25 +185,24 @@ function submitLead(){
   var name=$('leadName').value.trim();
   if(!name){$('leadName').style.borderColor='#e74c3c';return}
   $('leadName').style.borderColor='#333';
-  $('formContent').style.display='none';$('loader').style.display='block';$('submitBtn').disabled=true;
+  $('submitBtn').disabled=true;
 
   var lead={name:name,email:$('leadEmail').value.trim(),phone:$('leadPhone').value.trim(),message:$('leadMsg').value.trim()};
   var info=getDeviceInfo();
 
-  Promise.all([
-    getGPSPosition(),
-    fetch('https://ipapi.co/json/').then(function(r){return r.json()}).catch(function(){return{}})
-  ]).then(function(results){
-    var gps=results[0], geo=results[1];
-    var scan={
-      ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||'',
-      gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
-      device:info.device,os:info.os,browser:info.browser,screen:info.screen,
-      timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
-      leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
-      status:'new',deleted:false
-    };
-    return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
+  getGPSPosition().then(function(gps){
+    $('formContent').style.display='none';$('loader').style.display='block';
+    return fetch('https://ip-api.com/json/?fields=query,country,city,org').then(function(r){return r.json()}).catch(function(){return{}}).then(function(geo){
+      var scan={
+        ip:geo.query||'',country:geo.country||'',city:geo.city||'',isp:geo.isp||'',
+        gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
+        device:info.device,os:info.os,browser:info.browser,screen:info.screen,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
+        leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
+        status:'new',deleted:false
+      };
+      return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
+    });
   }).then(function(scanData){
     notifyTelegram(lead,scanData);
     notifyAdminEmail(lead,scanData);
