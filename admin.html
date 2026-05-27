@@ -537,7 +537,7 @@ function loadScans(clientId){
         +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0;max-width:200px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.ip||'—')+'</td>'
-        +'<td style="font-size:11px;color:#e2e8f0">'+esc([d.city,d.country].filter(Boolean).join(', ')||'—')+(d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a>':'')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0">'+(d.gpsLat?'<a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a> ':'')+esc([d.city,d.country,d.isp].filter(Boolean).join(', ')||'—')+'</td>'
         +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.os||'—')+'</td>'
         +'<td><span class="badge '+statusCls(st)+'" onclick="updateScanStatus(\''+clientId+'\',\''+doc.id+'\',\''+st+'\')" style="cursor:pointer">'+statusTxt(st)+'</span></td>'
         +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#e2e8f0;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
@@ -577,7 +577,7 @@ function renderLeads(all){
   all.forEach(function(d){
     var ph=d.leadPhone||'';var em=d.leadEmail||'';var msg=encodeURIComponent(d.leadMessage||'Hola');
     var loc=[d.city,d.country].filter(Boolean).join(', ');
-    var mapLink=d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a>':'';
+    var mapLink=d.gpsLat?' <a href="https://www.google.com/maps?q='+d.gpsLat+','+d.gpsLng+'" target="_blank" style="color:#60a5fa;text-decoration:none" title="Ver en Google Maps">🗺</a> ':'';
     html+='<tr><td style="font-size:11px;color:#2563eb"><b>'+esc(d._clientName)+'</b></td>'
       +'<td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
       +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
