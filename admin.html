@@ -598,14 +598,14 @@ function renderLeads(all){
 }
 function exportLeads(){
   QR_DB.collection('clients').get().then(function(snap){
-    var csv='\uFEFFCliente,Fecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,Dispositivo,Estado\n';var p=[];var done=0;var total=snap.size;
+    var csv='\uFEFFCliente,Fecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,GPS Lat,GPS Lng,Dispositivo,Estado\n';var p=[];var done=0;var total=snap.size;
     if(!total){toast('No hay datos para exportar');return}
     snap.forEach(function(cdoc){
       var cname=cdoc.data().name||'—';
       p.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').orderBy('timestamp','desc').get().then(function(ssnap){
         ssnap.forEach(function(sdoc){
           var d=sdoc.data();if(d.deleted)return;
-          var line=[cname,d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.os||'',d.status||'new'];
+          var line=[cname,d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new'];
           csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
         });
       }));
@@ -621,10 +621,10 @@ function exportLeads(){
 function exportClientScans(){
   if(!_currentClientId){toast('Selecciona un cliente primero');return}
   QR_DB.collection('clients').doc(_currentClientId).collection('scans').orderBy('timestamp','desc').get().then(function(ssnap){
-    var csv='\uFEFFFecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,Dispositivo,Estado,Nota\n';
+    var csv='\uFEFFFecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,GPS Lat,GPS Lng,Dispositivo,Estado,Nota\n';
     ssnap.forEach(function(sdoc){
       var d=sdoc.data();if(d.deleted)return;
-      var line=[d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.os||'',d.status||'new',d.note||''];
+      var line=[d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.gpsLat||'',d.gpsLng||'',d.os||'',d.status||'new',d.note||''];
       csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
     });
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');
