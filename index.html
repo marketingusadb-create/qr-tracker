@@ -225,11 +225,14 @@ function submitLead(){
     var _gps=null,_ip=null,_done=0;
     function finishGeo(){
       _done++;if(_done<2)return;
-      if(_ip){scanBase.ip=_ip.ip;scanBase.country=_ip.country||'';scanBase.city=_ip.city||'';scanBase.isp=_ip.isp||''}
-      if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.country=_gps.gpsCountry||'';scanBase.city=_gps.gpsCity||''}
-      var upd={};if(_ip){upd.ip=_ip.ip;upd.country=_ip.country||'';upd.city=_ip.city||'';upd.isp=_ip.isp||''}
-      if(_gps){upd.gpsLat=_gps.gpsLat;upd.gpsLng=_gps.gpsLng;upd.gpsAccuracy=_gps.gpsAccuracy;if(!_ip){upd.country=_gps.gpsCountry||'';upd.city=_gps.gpsCity||''}}
-      if(Object.keys(upd).length) docRef.update(upd).catch(function(){});
+      if(_ip){scanBase.ip=_ip.ip;scanBase.isp=_ip.isp||'';scanBase.country=_ip.country||'';scanBase.city=_ip.city||''}
+      if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.country=_gps.gpsCountry||scanBase.country;scanBase.city=_gps.gpsCity||scanBase.city}
+      var upd={};
+      if(_ip){upd.ip=_ip.ip;upd.isp=_ip.isp||''}
+      if(_gps){upd.gpsLat=_gps.gpsLat;upd.gpsLng=_gps.gpsLng;upd.gpsAccuracy=_gps.gpsAccuracy}
+      upd.country=(_gps&&_gps.gpsCountry)||(_ip&&_ip.country)||'';
+      upd.city=(_gps&&_gps.gpsCity)||(_ip&&_ip.city)||'';
+      docRef.update(upd).catch(function(){});
       notifyTelegram(lead,scanBase);
     }
     getGpsData().then(function(g){_gps=g;finishGeo()},function(){finishGeo()});
