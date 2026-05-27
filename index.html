@@ -120,7 +120,7 @@ function notifyTelegram(leadData,scanData){
     +'💬 '+(leadData.message||'—')+'\n'
     +'━━━━━━━━━━━\n'
     +'🌐 IP: '+(scanData.ip||'—')+'\n'
-    +'📍 '+[scanData.country,scanData.city,scanData.isp].filter(Boolean).join(', ')+'\n'
+    +(scanData.gpsLat&&scanData.gpsLng?'📍 GPS: '+scanData.gpsLat+', '+scanData.gpsLng+' (https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+')\n':'')+'📍 '+(scanData.country||scanData.city||scanData.isp?[scanData.country,scanData.city,scanData.isp].filter(Boolean).join(', '):'IP: '+scanData.ip)+'\n'
     +'📱 '+scanData.device+' | '+scanData.os+'\n'
     +'🆔 QR: '+(scanData.qrId||'—');
   var url='https://api.telegram.org/bot'+token+'/sendMessage';
@@ -162,12 +162,23 @@ function notifyAdminEmail(lead,scanData){
     to_name:d.name||'Admin',to_email:adminEmail,
     from_name:d.name||'',
     message:lang==='es'
-      ?'Nuevo lead recibido:\n\n👤 Nombre: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Teléfono: '+(lead.phone||'—')+'\n💬 Mensaje: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Ubicación: '+[scanData.city,scanData.country].filter(Boolean).join(', ')+'\n📱 Dispositivo: '+scanData.device+' | '+scanData.os
-      :'New lead received:\n\n👤 Name: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Phone: '+(lead.phone||'—')+'\n💬 Message: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Location: '+[scanData.city,scanData.country].filter(Boolean).join(', ')+'\n📱 Device: '+scanData.device+' | '+scanData.os,
+      ?'Nuevo lead recibido:\n\n👤 Nombre: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Teléfono: '+(lead.phone||'—')+'\n💬 Mensaje: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Ubicación: '+[scanData.city,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n📍 GPS: '+scanData.gpsLat+', '+scanData.gpsLng+' (maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng+')':'')+'\n📱 Dispositivo: '+scanData.device+' | '+scanData.os
+      :'New lead received:\n\n👤 Name: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Phone: '+(lead.phone||'—')+'\n💬 Message: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Location: '+[scanData.city,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n📍 GPS: '+scanData.gpsLat+', '+scanData.gpsLng+' (maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng+')':'')+'\n📱 Device: '+scanData.device+' | '+scanData.os,
     reply_phone:d.autoReplyPhone||'',
     auto_body:lang==='es'?'Se ha recibido un nuevo lead desde tu código QR.':'A new lead has been received from your QR code.',
     auto_subject:lang==='es'?'📩 Nuevo lead - '+d.name:'📩 New lead - '+d.name
   }).then(function(){console.log('Admin email OK')},function(err){console.warn('Admin email:',err)});
+}
+
+function getGPSPosition(){
+  return new Promise(function(resolve){
+    if(!navigator.geolocation){resolve(null);return}
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ resolve({lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:Math.round(pos.coords.accuracy)}) },
+      function(){ resolve(null) },
+      {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
+    );
+  });
 }
 
 function submitLead(){
@@ -177,11 +188,16 @@ function submitLead(){
   $('formContent').style.display='none';$('loader').style.display='block';$('submitBtn').disabled=true;
 
   var lead={name:name,email:$('leadEmail').value.trim(),phone:$('leadPhone').value.trim(),message:$('leadMsg').value.trim()};
+  var info=getDeviceInfo();
 
-  fetch('https://ipapi.co/json/').then(function(r){return r.json()}).then(function(geo){
-    var info=getDeviceInfo();
+  Promise.all([
+    getGPSPosition(),
+    fetch('https://ipapi.co/json/').then(function(r){return r.json()}).catch(function(){return{}})
+  ]).then(function(results){
+    var gps=results[0], geo=results[1];
     var scan={
       ip:geo.ip||'',country:geo.country_name||'',city:geo.city||'',isp:geo.org||'',
+      gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
       device:info.device,os:info.os,browser:info.browser,screen:info.screen,
       timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
       leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
