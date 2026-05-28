@@ -99,6 +99,13 @@ input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
   <div id="tab-qrs" class="tab-content">
     <div class="card">
       <h2>📱 Mis Códigos QR</h2>
+      <div style="margin-bottom:14px;display:flex;gap:4px;flex-wrap:wrap" id="qrTypeSelector">
+        <button class="btn btn-sm btn-outline active" data-type="whatsapp" onclick="selectQrType(this)">💬 WhatsApp</button>
+        <button class="btn btn-sm btn-outline" data-type="telegram" onclick="selectQrType(this)">✈️ Telegram</button>
+        <button class="btn btn-sm btn-outline" data-type="sms" onclick="selectQrType(this)">📱 SMS</button>
+        <button class="btn btn-sm btn-outline" data-type="teams" onclick="selectQrType(this)">💼 Teams</button>
+      </div>
+      <button class="btn btn-primary" onclick="generateClientQr()" style="margin-bottom:16px">➕ Generar QR nuevo</button>
       <div id="qrList"><p style="color:#888;text-align:center;padding:20px">Cargando...</p></div>
     </div>
   </div>
@@ -213,6 +220,22 @@ function loadQrs(){
     if(!c) html='<p style="color:#888;text-align:center;padding:20px">Aún no tienes códigos QR.</p>';
     $('qrList').innerHTML=html;
   }).catch(function(e){$('qrList').innerHTML='<p style="color:#f87171;text-align:center;padding:20px">Error al cargar QR.</p>';console.error(e)});
+}
+
+var _qrType='whatsapp';
+function selectQrType(btn){
+  document.querySelectorAll('#qrTypeSelector button').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');_qrType=btn.dataset.type;
+}
+
+function generateClientQr(){
+  var qrId='qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  DB.collection('clients').doc(_clientId).collection('qrCodes').doc(qrId).set({
+    label:qrId,active:true,type:_qrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    toast('✅ QR '+_qrType+' generado');
+    loadQrs();
+  }).catch(function(err){toast('Error: '+err.message)});
 }
 </script>
 </body>
