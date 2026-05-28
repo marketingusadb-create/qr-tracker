@@ -228,10 +228,11 @@ function submitLead(){
     if(_saved)return;_saved=true;
     if(_ip){scanBase.ip=_ip.ip;scanBase.isp=_ip.isp||'';scanBase.country=_ip.country||'';scanBase.city=_ip.city||''}
     if(_gps){scanBase.gpsLat=_gps.gpsLat;scanBase.gpsLng=_gps.gpsLng;scanBase.gpsAccuracy=_gps.gpsAccuracy;scanBase.city=_gps.gpsCity||scanBase.city;scanBase.country=_gps.gpsCountry||scanBase.country}
-    DB.collection('clients').doc(clientId).collection('scans').add(scanBase).then(function(){
-      notifyTelegram(lead,scanBase);
-      sendAutoReply(lead);
-    }).catch(function(){});
+    // Notify BEFORE redirect (sendBeacon sobrevive al cierre de página)
+    notifyTelegram(lead,scanBase);
+    sendAutoReply(lead);
+    // Save scan (Firestore SDK completa aunque la página navegue)
+    DB.collection('clients').doc(clientId).collection('scans').add(scanBase).catch(function(){});
     redirectToService();
   }
   var _t=setTimeout(function(){saveAndGo()},4000);
