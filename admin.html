@@ -242,11 +242,11 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 
   <div id="tab-settings" class="tab-content">
     <div class="card">
-      <h2>Generar QR manualmente</h2>
-      <p style="font-size:13px;color:#e2e8f0;margin-bottom:12px">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
+      <h2 data-lang="manualQrTitle">Generar QR manualmente</h2>
+      <p style="font-size:13px;color:#e2e8f0;margin-bottom:12px" data-lang="manualQrDesc">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
       <select id="manualClient"></select>
-      <input id="manualQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" />
-      <button class="btn btn-primary" onclick="generateManualQr()">Generar QR</button>
+      <input id="manualQrId" data-lang="manualQrIdPlaceholder" placeholder="ID opcional (se genera solo si lo dejas vacío)" />
+      <button class="btn btn-primary" onclick="generateManualQr()" data-lang="manualQrGenerate">Generar QR</button>
       <div id="manualQrResult" style="margin-top:10px"></div>
     </div>
   </div>
@@ -355,7 +355,21 @@ var _TRANS={
     newClientTitle:'Crear nuevo cliente',clientEmail:'Email del cliente',
     forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente',
     emailAutoReply:'📧 Auto-respuesta por Email',emailAutoReplyDesc:'Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.',
-    autoReplyPhoneLabel:'Teléfono de contacto',autoReplyPhoneDesc:'(aparece en el email auto-respuesta)'
+    autoReplyPhoneLabel:'Teléfono de contacto',autoReplyPhoneDesc:'(aparece en el email auto-respuesta)',
+    qrActive:'✅ Activo',qrInactive:'❌ Inactivo',qrDeletedTag:'🗑 Eliminado',
+    qrDeactivate:'🔴 Desactivar',qrActivate:'🟢 Activar',qrRestore:'↩ Restaurar',
+    noQrCodes:'Sin códigos QR aún. Genera uno.',
+    qrActivated:'✅ QR activado',qrDeactivated:'🔴 QR desactivado',
+    qrSentTrash:'QR enviado a la papelera',qrRestored:'QR restaurado',
+    qrPosLeft:'Izq',qrPosCenter:'Centro',qrPosRight:'Der',
+    writePrompt:'Escribí un prompt primero',generating:'🎨 Generando...',
+    manualQrTitle:'Generar QR manualmente',manualQrDesc:'Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.',
+    manualQrIdPlaceholder:'ID opcional (se genera solo si lo dejas vacío)',manualQrGenerate:'Generar QR',
+    maxFour:'Máximo 4 clientes por flyer',selectOneFour:'Selecciona entre 1 y 4 clientes',
+    flyerGenerated:'✅ Flyer generado',imageDownloaded:'✅ Imagen descargada',
+    imgLibError:'Error al cargar librería de imagen',imgGenError:'Error al generar imagen',
+    aiCopied:'📋 URL copiada',aiCopyError:'Error al copiar',firstGenImage:'Primero generá una imagen',
+    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear'
   },
   en:{
     code:'en',label:'🇺🇸 English',lang:'en',other:'es',
@@ -383,7 +397,21 @@ var _TRANS={
     newClientTitle:'Create new client',clientEmail:'Client email',
     forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client',
     emailAutoReply:'📧 Email auto-reply',emailAutoReplyDesc:'Configure EmailJS (free: emailjs.com) to send auto-reply to lead when they scan the QR.',
-    autoReplyPhoneLabel:'Contact phone',autoReplyPhoneDesc:'(appears in the auto-reply email)'
+    autoReplyPhoneLabel:'Contact phone',autoReplyPhoneDesc:'(appears in the auto-reply email)',
+    qrActive:'✅ Active',qrInactive:'❌ Inactive',qrDeletedTag:'🗑 Deleted',
+    qrDeactivate:'🔴 Deactivate',qrActivate:'🟢 Activate',qrRestore:'↩ Restore',
+    noQrCodes:'No QR codes yet. Generate one.',
+    qrActivated:'✅ QR activated',qrDeactivated:'🔴 QR deactivated',
+    qrSentTrash:'QR sent to trash',qrRestored:'QR restored',
+    qrPosLeft:'Left',qrPosCenter:'Center',qrPosRight:'Right',
+    writePrompt:'Write a prompt first',generating:'🎨 Generating...',
+    manualQrTitle:'Generate QR manually',manualQrDesc:'Useful if you already have clients and want to generate additional QR codes.',
+    manualQrIdPlaceholder:'Optional ID (auto-generated if empty)',manualQrGenerate:'Generate QR',
+    maxFour:'Maximum 4 clients per flyer',selectOneFour:'Select between 1 and 4 clients',
+    flyerGenerated:'✅ Flyer generated',imageDownloaded:'✅ Image downloaded',
+    imgLibError:'Error loading image library',imgGenError:'Error generating image',
+    aiCopied:'📋 URL copied',aiCopyError:'Error copying',firstGenImage:'Generate an image first',
+    copyExample:'📋 Example pasted in input — edit and click Create'
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
@@ -680,7 +708,7 @@ function loadQrCodes(clientId){
     var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
     var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
     snap.forEach(function(doc){var d=doc.data();
-      var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?'✅ Activo':'❌ Inactivo';
+      var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?__('qrActive'):__('qrInactive');
       var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
       var qrData=baseUrl+'?c='+clientId+'&q='+doc.id+'&s='+type;
       var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
@@ -688,40 +716,40 @@ function loadQrCodes(clientId){
       var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
       var deleted=d.deleted?' style="opacity:.4"':'';
       html+='<div class="qr-item"'+deleted+'>'
-        +(d.deleted?'<div style="position:absolute;top:8px;left:8px;background:#e74c3c;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">🗑 Eliminado</div>':'')
+        +(d.deleted?'<div style="position:absolute;top:8px;left:8px;background:#e74c3c;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">'+__('qrDeletedTag')+'</div>':'')
         +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
         +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
         +'<div class="id">'+qrData+'</div>'
         +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
-        +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?'🔴 Desactivar':'🟢 Activar')+'</button>'
+        +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?__('qrDeactivate'):__('qrActivate'))+'</button>'
         +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
         +(d.deleted
-          ?'<button onclick="restoreQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-success">↩ Restaurar</button>'
+          ?'<button onclick="restoreQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-success">'+__('qrRestore')+'</button>'
           :'<button onclick="deleteQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑</button>')
         +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline">📧</a>'
         +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
         +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
         +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱</a>'
         +'</div></div>'});
-    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno.</p>';
+    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
     document.getElementById('modalQrList').innerHTML=html;
   });
 }
 
 function toggleQrStatus(clientId,qrId,newStatus){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({active:newStatus}).then(function(){
-    toast(newStatus?'✅ QR activado':'🔴 QR desactivado');
+    toast(newStatus?__('qrActivated'):__('qrDeactivated'));
     loadQrCodes(clientId);
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function deleteQrCode(clientId,qrId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    toast('QR enviado a la papelera');loadQrCodes(clientId);
+    toast(__('qrSentTrash'));loadQrCodes(clientId);
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function restoreQrCode(clientId,qrId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
-    toast('QR restaurado');loadQrCodes(clientId);
+    toast(__('qrRestored'));loadQrCodes(clientId);
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
@@ -850,14 +878,14 @@ function toggleFlyerClient(id){
 
 function checkFlyerCount(){
   var c=document.querySelectorAll('#flyerClientList input:checked').length;
-  if(c>4){toast('Máximo 4 clientes por flyer');return}
+  if(c>4){toast(__('maxFour'));return}
   document.querySelectorAll('#flyerClientList input:checked').forEach(function(cb){cb.parentElement.classList.add('checked')});
   document.querySelectorAll('#flyerClientList input:not(:checked)').forEach(function(cb){cb.parentElement.classList.remove('checked')});
 }
 
 function generateFlyer(){
   var checked=document.querySelectorAll('#flyerClientList input:checked');
-  if(!checked.length||checked.length>4){toast('Selecciona entre 1 y 4 clientes');return}
+  if(!checked.length||checked.length>4){toast(__('selectOneFour'));return}
   var baseUrl=getBaseUrl();var ed=document.getElementById('flyerEditor');ed.innerHTML='';
   var promises=[];
   checked.forEach(function(cb){var id=cb.value;
@@ -873,9 +901,9 @@ function generateFlyer(){
         +'<textarea id="fd_'+id+'" placeholder="Texto descriptivo" rows="2" oninput="renderFlyer()">¡Escanea el código QR y contáctanos! Estamos listos para atenderte.</textarea>'
         +'<input id="fp_'+id+'" placeholder="Teléfono" value="'+esc(c.whatsapp||'')+'" oninput="renderFlyer()" />'
         +'<div class="fce-qr-pos"><span style="font-size:11px;color:#888">QR:</span>'
-        +'<button onclick="setQrPos(\''+id+'\',\'left\')" class="active">Izq</button>'
-        +'<button onclick="setQrPos(\''+id+'\',\'center\')">Centro</button>'
-        +'<button onclick="setQrPos(\''+id+'\',\'right\')">Der</button></div>'
+        +'<button onclick="setQrPos(\''+id+'\',\'left\')" class="active">'+__('qrPosLeft')+'</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'center\')">'+__('qrPosCenter')+'</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'right\')">'+__('qrPosRight')+'</button></div>'
         +'</div>';
     }));
   });
@@ -925,29 +953,28 @@ function downloadFlyerImg(){
     html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
       var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='flyer-qr-tracker.png';
       document.body.appendChild(a);a.click();document.body.removeChild(a);
-      toast('✅ Imagen descargada');
-    }).catch(function(){toast('Error al generar imagen')});
+      toast(__('imageDownloaded'));
+    }).catch(function(){toast(__('imgGenError'))});
   };
-  s.onerror=function(){toast('Error al cargar librería de imagen')};
+  s.onerror=function(){toast(__('imgLibError'))};
   document.head.appendChild(s);
 }
 
 function generateAiImage(){
   var prompt=document.getElementById('aiPrompt').value.trim();
-  if(!prompt){toast('Escribí un prompt primero');return}
+  if(!prompt){toast(__('writePrompt'));return}
   var div=document.getElementById('aiImageResult');var img=document.getElementById('aiImageTag');
   img.src='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=1024&height=1024&nologo=true&seed='+Date.now();
   div.style.display='block';
-  toast('🎨 Generando imagen...');
+  toast(__('generating'));
 }
 function copyAiImageUrl(){
   var url=document.getElementById('aiImageTag').src;
-  if(url&&url.indexOf('pollinations')>0){navigator.clipboard.writeText(url).then(function(){toast('📋 URL copiada')}).catch(function(){toast('Error al copiar')})}
+  if(url&&url.indexOf('pollinations')>0){navigator.clipboard.writeText(url).then(function(){toast(__('aiCopied'))}).catch(function(){toast(__('aiCopyError'))})}
 }
 function downloadAiImage(){
   var img=document.getElementById('aiImageTag');
-  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast('Primero generá una imagen');return}
-  var a=document.createElement('a');a.href=img.src;a.download='fondo-ia-'+Date.now()+'.png';
+  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}  var a=document.createElement('a');a.href=img.src;a.download='fondo-ia-'+Date.now()+'.png';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   toast('⬇ Descargando fondo...');
 }
@@ -956,7 +983,7 @@ function copyPromptEjemplo(){
   var ej='Fondo profesional abstracto para flyer de academia de karate, gradiente de azul marino a púrpura oscuro con partículas de luz dorada, espacio rectangular vacío en la parte superior izquierda para logo, espacio limpio en el centro para texto, marco cuadrado vacío en esquina inferior derecha para código QR, sin texto escrito, estilo moderno elegante, alta resolución';
   input.value=ej;
   input.focus();
-  toast('📋 Ejemplo pegado en el input — editá y clickeá Crear');
+  toast(__('copyExample'));
 }
 function sendToDesigner(){
   var img=document.getElementById('aiImageTag');
