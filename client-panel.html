@@ -38,6 +38,16 @@ input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
 .badge-new{background:rgba(59,130,246,.2);color:#60a5fa}
 .badge-contacted{background:rgba(16,185,129,.2);color:#34d399}
 .badge-closed{background:rgba(239,68,68,.2);color:#f87171}
+.flyer-sheet{width:8.5in;min-height:5.5in;margin:10px auto;background:#fff;padding:0;box-shadow:0 4px 40px rgba(0,0,0,.15);position:relative;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif;max-width:100%}
+.flyer-card{width:100%;min-height:5.5in;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.flyer-card .fc-bg{position:absolute;inset:0;z-index:0}
+.flyer-card .fc-content{position:relative;z-index:1;padding:30px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.flyer-card .fc-title{font-size:28px;font-weight:800;margin-bottom:8px}
+.flyer-card .fc-text{font-size:14px;line-height:1.5;margin-bottom:14px;max-width:80%}
+.flyer-card .fc-qr img{max-width:160px;border-radius:8px}
+.flyer-card .fc-phone{font-size:13px;font-weight:600;margin-top:10px}
+.flyer-card .fc-badge{font-size:10px;text-transform:uppercase;letter-spacing:2px;opacity:.6;margin-bottom:6px}
+details summary{outline:none}
 #app{display:none}
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
 .header h1{font-size:22px;background:linear-gradient(135deg,#f59e0b,#ef4444,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -87,6 +97,7 @@ input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
   <div class="tabs">
     <button class="tab active" onclick="switchTab('scans',this)">📩 Escaneos</button>
     <button class="tab" onclick="switchTab('qrs',this)">📱 Mis QR</button>
+    <button class="tab" onclick="switchTab('flyer',this)">🎨 Flyer</button>
   </div>
 
   <div id="tab-scans" class="tab-content active">
@@ -107,6 +118,47 @@ input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
       </div>
       <button class="btn btn-primary" onclick="generateClientQr()" style="margin-bottom:16px">➕ Generar QR nuevo</button>
       <div id="qrList"><p style="color:#888;text-align:center;padding:20px">Cargando...</p></div>
+    </div>
+  </div>
+
+  <div id="tab-flyer" class="tab-content">
+    <div class="card">
+      <h2>🎨 Mi Flyer Promocional</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <button class="btn btn-sm" style="background:#1a1a2e;color:#fff;border:2px solid rgba(255,255,255,.1)" onclick="setFlyerTheme('dark')">🌙 Oscuro</button>
+        <button class="btn btn-sm active" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:2px solid rgba(255,255,255,.2)" onclick="setFlyerTheme('blue')">💙 Azul</button>
+        <button class="btn btn-sm" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:2px solid rgba(255,255,255,.2)" onclick="setFlyerTheme('red')">❤️ Rojo</button>
+        <button class="btn btn-sm" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:2px solid rgba(255,255,255,.2)" onclick="setFlyerTheme('green')">💚 Verde</button>
+        <button class="btn btn-sm" style="background:#222;color:#fff;border:2px solid rgba(255,255,255,.1)" onclick="setFlyerTheme('black')">🖤 Negro</button>
+        <button class="btn btn-sm" style="background:#fff;color:#222;border:2px solid #ddd" onclick="setFlyerTheme('light')">⬜ Claro</button>
+      </div>
+      <div style="margin-bottom:10px">
+        <label>Título</label><input id="flyerTitle" oninput="renderFlyerCli()" />
+        <label>Texto descriptivo</label><textarea id="flyerText" rows="2" oninput="renderFlyerCli()">¡Escanea el código QR y contáctanos! Estamos listos para atenderte.</textarea>
+        <label>Teléfono</label><input id="flyerPhone" oninput="renderFlyerCli()" />
+        <label>Posición del QR</label>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-outline active" onclick="setFlyerQrPos('left')">Izquierda</button>
+          <button class="btn btn-sm btn-outline" onclick="setFlyerQrPos('center')">Centro</button>
+          <button class="btn btn-sm btn-outline" onclick="setFlyerQrPos('right')">Derecha</button>
+        </div>
+      </div>
+      <details style="margin:10px 0;background:rgba(139,92,246,.1);border-radius:12px;padding:12px;border:1px solid rgba(139,92,246,.2)">
+        <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#a78bfa">🤖 Generar fondo con IA</summary>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <input id="aiPrompt" placeholder="Describí el fondo que querés..." style="flex:1;min-width:180px" />
+          <button class="btn btn-sm btn-primary" onclick="generateFlyerBg()">🎨 Crear</button>
+        </div>
+        <div id="aiResult" style="margin-top:8px;display:none">
+          <img id="aiImg" style="max-width:100%;max-height:200px;border-radius:10px" />
+          <button class="btn btn-sm btn-outline" onclick="useAiBg()" style="margin-top:6px">✅ Usar este fondo</button>
+        </div>
+      </details>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-primary" onclick="renderFlyerCli()">🔄 Generar Flyer</button>
+        <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar</button>
+      </div>
+      <div id="flyerResult"></div>
     </div>
   </div>
 </div>
@@ -236,6 +288,77 @@ function generateClientQr(){
     toast('✅ QR '+_qrType+' generado');
     loadQrs();
   }).catch(function(err){toast('Error: '+err.message)});
+}
+
+// ----- FLYER -----
+var _flyerTheme='blue',_flyerQrPos='left',_flyerBg='';
+var _flyerThemes={
+  dark:{bg1:'#1a1a2e',bg2:'#16213e',text:'#fff',accent:'#e94560',badge:'#e94560'},
+  blue:{bg1:'#1e3a5f',bg2:'#2563eb',text:'#fff',accent:'#fbbf24',badge:'#93c5fd'},
+  red:{bg1:'#7f1d1d',bg2:'#dc2626',text:'#fff',accent:'#fca5a5',badge:'#fca5a5'},
+  green:{bg1:'#14532d',bg2:'#16a34a',text:'#fff',accent:'#86efac',badge:'#86efac'},
+  black:{bg1:'#0a0a0a',bg2:'#27272a',text:'#fff',accent:'#f59e0b',badge:'#a1a1aa'},
+  light:{bg1:'#f8fafc',bg2:'#e2e8f0',text:'#222',accent:'#2563eb',badge:'#64748b'}
+};
+
+function setFlyerTheme(t){
+  _flyerTheme=t;
+  document.querySelectorAll('#tab-flyer .card>div:first-child button').forEach(function(b){b.classList.remove('active')});
+  event.target.classList.add('active');
+  renderFlyerCli();
+}
+
+function setFlyerQrPos(p){_flyerQrPos=p;document.querySelectorAll('#tab-flyer .card>div:nth-child(4) button').forEach(function(b){b.classList.remove('active')});event.target.classList.add('active');renderFlyerCli()}
+
+function renderFlyerCli(){
+  var t=_flyerThemes[_flyerTheme]||_flyerThemes.blue;
+  var name=$('flyerTitle').value||_clientData.name||'Mi Negocio';
+  var text=$('flyerText').value||'¡Escanea el código QR y contáctanos!';
+  var phone=$('flyerPhone').value||_clientData.whatsapp||'';
+  var qrAlign=_flyerQrPos==='left'?'flex-start':_flyerQrPos==='right'?'flex-end':'center';
+  var bgStyle=_flyerBg?'url('+_flyerBg+') center/cover no-repeat':'linear-gradient(135deg,'+t.bg1+','+t.bg2+')';
+  var html='<div class="flyer-sheet"><div class="flyer-card"><div class="fc-bg" style="background:'+bgStyle+'"></div><div class="fc-content" style="color:'+t.text+'">'
+    +'<div class="fc-badge" style="color:'+t.badge+'">✦ Escanea y contáctanos</div>'
+    +'<div class="fc-title">'+esc(name)+'</div>'
+    +'<div class="fc-text">'+esc(text)+'</div>'
+    +'<div class="fc-qr" style="display:flex;justify-content:'+qrAlign+';width:100%">';
+  // Show first active QR if available
+  var firstQr=$('#qrList .qr-item img');
+  if(firstQr) html+='<img src="'+firstQr.src+'" alt="QR" style="max-width:160px;border-radius:8px"/>';
+  html+='</div>'
+    +'<div class="fc-phone" style="color:'+t.accent+'">'+(phone?'📱 '+esc(phone):'')+'</div>'
+    +'</div></div></div>';
+  $('flyerResult').innerHTML=html;
+}
+
+function downloadFlyerImg(){
+  var sheet=document.querySelector('#flyerResult .flyer-sheet');
+  if(!sheet){toast('Primero genera el flyer');return}
+  var s=document.createElement('script');
+  s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+  s.onload=function(){
+    html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
+      var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='flyer-'+_clientId+'.png';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast('✅ Flyer descargado');
+    }).catch(function(){toast('Error al generar imagen')});
+  };
+  s.onerror=function(){toast('Error al cargar librería')};
+  document.head.appendChild(s);
+}
+
+function generateFlyerBg(){
+  var prompt=$('aiPrompt').value.trim();
+  if(!prompt){toast('Escribí un prompt');return}
+  $('aiResult').style.display='block';
+  $('aiImg').src='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=1024&height=1024&nologo=true&seed='+Date.now();
+  toast('🎨 Generando...');
+}
+
+function useAiBg(){
+  _flyerBg=$('aiImg').src;
+  renderFlyerCli();
+  toast('✅ Fondo aplicado');
 }
 </script>
 </body>
