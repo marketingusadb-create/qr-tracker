@@ -181,6 +181,7 @@ textarea{min-height:60px;resize:vertical}
       <button class="tab" onclick="switchTab('flyer',this)">🎨 <span data-lang="tabFlyer">Flyer</span></button>
       <button class="tab" onclick="switchTab('perfil',this)">⚙️ <span data-lang="tabProfile">Mi Perfil</span></button>
       <button class="tab" onclick="switchTab('leads',this)">📩 <span data-lang="tabLeads">Leads</span></button>
+      <button class="tab" onclick="switchTab('trash',this)">🗑 <span data-lang="tabTrash">Papelera</span></button>
     </div>
 
     <div id="tab-estadisticas" class="tab-content active">
@@ -326,6 +327,27 @@ textarea{min-height:60px;resize:vertical}
         <div class="empty" id="leadEmpty" data-lang="noScans">Aún no has recibido escaneos.</div>
       </div>
     </div>
+
+    <div id="tab-trash" class="tab-content">
+      <div class="card">
+        <h2>🗑 <span data-lang="trashTitle">Papelera</span></h2>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:12px" data-lang="trashDesc">Scans eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+        <div class="scroll-wrap">
+          <table class="scan-table">
+            <thead><tr>
+              <th data-lang="thDate">Fecha</th>
+              <th data-lang="thName">Nombre</th>
+              <th data-lang="thContact">Email / Tel</th>
+              <th data-lang="thMessage">Mensaje</th>
+              <th data-lang="thLocation">Ubicación</th>
+              <th data-lang="thAction">Acción</th>
+            </tr></thead>
+            <tbody id="trashBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="trashEmpty" data-lang="emptyTrash">No hay nada en la papelera.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -357,6 +379,7 @@ var _TRANS={
     tabStats:'Estadísticas',tabQr:'Mis QR',tabFlyer:'Flyer',tabProfile:'Mi Perfil',tabLeads:'Leads',
     statTotal:'Total escaneos',statToday:'Hoy',statWeek:'Esta semana',statMonth:'Este mes',statMobile:'Móvil',
     topCitiesTitle:'Ciudades con más escaneos',realtimeTitle:'Escaneos en tiempo real',
+    tabTrash:'Papelera',trashTitle:'Papelera',trashDesc:'Scans eliminados. Podés restaurarlos o eliminarlos permanentemente.',emptyTrash:'No hay nada en la papelera.',restore:'Restaurar',deletePerm:'Eliminar permanentemente',deletedPerm:'✅ Eliminado permanentemente',restored:'✅ Restaurado',
     filterAll:'Todos',filterToday:'Hoy',filterWeek:'Esta semana',filterMonth:'Este mes',
     thDate:'Fecha',thName:'Nombre',thContact:'Email / Tel',thMessage:'Mensaje',thLocation:'Ubicación',thDevice:'Dispositivo',thStatus:'Estado',thNote:'Nota',thAction:'Acción',
     noScans:'Aún no has recibido escaneos. Comparte tus códigos QR para empezar.',
@@ -397,6 +420,7 @@ var _TRANS={
     tabStats:'Statistics',tabQr:'My QR',tabFlyer:'Flyer',tabProfile:'My Profile',tabLeads:'Leads',
     statTotal:'Total scans',statToday:'Today',statWeek:'This week',statMonth:'This month',statMobile:'Mobile',
     topCitiesTitle:'Top scanned cities',realtimeTitle:'Real-time scans',
+    tabTrash:'Trash',trashTitle:'Trash',trashDesc:'Deleted scans. You can restore or permanently delete them.',emptyTrash:'Trash is empty.',restore:'Restore',deletePerm:'Delete permanently',deletedPerm:'✅ Permanently deleted',restored:'✅ Restored',
     filterAll:'All',filterToday:'Today',filterWeek:'This week',filterMonth:'This month',
     thDate:'Date',thName:'Name',thContact:'Email / Phone',thMessage:'Message',thLocation:'Location',thDevice:'Device',thStatus:'Status',thNote:'Note',thAction:'Action',
     noScans:'No scans yet. Share your QR codes to get started.',
@@ -602,6 +626,7 @@ function switchTab(t,btn){
   document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
   document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
   btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active');
+  if(t==='trash') loadTrash();
 }
 
 function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
@@ -886,6 +911,7 @@ function renderLeads(){
       +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
       +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
       +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+      +'<button onclick="deleteScanFromLead(\''+d._id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
       +'</td></tr>';
   });
   document.getElementById('leadBody').innerHTML=html;
@@ -904,6 +930,55 @@ function updateNote(scanId,note){
 }
 
 function loadLeads(){}
+
+function deleteScanFromLead(scanId){
+  if(!_clientDocId)return;
+  QR_DB.collection('clients').doc(_clientDocId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('🗑 '+__('deleted'));
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function loadTrash(){
+  if(!_clientDocId){document.getElementById('trashBody').innerHTML='';return}
+  QR_DB.collection('clients').doc(_clientDocId).collection('scans').where('deleted','==',true).orderBy('timestamp','desc').limit(50).get().then(function(snap){
+    var html='';var c=0;
+    snap.forEach(function(doc){
+      c++;var d=doc.data();
+      var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—';
+      var loc=[d.city,d.country].filter(Boolean).join(', ')||'—';
+      var ph=d.leadPhone||'';var em=d.leadEmail||'';
+      html+='<tr style="opacity:.6">'
+        +'<td style="white-space:nowrap;font-size:11px">'+dt+'</td>'
+        +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
+        +'<td>'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
+        +'<td style="font-size:11px;max-width:160px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
+        +'<td style="font-size:11px;color:#94a3b8">'+loc+'</td>'
+        +'<td style="white-space:nowrap">'
+        +'<button onclick="restoreScan(\''+doc.id+'\')" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px">↩ '+__('restore')+'</button>'
+        +'<button onclick="permDeleteScan(\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px">🗑 '+__('deletePerm')+'</button>'
+        +'</td></tr>';
+    });
+    document.getElementById('trashBody').innerHTML=html;
+    document.getElementById('trashEmpty').style.display=c?'none':'block';
+  }).catch(function(){
+    document.getElementById('trashBody').innerHTML='<tr><td colspan="6" style="color:#888;text-align:center;padding:20px">'+__('errorConnection')+'</td></tr>';
+  });
+}
+
+function restoreScan(scanId){
+  if(!_clientDocId)return;
+  QR_DB.collection('clients').doc(_clientDocId).collection('scans').doc(scanId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    toast('↩ '+__('restored'));loadTrash();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function permDeleteScan(scanId){
+  if(!_clientDocId)return;
+  if(!confirm(_LANG==='es'?'¿Eliminar permanentemente este scan? No se puede deshacer.':'Permanently delete this scan? Cannot be undone.'))return;
+  QR_DB.collection('clients').doc(_clientDocId).collection('scans').doc(scanId).delete().then(function(){
+    toast('🗑 '+__('deletedPerm'));loadTrash();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
