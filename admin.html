@@ -133,8 +133,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
     <div style="display:flex;gap:6px;align-items:center">
       <button class="btn btn-sm btn-outline no-print" onclick="toggleLang()" id="langBtn">🇺🇸 EN</button>
-      <a href="client-panel.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">👤 Panel Cliente</a>
-      <a href="pago-autorizacion.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">💳 Pago</a>
+      <a href="dashboard.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">👤 Panel Cliente</a>
       <button class="btn btn-sm btn-outline no-print" onclick="logout()"><span data-lang="logout">Cerrar sesión</span></button>
     </div>
   </div>
@@ -188,7 +187,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="ncWhatsAppPhoneId" placeholder="123456789012345" /></div>
       <div class="form-group"><label>WhatsApp Cloud Token <small>(Access Token de Meta)</small></label><input id="ncWhatsAppToken" placeholder="EAAx..." /></div>
       <div class="form-group"><label>Teams Webhook URL <small>(de Canal de Teams)</small></label><input id="ncTeamsWebhook" placeholder="https://...webhook..." /></div>
-      <div class="form-group"><label>Logo URL <small>(imagen para el dashboard del cliente)</small></label><input id="ncLogoUrl" placeholder="https://...logo.png" /></div>
+      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input type="file" id="ncLogoFile" accept="image/*" onchange="uploadLogo('ncLogoFile','ncLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="ncLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
       <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
       <div class="form-group"><label><input id="ncLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
@@ -308,7 +307,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="editWhatsAppPhoneId" placeholder="123456789012345" /></div>
       <div class="form-group"><label>WhatsApp Cloud Token <small>(Access Token de Meta)</small></label><input id="editWhatsAppToken" placeholder="EAAx..." /></div>
       <div class="form-group"><label>Teams Webhook URL <small>(de Canal de Teams)</small></label><input id="editTeamsWebhook" placeholder="https://...webhook..." /></div>
-      <div class="form-group"><label>Logo URL <small>(imagen para el dashboard del cliente)</small></label><input id="editLogoUrl" placeholder="https://...logo.png" /></div>
+      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input type="file" id="editLogoFile" accept="image/*" onchange="uploadLogo('editLogoFile','editLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="editLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
       <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
       <div class="form-group"><label><input id="editLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
@@ -325,6 +324,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 <script>
 var QR_FIREBASE_CONFIG = {
   apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
@@ -449,6 +449,16 @@ function resetPassword(){
     document.getElementById('loginError').textContent=err.message;
     document.getElementById('loginError').style.display='block';
   });
+}
+function uploadLogo(fileInputId,urlInputId){
+  var file=document.getElementById(fileInputId).files[0];
+  if(!file)return;
+  if(file.size>2*1024*1024){toast('⚠️ Máximo 2MB');return}
+  var ref=firebase.storage(firebase.app("qrTracker")).ref('logos/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,''));
+  ref.put(file).then(function(snapshot){return snapshot.ref.getDownloadURL()}).then(function(url){
+    document.getElementById(urlInputId).value=url;
+    toast('✅ Logo subido correctamente');
+  }).catch(function(err){toast('Error al subir: '+err.message)});
 }
 function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
 
@@ -834,7 +844,7 @@ function createClient(){
   var lv=document.getElementById('ncLicenciaVence').value;
   QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
     toast('Cliente creado exitosamente');
     setTimeout(function(){var tabs=document.querySelectorAll('.tab');if(tabs[0])tabs[0].click()},1500);
   }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
