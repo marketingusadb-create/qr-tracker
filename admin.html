@@ -552,37 +552,66 @@ function loadAdminProfile(){
   var u=QR_AUTH.currentUser;if(!u)return
   var q=QR_DB.collection('clients').where('adminUid','==',u.uid).limit(1);
   q.get().then(function(snap){
-    if(snap.empty){
+    if(!snap.empty){
+      snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();fillProfileForm(d)});
+      document.getElementById('profileQrCard').style.display='block';
+      document.getElementById('profileScansCard').style.display='block';
+      adminLoadQrCodes();adminLoadScans();
+      return
+    }
+    // Fallback: buscar cliente existente por email del admin
+    var email=u.email;
+    if(email){
+      QR_DB.collection('clients').where('email','==',email).limit(1).get().then(function(esnap){
+        if(!esnap.empty){
+          esnap.forEach(function(doc){
+            _profileId=doc.id;
+            // Adoptar como perfil admin
+            QR_DB.collection('clients').doc(doc.id).update({adminUid:u.uid,isAdminProfile:true}).catch(function(e){console.warn(e)});
+            fillProfileForm(doc.data());
+          });
+          document.getElementById('profileQrCard').style.display='block';
+          document.getElementById('profileScansCard').style.display='block';
+          adminLoadQrCodes();adminLoadScans();
+          return
+        }
+        // No hay perfil, mostrar formulario vacío
+        _profileId=null;
+        document.getElementById('profileQrCard').style.display='none';
+        document.getElementById('profileScansCard').style.display='none';
+        clearProfileForm();
+      });
+    } else {
       _profileId=null;
       document.getElementById('profileQrCard').style.display='none';
       document.getElementById('profileScansCard').style.display='none';
-      ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
-       'profEmailjsKey','profEmailjsService','profEmailjsTemplate','profAutoReplyPhone','profGoogleVoice',
-       'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
-      return
+      clearProfileForm();
     }
-    snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();
-      document.getElementById('profName').value=d.name||'';
-      document.getElementById('profWhatsapp').value=d.whatsapp||'';
-      document.getElementById('profTelegramToken').value=d.telegramToken||'';
-      document.getElementById('profTelegramChat').value=d.telegramChatId||'';
-      document.getElementById('profTelegramUser').value=d.telegramUser||'';
-      document.getElementById('profWaMsg').value=d.waMessage||'';
-      document.getElementById('profEmailjsKey').value=d.emailjsKey||'';
-      document.getElementById('profEmailjsService').value=d.emailjsService||'';
-      document.getElementById('profEmailjsTemplate').value=d.emailjsTemplate||'';
-      document.getElementById('profAutoReplyPhone').value=d.autoReplyPhone||'';
-      document.getElementById('profGoogleVoice').value=d.googleVoice||'';
-      document.getElementById('profWhatsAppPhoneId').value=d.whatsappPhoneId||'';
-      document.getElementById('profWhatsAppToken').value=d.whatsappToken||'';
-      document.getElementById('profTeamsWebhook').value=d.teamsWebhook||'';
-      document.getElementById('profLogoUrl').value=d.logoUrl||'';
-    });
-    document.getElementById('profileQrCard').style.display='block';
-    document.getElementById('profileScansCard').style.display='block';
-    adminLoadQrCodes();
-    adminLoadScans();
   }).catch(function(err){console.warn('Error loading admin profile:',err)});
+}
+
+function fillProfileForm(d){
+  document.getElementById('profName').value=d.name||'';
+  document.getElementById('profWhatsapp').value=d.whatsapp||'';
+  document.getElementById('profTelegramToken').value=d.telegramToken||'';
+  document.getElementById('profTelegramChat').value=d.telegramChatId||'';
+  document.getElementById('profTelegramUser').value=d.telegramUser||'';
+  document.getElementById('profWaMsg').value=d.waMessage||'';
+  document.getElementById('profEmailjsKey').value=d.emailjsKey||'';
+  document.getElementById('profEmailjsService').value=d.emailjsService||'';
+  document.getElementById('profEmailjsTemplate').value=d.emailjsTemplate||'';
+  document.getElementById('profAutoReplyPhone').value=d.autoReplyPhone||'';
+  document.getElementById('profGoogleVoice').value=d.googleVoice||'';
+  document.getElementById('profWhatsAppPhoneId').value=d.whatsappPhoneId||'';
+  document.getElementById('profWhatsAppToken').value=d.whatsappToken||'';
+  document.getElementById('profTeamsWebhook').value=d.teamsWebhook||'';
+  document.getElementById('profLogoUrl').value=d.logoUrl||'';
+}
+
+function clearProfileForm(){
+  ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
+   'profEmailjsKey','profEmailjsService','profEmailjsTemplate','profAutoReplyPhone','profGoogleVoice',
+   'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
 }
 
 function saveAdminProfile(){
