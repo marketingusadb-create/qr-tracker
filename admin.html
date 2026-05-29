@@ -384,6 +384,9 @@ var QR_FIREBASE_CONFIG = {
 firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
 var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
+// Segunda instancia de Firebase para crear cuentas de clientes sin afectar la sesión del admin
+firebase.initializeApp(QR_FIREBASE_CONFIG, "clientAuth");
+var CLIENT_AUTH = firebase.auth(firebase.app("clientAuth"));
 </script>
 <script>
 var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es';
@@ -1063,6 +1066,7 @@ function createClient(){
   var ejKey=document.getElementById('ncEmailjsKey').value.trim(),ejSvc=document.getElementById('ncEmailjsService').value.trim();
   var ejTpl=document.getElementById('ncEmailjsTemplate').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
+  if(!email||!pass){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Email y contraseña del dashboard son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   var gv=document.getElementById('ncGoogleVoice').value.trim().replace(/\D/g,'');
   var waPhoneId=document.getElementById('ncWhatsAppPhoneId').value.trim();
@@ -1071,33 +1075,69 @@ function createClient(){
   var logoUrl=document.getElementById('ncLogoUrl').value.trim();
   var la=document.getElementById('ncLicenciaActiva').checked;
   var lv=document.getElementById('ncLicenciaVence').value;
-  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  // Primero crear cuenta Firebase Auth para el cliente (usando instancia separada para no cerrar sesión admin)
+  CLIENT_AUTH.createUserWithEmailAndPassword(email,pass).then(function(userCred){
+    // Luego guardar en Firestore
+    return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  }).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
     ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
     toast('Cliente creado exitosamente');
     setTimeout(function(){var tabs=document.querySelectorAll('.tab');if(tabs[0])tabs[0].click()},1500);
-  }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+  }).catch(function(err){
+    var msg=err.message;
+    if(err.code==='auth/email-already-in-use') msg='El email ya está registrado. Usá otro o editá el cliente existente.';
+    document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+msg+'</span>';
+  });
 }
 
 function saveClient(){
   if(!_currentClientId) return;
-  QR_DB.collection('clients').doc(_currentClientId).update({
-    name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
-    email:document.getElementById('editEmail').value.trim(),dashboardPass:document.getElementById('editPass').value.trim(),
-    telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
-    telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
-    waMessage:document.getElementById('editWaMsg').value.trim(),
-    emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
-    emailjsService:document.getElementById('editEmailjsService').value.trim(),
-    emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
-    autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim(),
-    googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,''),
-    whatsappPhoneId:document.getElementById('editWhatsAppPhoneId').value.trim(),
-    whatsappToken:document.getElementById('editWhatsAppToken').value.trim(),
-    teamsWebhook:document.getElementById('editTeamsWebhook').value.trim(),
-    logoUrl:document.getElementById('editLogoUrl').value.trim(),
-    licenciaActiva:document.getElementById('editLicenciaActiva').checked,
-    licenciaVence:document.getElementById('editLicenciaVence').value
+  var newEmail=document.getElementById('editEmail').value.trim();
+  var newPass=document.getElementById('editPass').value.trim();
+  // Obtener email actual del cliente para saber si cambió
+  QR_DB.collection('clients').doc(_currentClientId).get().then(function(doc){
+    if(!doc.exists)return;
+    var oldData=doc.data();
+    var authPromise=Promise.resolve();
+    // Si cambió email o password, actualizar Firebase Auth
+    if((newEmail&&newEmail!==oldData.email)||(newPass&&newPass!==oldData.dashboardPass)){
+      // Necesitamos encontrar el UID del cliente por email
+      authPromise=CLIENT_AUTH.signInWithEmailAndPassword(oldData.email,oldData.dashboardPass).then(function(cred){
+        var user=cred.user;
+        var updates=[];
+        if(newEmail&&newEmail!==oldData.email) updates.push(user.updateEmail(newEmail));
+        if(newPass) updates.push(user.updatePassword(newPass));
+        return Promise.all(updates).then(function(){CLIENT_AUTH.signOut()});
+      }).catch(function(err){
+        // Si no existe cuenta Auth, crearla
+        if(err.code==='auth/user-not-found'&&newEmail&&newPass){
+          return CLIENT_AUTH.createUserWithEmailAndPassword(newEmail,newPass).then(function(){CLIENT_AUTH.signOut()});
+        }
+        console.warn('Auth update failed:',err);
+        return Promise.resolve();
+      });
+    }
+    return authPromise.then(function(){
+      return QR_DB.collection('clients').doc(_currentClientId).update({
+        name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
+        email:newEmail,dashboardPass:newPass,
+        telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+        telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
+        waMessage:document.getElementById('editWaMsg').value.trim(),
+        emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
+        emailjsService:document.getElementById('editEmailjsService').value.trim(),
+        emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
+        autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim(),
+        googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,''),
+        whatsappPhoneId:document.getElementById('editWhatsAppPhoneId').value.trim(),
+        whatsappToken:document.getElementById('editWhatsAppToken').value.trim(),
+        teamsWebhook:document.getElementById('editTeamsWebhook').value.trim(),
+        logoUrl:document.getElementById('editLogoUrl').value.trim(),
+        licenciaActiva:document.getElementById('editLicenciaActiva').checked,
+        licenciaVence:document.getElementById('editLicenciaVence').value
+      });
+    });
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
   .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
 }
