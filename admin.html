@@ -395,7 +395,7 @@ firebase.initializeApp(QR_FIREBASE_CONFIG, "clientAuth");
 var CLIENT_AUTH = firebase.auth(firebase.app("clientAuth"));
 </script>
 <script>
-var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es';
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG=localStorage.getItem('qrLang')||'es';
 var _TRANS={
   es:{
     code:'es',label:'🇪🇸 Español',lang:'es',other:'en',
@@ -493,7 +493,7 @@ var _TRANS={
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
-function toggleLang(){_LANG=_LANG==='es'?'en':'es';applyLang()}
+function toggleLang(){_LANG=_LANG==='es'?'en':'es';localStorage.setItem('qrLang',_LANG);applyLang()}
 function applyLang(){
   document.querySelectorAll('[data-lang]').forEach(function(e){e.textContent=__(e.dataset.lang)});
   document.documentElement.lang=_LANG;
@@ -534,6 +534,8 @@ function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 
 
 function register(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
 QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>'}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+// Apply saved lang on page load
+applyLang();
 
 function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent=__('errorLoginRequired');document.getElementById('loginError').style.display='block';return}
 QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients();applyLang()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
