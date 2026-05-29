@@ -144,6 +144,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <button class="tab" onclick="switchTab('flyer',this)"><span data-lang="flyerTitle">Flyer</span></button>
     <button class="tab" onclick="switchTab('leads',this)"><span data-lang="leadsTitle">📩 Leads</span></button>
     <button class="tab" onclick="switchTab('settings',this)"><span data-lang="configTitle">Config</span></button>
+    <button class="tab" onclick="switchTab('profile',this)">👤 <span data-lang="myProfile">Mi Perfil</span></button>
     <button class="tab" onclick="switchTab('trash',this)"><span data-lang="trashTitle">🗑 Papelera</span></button>
   </div>
 
@@ -242,6 +243,52 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         </div>
       </div>
       <div id="flyerResult"></div>
+    </div>
+  </div>
+
+  <div id="tab-profile" class="tab-content">
+    <div class="card">
+      <h2>👤 <span data-lang="myProfileTitle">Mi Perfil de Negocio</span></h2>
+      <p style="font-size:13px;color:#e2e8f0;margin-bottom:16px" data-lang="myProfileDesc">Configurá tu propio negocio para generar tus QR personales y recibir tus leads.</p>
+      <div id="profileForm">
+        <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="profName" placeholder="Ej: Mi Empresa" /></div>
+        <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="profWhatsapp" placeholder="573001234567" /></div>
+        <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="profTelegramToken" placeholder="123456789:ABC..." /></div>
+        <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="profTelegramChat" placeholder="-1001234567890" /></div>
+        <div class="form-group"><label>Usuario de Telegram <small>(@usuario)</small></label><input id="profTelegramUser" placeholder="usuario_sin_@" /></div>
+        <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="profWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+        <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
+        <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
+        <div class="form-group"><label>EmailJS Public Key</label><input id="profEmailjsKey" placeholder="abc123def456" /></div>
+        <div class="form-group"><label>EmailJS Service ID</label><input id="profEmailjsService" placeholder="service_abc123" /></div>
+        <div class="form-group"><label>EmailJS Template ID</label><input id="profEmailjsTemplate" placeholder="template_abc123" /></div>
+        <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</label><input id="profAutoReplyPhone" placeholder="953801340" /></div>
+        <div class="form-group"><label>Google Voice</label><input id="profGoogleVoice" placeholder="17866811651" /></div>
+        <div class="form-group"><label>WhatsApp Cloud Phone ID</label><input id="profWhatsAppPhoneId" placeholder="123456789012345" /></div>
+        <div class="form-group"><label>WhatsApp Cloud Token</label><input id="profWhatsAppToken" placeholder="EAAx..." /></div>
+        <div class="form-group"><label>Teams Webhook URL</label><input id="profTeamsWebhook" placeholder="https://...webhook..." /></div>
+        <div class="form-group"><label>Logo</label><input type="file" id="profLogoFile" accept="image/*" onchange="uploadLogo('profLogoFile','profLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="profLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
+        <button class="btn btn-primary" onclick="saveAdminProfile()" style="margin-top:16px">💾 <span data-lang="saveProfile">Guardar Mi Perfil</span></button>
+        <div id="profResult" style="margin-top:10px;font-size:13px"></div>
+      </div>
+    </div>
+    <div class="card" id="profileQrCard" style="display:none">
+      <h2>📱 <span data-lang="myQrTitle">Mis Códigos QR</span></h2>
+      <div class="qr-type-select">
+        <label class="active"><input type="radio" name="profQrType" value="whatsapp" checked onchange="setProfileQrType('whatsapp')" /> 💬 WhatsApp</label>
+        <label><input type="radio" name="profQrType" value="telegram" onchange="setProfileQrType('telegram')" /> ✈️ Telegram</label>
+        <label><input type="radio" name="profQrType" value="sms" onchange="setProfileQrType('sms')" /> 📱 SMS</label>
+        <label><input type="radio" name="profQrType" value="teams" onchange="setProfileQrType('teams')" /> 💼 Teams</label>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <input id="profQrId" placeholder="ID opcional" style="flex:1;margin:0" />
+        <button class="btn btn-primary btn-sm" onclick="adminAddQrCode()" data-lang="generateQr">Generar QR</button>
+      </div>
+      <div id="profileQrList"></div>
+    </div>
+    <div class="card" id="profileScansCard" style="display:none">
+      <h2>📩 <span data-lang="myScansTitle">Mis Leads Recibidos</span></h2>
+      <div id="profileScanList"><p style="color:#888;text-align:center;padding:20px" data-lang="noScans">Aún no hay scans.</p></div>
     </div>
   </div>
 
@@ -381,7 +428,10 @@ var _TRANS={
     flyerGenerated:'✅ Flyer generado',imageDownloaded:'✅ Imagen descargada',
     imgLibError:'Error al cargar librería de imagen',imgGenError:'Error al generar imagen',
     aiCopied:'📋 URL copiada',aiCopyError:'Error al copiar',firstGenImage:'Primero generá una imagen',
-    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear'
+    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear',
+    myProfile:'Mi Perfil',myProfileTitle:'Mi Perfil de Negocio',myProfileDesc:'Configurá tu propio negocio para generar tus QR personales y recibir tus leads.',saveProfile:'Guardar Mi Perfil',
+    myQrTitle:'Mis Códigos QR',myScansTitle:'Mis Leads Recibidos',
+    profileSaved:'✅ Perfil guardado',myProfileNoSave:'Primero guardá tu perfil'
   },
   en:{
     code:'en',label:'🇺🇸 English',lang:'en',other:'es',
@@ -423,7 +473,10 @@ var _TRANS={
     flyerGenerated:'✅ Flyer generated',imageDownloaded:'✅ Image downloaded',
     imgLibError:'Error loading image library',imgGenError:'Error generating image',
     aiCopied:'📋 URL copied',aiCopyError:'Error copying',firstGenImage:'Generate an image first',
-    copyExample:'📋 Example pasted in input — edit and click Create'
+    copyExample:'📋 Example pasted in input — edit and click Create',
+    myProfile:'My Profile',myProfileTitle:'My Business Profile',myProfileDesc:'Set up your own business to generate your personal QR codes and receive leads.',saveProfile:'Save My Profile',
+    myQrTitle:'My QR Codes',myScansTitle:'My Received Leads',
+    profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first'
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
@@ -482,12 +535,159 @@ QR_AUTH.onAuthStateChanged(function(u){if(u){
   if(h){var btn=document.querySelector('.tab[onclick*="'+h+'"]');if(btn)btn.click()}
 }})
 
+var _profileId=null,_profileQrType='whatsapp';
+
 function switchTab(t,btn){
   document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
   document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
   btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active');
   if(t==='trash') loadDeletedClients();
-  if(t==='leads') loadLeads()
+  if(t==='leads') loadLeads();
+  if(t==='profile') loadAdminProfile()
+}
+
+function setProfileQrType(t){_profileQrType=t;document.querySelectorAll('#tab-profile .qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
+
+function loadAdminProfile(){
+  var u=QR_AUTH.currentUser;if(!u)return
+  var q=QR_DB.collection('clients').where('adminUid','==',u.uid).limit(1);
+  q.get().then(function(snap){
+    if(snap.empty){
+      _profileId=null;
+      document.getElementById('profileQrCard').style.display='none';
+      document.getElementById('profileScansCard').style.display='none';
+      ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
+       'profEmailjsKey','profEmailjsService','profEmailjsTemplate','profAutoReplyPhone','profGoogleVoice',
+       'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
+      return
+    }
+    snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();
+      document.getElementById('profName').value=d.name||'';
+      document.getElementById('profWhatsapp').value=d.whatsapp||'';
+      document.getElementById('profTelegramToken').value=d.telegramToken||'';
+      document.getElementById('profTelegramChat').value=d.telegramChatId||'';
+      document.getElementById('profTelegramUser').value=d.telegramUser||'';
+      document.getElementById('profWaMsg').value=d.waMessage||'';
+      document.getElementById('profEmailjsKey').value=d.emailjsKey||'';
+      document.getElementById('profEmailjsService').value=d.emailjsService||'';
+      document.getElementById('profEmailjsTemplate').value=d.emailjsTemplate||'';
+      document.getElementById('profAutoReplyPhone').value=d.autoReplyPhone||'';
+      document.getElementById('profGoogleVoice').value=d.googleVoice||'';
+      document.getElementById('profWhatsAppPhoneId').value=d.whatsappPhoneId||'';
+      document.getElementById('profWhatsAppToken').value=d.whatsappToken||'';
+      document.getElementById('profTeamsWebhook').value=d.teamsWebhook||'';
+      document.getElementById('profLogoUrl').value=d.logoUrl||'';
+    });
+    document.getElementById('profileQrCard').style.display='block';
+    document.getElementById('profileScansCard').style.display='block';
+    adminLoadQrCodes();
+    adminLoadScans();
+  }).catch(function(err){console.warn('Error loading admin profile:',err)});
+}
+
+function saveAdminProfile(){
+  var u=QR_AUTH.currentUser;if(!u)return
+  var data={
+    name:document.getElementById('profName').value.trim(),
+    whatsapp:document.getElementById('profWhatsapp').value.trim().replace(/\D/g,''),
+    telegramToken:document.getElementById('profTelegramToken').value.trim(),
+    telegramChatId:document.getElementById('profTelegramChat').value.trim(),
+    telegramUser:document.getElementById('profTelegramUser').value.trim().replace(/^@/,''),
+    waMessage:document.getElementById('profWaMsg').value.trim(),
+    emailjsKey:document.getElementById('profEmailjsKey').value.trim(),
+    emailjsService:document.getElementById('profEmailjsService').value.trim(),
+    emailjsTemplate:document.getElementById('profEmailjsTemplate').value.trim(),
+    autoReplyPhone:document.getElementById('profAutoReplyPhone').value.trim(),
+    googleVoice:document.getElementById('profGoogleVoice').value.trim().replace(/\D/g,''),
+    whatsappPhoneId:document.getElementById('profWhatsAppPhoneId').value.trim(),
+    whatsappToken:document.getElementById('profWhatsAppToken').value.trim(),
+    teamsWebhook:document.getElementById('profTeamsWebhook').value.trim(),
+    logoUrl:document.getElementById('profLogoUrl').value.trim(),
+    adminUid:u.uid,
+    isAdminProfile:true,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(_profileId){
+    QR_DB.collection('clients').doc(_profileId).update(data).then(function(){
+      document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
+      toast(__('profileSaved'));
+    }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+  } else {
+    var newId='admin_'+u.uid.slice(0,12);
+    _profileId=newId;
+    QR_DB.collection('clients').doc(newId).set(data).then(function(){
+      document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
+      toast(__('profileSaved'));
+      document.getElementById('profileQrCard').style.display='block';
+      document.getElementById('profileScansCard').style.display='block';
+    }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+  }
+}
+
+function adminAddQrCode(){
+  if(!_profileId){toast(__('myProfileNoSave'));return}
+  var qrId=document.getElementById('profQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:_profileQrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    document.getElementById('profQrId').value='';toast('✅ QR '+_profileQrType+' generado: '+qrId);adminLoadQrCodes()
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function adminLoadQrCodes(){
+  if(!_profileId)return
+  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').get().then(function(snap){
+    var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
+    var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+    snap.forEach(function(doc){var d=doc.data();
+      var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?__('qrActive'):__('qrInactive');
+      var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
+      var qrData=baseUrl+'?c='+_profileId+'&q='+doc.id+'&s='+type;
+      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+      html+='<div class="qr-item">'
+        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+        +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
+        +'<div class="id">'+qrData+'</div>'
+        +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
+        +'<button onclick="toggleProfileQrStatus(\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?__('qrDeactivate'):__('qrActivate'))+'</button>'
+        +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
+        +'<button onclick="deleteProfileQr(\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑</button>'
+        +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
+        +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
+        +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱</a>'
+        +'</div></div>'});
+    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
+    document.getElementById('profileQrList').innerHTML=html;
+  });
+}
+
+function toggleProfileQrStatus(qrId,newStatus){
+  if(!_profileId)return
+  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').doc(qrId).update({active:newStatus}).then(function(){
+    toast(newStatus?__('qrActivated'):__('qrDeactivated'));adminLoadQrCodes()
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function deleteProfileQr(qrId){
+  if(!_profileId)return
+  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast(__('qrSentTrash'));adminLoadQrCodes()
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function adminLoadScans(){
+  if(!_profileId)return
+  QR_DB.collection('clients').doc(_profileId).collection('scans').orderBy('timestamp','desc').limit(50).onSnapshot(function(snap){
+    var html='<div style="overflow-x:auto"><table class="scan-table"><thead><tr><th>'+__('fecha')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>IP</th><th>'+__('ubicacion')+'</th><th>'+__('dispositivo')+'</th></tr></thead><tbody>';var c=0;
+    snap.forEach(function(doc){c++;var d=doc.data();if(d.deleted)return;
+      html+='<tr><td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
+        +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
+        +'<td style="font-size:11px">'+(d.leadEmail?'📧 '+esc(d.leadEmail):'')+(d.leadPhone?(d.leadEmail?'<br>':'')+'📱 '+esc(d.leadPhone):'')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0;max-width:200px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.ip||'—')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0">'+esc([d.city,d.country].filter(Boolean).join(', ')||'—')+'</td>'
+        +'<td style="font-size:11px;color:#e2e8f0">'+esc(d.os||'—')+'</td></tr>'});
+    html+='</tbody></table></div>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">'+__('noScans')+'</p>';
+    document.getElementById('profileScanList').innerHTML=html;
+  });
 }
 function switchModalTab(t,btn){
   document.querySelectorAll('#clientModal .tab').forEach(function(e){e.classList.remove('active')});
@@ -498,7 +698,7 @@ function switchModalTab(t,btn){
 function loadClients(){
   QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
     _clients=[];var html='';
-    snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;d._id=doc.id;_clients.push(d);
+    snap.forEach(function(doc){var d=doc.data();if(d.deleted||d.isAdminProfile)return;d._id=doc.id;_clients.push(d);
       var _active=d.licenciaActiva===true;
       html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+' <span class="badge '+(_active?'badge-active':'badge-inactive')+'">'+(_active?'✅ Activo':'❌ Inactivo')+'</span></h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | ⏳ '+(d.licenciaVence||'Sin vencimiento')+'</div><div style="font-size:11px;color:#64748b">🆔 '+doc.id+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="event.stopPropagation();toggleClientActive(\''+doc.id+'\','+(!_active)+')" class="btn btn-sm '+(_active?'btn-warning':'btn-success')+'">'+(_active?'🔴 Desactivar':'🟢 Activar')+'</button><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" title="Enviar a papelera">🗑</button></div></div></div>'});
     if(!html) html='<p style="color:#888;text-align:center;padding:40px" data-lang="noClients">No hay clientes aún.</p>';
@@ -1049,6 +1249,10 @@ function sendToDesigner(){
   var img=document.getElementById('aiImageTag');
   if(!img||!img.src||img.src.indexOf('pollinations')<0){toast('Primero generá una imagen');return}
   location.href='designer.html?bg='+encodeURIComponent(img.src);
+}
+function downloadQr(imgUrl,filename){
+  var a=document.createElement('a');a.href=imgUrl;a.download=filename||'qr.png';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 </script>
