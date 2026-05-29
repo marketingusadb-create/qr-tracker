@@ -62,6 +62,14 @@ label.normal{text-transform:none;letter-spacing:0;font-size:13px;color:#e2e8f0}
 .toast.show{opacity:1;transform:translateY(0)}
 .authorization-line{border-left:3px solid #f59e0b;padding:10px 14px;background:rgba(245,158,11,.08);border-radius:0 10px 10px 0;margin-bottom:10px;font-size:12px}
 .authorization-line strong{color:#fbbf24}
+.important-notice{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(239,68,68,.12));border:2px solid #f59e0b;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 0 25px rgba(245,158,11,.2),inset 0 0 40px rgba(245,158,11,.05);display:flex;gap:12px;align-items:flex-start;animation:glowPulse 2.5s ease-in-out infinite alternate}
+@keyframes glowPulse{0%{box-shadow:0 0 15px rgba(245,158,11,.15),inset 0 0 30px rgba(245,158,11,.03)}100%{box-shadow:0 0 35px rgba(245,158,11,.3),inset 0 0 50px rgba(245,158,11,.08)}}
+.important-notice .notice-icon{font-size:30px;flex-shrink:0;line-height:1}
+.important-notice .notice-content{flex:1}
+.important-notice .notice-title{font-size:16px;font-weight:800;color:#fbbf24;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.important-notice ul{margin:0;padding-left:16px;font-size:12px;color:#e2e8f0;line-height:1.6}
+.important-notice ul li{margin-bottom:5px}
+.important-notice ul li strong{color:#fbbf24}
 </style>
 </head>
 <body>
@@ -118,6 +126,20 @@ label.normal{text-transform:none;letter-spacing:0;font-size:13px;color:#e2e8f0}
   </div>
 
   <div class="section">
+    <div class="important-notice">
+      <div class="notice-icon">⚠️</div>
+      <div class="notice-content">
+        <div class="notice-title" data-es="📢 AVISO IMPORTANTE" data-en="📢 IMPORTANT NOTICE">📢 AVISO IMPORTANTE</div>
+        <ul>
+          <li data-es="<strong>Cargo por Conveniencia del 3.50%:</strong> Todos los pagos están sujetos a un cargo adicional del <strong>3.50%</strong> por costo de procesamiento. El monto total a pagar incluye este cargo." data-en="<strong>3.50% Convenience Fee:</strong> All payments are subject to an additional <strong>3.50%</strong> processing fee. The total amount to be charged includes this fee."><strong>Cargo por Conveniencia del 3.50%:</strong> Todos los pagos están sujetos a un cargo adicional del <strong>3.50%</strong> por costo de procesamiento. El monto total a pagar incluye este cargo.</li>
+          <li data-es="<strong>Protección de Datos:</strong> Su información personal y financiera está protegida bajo la Ley de Privacidad del Consumidor de Florida (Florida Consumer Privacy Act). No almacenamos números completos de tarjeta. Sus datos son cifrados y procesados de forma segura." data-en="<strong>Data Protection:</strong> Your personal and financial information is protected under the Florida Consumer Privacy Act. We do not store full card numbers. Your data is encrypted and securely processed."><strong>Protección de Datos:</strong> Su información personal y financiera está protegida bajo la Ley de Privacidad del Consumidor de Florida (Florida Consumer Privacy Act). No almacenamos números completos de tarjeta. Sus datos son cifrados y procesados de forma segura.</li>
+          <li data-es="<strong>Ley Aplicable:</strong> Este acuerdo se rige por las leyes del Estado de Florida, EE.UU., incluyendo el Código de Florida (Florida Statutes Title XXXIX, Chapter 687) aplicable a transacciones comerciales y de crédito." data-en="<strong>Governing Law:</strong> This agreement is governed by the laws of the State of Florida, USA, including the Florida Statutes Title XXXIX, Chapter 687 applicable to commercial and credit transactions."><strong>Ley Aplicable:</strong> Este acuerdo se rige por las leyes del Estado de Florida, EE.UU., incluyendo el Código de Florida (Florida Statutes Title XXXIX, Chapter 687) aplicable a transacciones comerciales y de crédito.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-title"><span data-es="💳 Información de Tarjeta" data-en="💳 Card Information">💳 Información de Tarjeta</span></div>
     <div class="authorization-line" data-es="<strong>⚠️ Autorización:</strong> Al firmar, autorizas a <strong>MASTER BAEZ</strong> a realizar los cargos indicados de forma recurrente." data-en="<strong>⚠️ Authorization:</strong> By signing, you authorize <strong>MASTER BAEZ</strong> to make the recurring charges indicated.">
       <strong>⚠️ Autorización:</strong> Al firmar, autorizas a <strong>MASTER BAEZ</strong> a realizar los cargos indicados de forma recurrente.
@@ -142,10 +164,11 @@ label.normal{text-transform:none;letter-spacing:0;font-size:13px;color:#e2e8f0}
         <li data-es="Los cargos continuarán hasta que el Titular cancele por escrito con al menos 5 días hábiles de anticipación." data-en="Charges will continue until the Cardholder cancels in writing at least 5 business days in advance.">Los cargos continuarán hasta que el Titular cancele por escrito con al menos 5 días hábiles de anticipación.</li>
         <li data-es="El Titular confirma ser el propietario legítimo de la tarjeta y que los datos son correctos." data-en="The Cardholder confirms they are the legitimate card owner and the data is correct.">El Titular confirma ser el propietario legítimo de la tarjeta y que los datos son correctos.</li>
         <li data-es="Si el pago es rechazado, MASTER BAEZ intentará el cobro hasta 2 veces más. Pasado ese plazo, el servicio podrá suspenderse." data-en="If payment is declined, MASTER BAEZ will retry up to 2 more times. After that, service may be suspended.">Si el pago es rechazado, MASTER BAEZ intentará el cobro hasta 2 veces más. Pasado ese plazo, el servicio podrá suspenderse.</li>
-        <li data-es="MASTER BAEZ no almacena números completos de tarjeta; los datos se procesan vía Stripe/Intuit." data-en="MASTER BAEZ does not store full card numbers; data is processed via Stripe/Intuit.">MASTER BAEZ no almacena números completos de tarjeta; los datos se procesan vía Stripe/Intuit.</li>
-        <li data-es="El Titular puede solicitar reembolso dentro de los primeros 7 días posteriores al cargo, sujeto a evaluación." data-en="The Cardholder may request a refund within 7 days of the charge, subject to review.">El Titular puede solicitar reembolso dentro de los primeros 7 días posteriores al cargo, sujeto a evaluación.</li>
-        <li data-es="Disputas resueltas conforme a las leyes del Estado de Florida, EE.UU." data-en="Disputes resolved under the laws of the State of Florida, USA.">Disputas resueltas conforme a las leyes del Estado de Florida, EE.UU.</li>
-        <li data-es="Este acuerdo entra en vigencia en la fecha de firma y permanece activo hasta cancelación por escrito." data-en="This agreement takes effect on the signature date and remains active until written cancellation.">Este acuerdo entra en vigencia en la fecha de firma y permanece activo hasta cancelación por escrito.</li>
+        <li data-es="Todos los pagos incluyen un cargo por conveniencia del <strong>3.50%</strong> sobre el monto base por costos de procesamiento. El total cobrado será la suma del monto base más este cargo." data-en="All payments include a <strong>3.50%</strong> convenience fee on the base amount for processing costs. The total charged will be the base amount plus this fee.">Todos los pagos incluyen un cargo por conveniencia del <strong>3.50%</strong> sobre el monto base por costos de procesamiento. El total cobrado será la suma del monto base más este cargo.</li>
+        <li data-es="MASTER BAEZ no almacena números completos de tarjeta ni datos sensibles. Los datos se procesan de forma cifrada y segura vía Stripe/Intuit cumpliendo con los estándares PCI-DSS y la Ley de Privacidad del Consumidor de Florida (FCPA)." data-en="MASTER BAEZ does not store full card numbers or sensitive data. Data is processed encrypted and securely via Stripe/Intuit, complying with PCI-DSS standards and the Florida Consumer Privacy Act (FCPA).">MASTER BAEZ no almacena números completos de tarjeta ni datos sensibles. Los datos se procesan de forma cifrada y segura vía Stripe/Intuit cumpliendo con los estándares PCI-DSS y la Ley de Privacidad del Consumidor de Florida (FCPA).</li>
+        <li data-es="El Titular puede solicitar reembolso dentro de los primeros 7 días posteriores al cargo, sujeto a evaluación y conforme a las leyes de protección al consumidor del Estado de Florida (Florida Statutes Title XXXIII, Chapter 501)." data-en="The Cardholder may request a refund within 7 days of the charge, subject to review and in accordance with Florida consumer protection laws (Florida Statutes Title XXXIII, Chapter 501).">El Titular puede solicitar reembolso dentro de los primeros 7 días posteriores al cargo, sujeto a evaluación y conforme a las leyes de protección al consumidor del Estado de Florida (Florida Statutes Title XXXIII, Chapter 501).</li>
+        <li data-es="Este acuerdo se rige EXCLUSIVAMENTE por las leyes del Estado de Florida, EE.UU. Cualquier disputa será resuelta en los tribunales del Condado de Miami-Dade, Florida, EE.UU. El Titular se somete a dicha jurisdicción." data-en="This agreement is governed EXCLUSIVELY by the laws of the State of Florida, USA. Any dispute shall be resolved in the courts of Miami-Dade County, Florida, USA. The Cardholder submits to such jurisdiction.">Este acuerdo se rige EXCLUSIVAMENTE por las leyes del Estado de Florida, EE.UU. Cualquier disputa será resuelta en los tribunales del Condado de Miami-Dade, Florida, EE.UU. El Titular se somete a dicha jurisdicción.</li>
+        <li data-es="Este acuerdo entra en vigencia en la fecha de firma y permanece activo hasta cancelación por escrito con al menos 5 días hábiles de anticipación." data-en="This agreement takes effect on the signature date and remains active until written cancellation with at least 5 business days' notice.">Este acuerdo entra en vigencia en la fecha de firma y permanece activo hasta cancelación por escrito con al menos 5 días hábiles de anticipación.</li>
       </ol>
     </div>
     <label class="normal"><input id="acceptTerms" type="checkbox" /> <span data-es="Acepto los términos y condiciones" data-en="I accept the terms and conditions">Acepto los términos y condiciones</span></label>
@@ -377,6 +400,9 @@ function getDocData(){
   var planFull=$('customAmount').checked
     ?(_lang==='es'?'Personalizado ($'+getMonto()+')':'Custom ($'+getMonto()+')')
     :planLbl+' ($'+getMonto()+')';
+  var base=getMonto();
+  var fee=base*0.035;
+  var total=base+fee;
   var d=new Date();
   return{
     nombre:$('clientName').value||'—',
@@ -385,7 +411,9 @@ function getDocData(){
     email:$('clientEmail').value||'—',
     direccion:$('clientAddress').value||'—',
     plan:planFull,
-    monto:'$'+getMonto(),
+    monto:'$'+base.toFixed(2),
+    cargo:'$'+fee.toFixed(2),
+    total:'$'+total.toFixed(2),
     cardholder:$('cardName').value||'—',
     cardLast4:$('cardNumber').value.replace(/\D/g,'').slice(-4)||'••••',
     cardExpiry:$('cardExpiry').value||'—',
@@ -436,18 +464,23 @@ function generarPDF(){
   pdf.setFont('helvetica','bold');
   t(_lang==='es'?'💵 Plan de Pago':'💵 Payment Plan',12,'#e2e8f0');pdf.setFont('helvetica','normal');al(5);
   tr(_lang==='es'?'Plan:':'Plan:',d.plan);al(4);
-  tr(_lang==='es'?'Monto autorizado:':'Authorized amount:',d.monto);al(8);
+  tr(_lang==='es'?'Monto base:':'Base amount:',d.monto);al(4);
+  tr(_lang==='es'?'Cargo 3.50%:':'3.50% fee:',d.cargo);al(4);
+  tr(_lang==='es'?'TOTAL A COBRAR:':'TOTAL TO CHARGE:',d.total);al(8);
 
   pdf.setFont('helvetica','bold');
   t(_lang==='es'?'💳 Tarjeta':'💳 Card',12,'#e2e8f0');pdf.setFont('helvetica','normal');al(5);
   tr(_lang==='es'?'Tarjetahabiente:':'Cardholder:',d.cardholder);al(4);
   tr(_lang==='es'?'Terminación:':'Ending in:',d.cardLast4);al(4);
   tr(_lang==='es'?'Vence:':'Expiry:',d.cardExpiry);al(4);
-  tr(_lang==='es'?'Código Postal:':'ZIP:',d.cardZip);al(12);
+  tr(_lang==='es'?'Código Postal:':'ZIP:',d.cardZip);al(4);
+  pdf.setFont('helvetica','italic');pdf.setFontSize(8);pdf.setTextColor(130);
+  t(_lang==='es'?'🔒 Datos cifrados — no almacenamos números completos de tarjeta. Cumplimos PCI-DSS y FCPA.'
+    :'🔒 Encrypted data — we do not store full card numbers. PCI-DSS and FCPA compliant.',8,'#888');al(8);
 
   var auth=_lang==='es'
-    ?'Autorizo a MASTER BAEZ a realizar cargos recurrentes a mi tarjeta por el monto de '+d.monto+' ('+d.plan+') hasta que cancele por escrito. Confirmo ser el titular legítimo de la tarjeta.'
-    :'I authorize MASTER BAEZ to make recurring charges to my card for '+d.monto+' ('+d.plan+') until I cancel in writing. I confirm I am the legitimate cardholder.';
+    ?'Autorizo a MASTER BAEZ a realizar cargos recurrentes a mi tarjeta por un monto base de '+d.monto+' ('+d.plan+'), más un cargo por conveniencia del 3.50% ('+d.cargo+'), para un total de '+d.total+'. Autorizo estos cargos hasta que cancele por escrito. Confirmo ser el titular legítimo de la tarjeta. Este acuerdo se rige por las leyes del Estado de Florida, EE.UU.'
+    :'I authorize MASTER BAEZ to make recurring charges to my card for a base amount of '+d.monto+' ('+d.plan+'), plus a 3.50% convenience fee ('+d.cargo+'), for a total of '+d.total+'. I authorize these charges until I cancel in writing. I confirm I am the legitimate cardholder. This agreement is governed by the laws of the State of Florida, USA.';
   pdf.setFont('helvetica','bold');
   t(_lang==='es'?'📜 Autorización':'📜 Authorization',12,'#f59e0b');pdf.setFont('helvetica','normal');al(5);
   var lines=pdf.splitTextToSize(auth,pw-28);
@@ -460,7 +493,10 @@ function generarPDF(){
   else{t('(pendiente de firma / pending signature)',9,'#888');al(6)}
   al(3);
   t(d.fecha,9,'#888');al(3);
-  t('Representante / Rep: MASTER BAEZ',10,'#8b5cf6');
+  t('Representante / Rep: MASTER BAEZ',10,'#8b5cf6');al(5);
+  pdf.setFont('helvetica','italic');pdf.setFontSize(7);pdf.setTextColor(130);
+  t(_lang==='es'?'Este acuerdo se rige por las leyes del Estado de Florida, EE.UU. — Sus datos están protegidos bajo la FCPA.'
+    :'This agreement is governed by the laws of the State of Florida, USA. — Your data is protected under FCPA.',7,'#888','c');al(3);
   pdf.setFontSize(8);pdf.setTextColor(100);
   pdf.text('Página 1 de 1 — '+(new Date().toISOString().slice(0,10)),pw-14,292,{align:'right'});
   pdf.save('autorizacion-pago-'+d.id+'.pdf');
@@ -472,8 +508,8 @@ function enviarWhatsApp(){
   var d=getDocData();
   var t=_lang==='es'?'es':'en';
   var m=(t==='es'
-    ?'💳 AUTORIZACIÓN DE PAGO - MASTER BAEZ\n\nCliente: '+d.nombre+'\nID: '+d.id+'\nTel: '+d.telefono+'\nEmail: '+d.email+'\n\n💰 Plan: '+d.plan+'\nMonto: '+d.monto+'\n💳 Tarjeta termina en: '+d.cardLast4+'\nVence: '+d.cardExpiry+'\n\n✍️ Firma: '+d.firma+'\nFecha: '+d.fecha
-    :'💳 PAYMENT AUTHORIZATION - MASTER BAEZ\n\nClient: '+d.nombre+'\nID: '+d.id+'\nPhone: '+d.telefono+'\nEmail: '+d.email+'\n\n💰 Plan: '+d.plan+'\nAmount: '+d.monto+'\n💳 Card ends in: '+d.cardLast4+'\nExpiry: '+d.cardExpiry+'\n\n✍️ Signature: '+d.firma+'\nDate: '+d.fecha);
+    ?'💳 AUTORIZACIÓN DE PAGO - MASTER BAEZ\n\nCliente: '+d.nombre+'\nID: '+d.id+'\nTel: '+d.telefono+'\nEmail: '+d.email+'\n\n💰 Plan: '+d.plan+'\nMonto base: '+d.monto+'\nCargo 3.50%: '+d.cargo+'\n🔴 TOTAL: '+d.total+'\n💳 Tarjeta termina en: '+d.cardLast4+'\nVence: '+d.cardExpiry+'\n\n✍️ Firma: '+d.firma+'\nFecha: '+d.fecha+'\n\nLey aplicable: Estado de Florida, EE.UU.'
+    :'💳 PAYMENT AUTHORIZATION - MASTER BAEZ\n\nClient: '+d.nombre+'\nID: '+d.id+'\nPhone: '+d.telefono+'\nEmail: '+d.email+'\n\n💰 Plan: '+d.plan+'\nBase amount: '+d.monto+'\n3.50% fee: '+d.cargo+'\n🔴 TOTAL: '+d.total+'\n💳 Card ends in: '+d.cardLast4+'\nExpiry: '+d.cardExpiry+'\n\n✍️ Signature: '+d.firma+'\nDate: '+d.fecha+'\n\nGoverning law: State of Florida, USA.');
   window.open('https://wa.me/1'+d.telefono.replace(/\D/g,'')+'?text='+encodeURIComponent(m),'_blank');
   toast('✅ WhatsApp');
 }
@@ -481,8 +517,8 @@ function enviarWhatsApp(){
 function enviarSMS(){
   if(!validar())return;
   var d=getDocData();
-  var m=(_lang==='es'?'💳 AUTORIZACION PAGO - MASTER BAEZ. Cliente: '+d.nombre+'. Plan: '+d.plan+'. Monto: '+d.monto+'. Fecha: '+d.fecha
-    :'💳 PAYMENT AUTHORIZATION - MASTER BAEZ. Client: '+d.nombre+'. Plan: '+d.plan+'. Amount: '+d.monto+'. Date: '+d.fecha);
+  var m=(_lang==='es'?'💳 AUTORIZACION PAGO - MASTER BAEZ. Cliente: '+d.nombre+'. Plan: '+d.plan+'. Base: '+d.monto+'. Cargo 3.50%: '+d.cargo+'. Total: '+d.total+'. Fecha: '+d.fecha+'. Ley: Florida, EE.UU.'
+    :'💳 PAYMENT AUTHORIZATION - MASTER BAEZ. Client: '+d.nombre+'. Plan: '+d.plan+'. Base: '+d.monto+'. 3.50% fee: '+d.cargo+'. Total: '+d.total+'. Date: '+d.fecha+'. Law: Florida, USA.');
   window.open('sms:'+d.telefono.replace(/\D/g,'')+'?body='+encodeURIComponent(m),'_blank');
   toast('✅ SMS');
 }
@@ -494,9 +530,9 @@ function enviarEmail(){
   var t=_lang==='es'?'es':'en';
   var body='';
   if(t==='es'){
-    body='💳 AUTORIZACIÓN DE PAGO - MASTER BAEZ\n\nCliente: '+d.nombre+'\nID: '+d.id+'\nTel: '+d.telefono+'\nEmail: '+d.email+'\nDirección: '+d.direccion+'\n\n💰 Plan: '+d.plan+'\nMonto: '+d.monto+'\n\n💳 Tarjeta termina en: '+d.cardLast4+'\nVence: '+d.cardExpiry+'\nCódigo Postal: '+d.cardZip+'\n\n📜 Autorizo a MASTER BAEZ a realizar cargos recurrentes a mi tarjeta.\n\n✍️ Firma: '+d.firma+'\nFecha: '+d.fecha+'\n\nRepresentante: MASTER BAEZ\n\n— Documento generado digitalmente.';
+    body='💳 AUTORIZACIÓN DE PAGO - MASTER BAEZ\n\nCliente: '+d.nombre+'\nID: '+d.id+'\nTel: '+d.telefono+'\nEmail: '+d.email+'\nDirección: '+d.direccion+'\n\n💰 Plan: '+d.plan+'\nMonto base: '+d.monto+'\nCargo 3.50%: '+d.cargo+'\n🔴 TOTAL: '+d.total+'\n\n💳 Tarjeta termina en: '+d.cardLast4+'\nVence: '+d.cardExpiry+'\nCódigo Postal: '+d.cardZip+'\n\n📜 Autorizo a MASTER BAEZ a realizar cargos recurrentes a mi tarjeta por el total de '+d.total+' (base '+d.monto+' + cargo 3.50% '+d.cargo+').\n\n✍️ Firma: '+d.firma+'\nFecha: '+d.fecha+'\n\nLey aplicable: Estado de Florida, EE.UU.\nRepresentante: MASTER BAEZ\n\n— Documento generado digitalmente.';
   }else{
-    body='💳 PAYMENT AUTHORIZATION - MASTER BAEZ\n\nClient: '+d.nombre+'\nID: '+d.id+'\nPhone: '+d.telefono+'\nEmail: '+d.email+'\nAddress: '+d.direccion+'\n\n💰 Plan: '+d.plan+'\nAmount: '+d.monto+'\n\n💳 Card ends in: '+d.cardLast4+'\nExpiry: '+d.cardExpiry+'\nZIP: '+d.cardZip+'\n\n📜 I authorize MASTER BAEZ to make recurring charges to my card.\n\n✍️ Signature: '+d.firma+'\nDate: '+d.fecha+'\n\nRepresentative: MASTER BAEZ\n\n— Digitally generated document.';
+    body='💳 PAYMENT AUTHORIZATION - MASTER BAEZ\n\nClient: '+d.nombre+'\nID: '+d.id+'\nPhone: '+d.telefono+'\nEmail: '+d.email+'\nAddress: '+d.direccion+'\n\n💰 Plan: '+d.plan+'\nBase amount: '+d.monto+'\n3.50% fee: '+d.cargo+'\n🔴 TOTAL: '+d.total+'\n\n💳 Card ends in: '+d.cardLast4+'\nExpiry: '+d.cardExpiry+'\nZIP: '+d.cardZip+'\n\n📜 I authorize MASTER BAEZ to make recurring charges to my card for the total of '+d.total+' (base '+d.monto+' + 3.50% fee '+d.cargo+').\n\n✍️ Signature: '+d.firma+'\nDate: '+d.fecha+'\n\nGoverning law: State of Florida, USA.\nRepresentative: MASTER BAEZ\n\n— Digitally generated document.';
   }
   window.open('mailto:'+d.email+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body),'_blank');
   toast('✅ Email');
