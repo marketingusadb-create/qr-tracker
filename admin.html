@@ -149,7 +149,12 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   </div>
 
   <div id="tab-clients" class="tab-content active">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span data-lang="clientListTitle" style="font-size:15px;font-weight:700">📋 Clientes</span>
+      <button class="btn btn-sm btn-primary" onclick="syncAllAuth()" data-lang="syncAuthBtn">🔄 Sincronizar Auth</button>
+    </div>
     <div class="client-list" id="clientList"></div>
+    <div id="syncResult" style="margin-top:8px;font-size:12px"></div>
   </div>
 
   <div id="tab-leads" class="tab-content">
@@ -434,7 +439,9 @@ var _TRANS={
     copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear',
     myProfile:'Mi Perfil',myProfileTitle:'Mi Perfil de Negocio',myProfileDesc:'Configurá tu propio negocio para generar tus QR personales y recibir tus leads.',saveProfile:'Guardar Mi Perfil',
     myQrTitle:'Mis Códigos QR',myScansTitle:'Mis Leads Recibidos',
-    profileSaved:'✅ Perfil guardado',myProfileNoSave:'Primero guardá tu perfil'
+    profileSaved:'✅ Perfil guardado',    myProfileNoSave:'Primero guardá tu perfil',
+    syncAuthBtn:'🔄 Sincronizar Auth',
+    clientListTitle:'📋 Clientes'
   },
   en:{
     code:'en',label:'🇺🇸 English',lang:'en',other:'es',
@@ -479,7 +486,9 @@ var _TRANS={
     copyExample:'📋 Example pasted in input — edit and click Create',
     myProfile:'My Profile',myProfileTitle:'My Business Profile',myProfileDesc:'Set up your own business to generate your personal QR codes and receive leads.',saveProfile:'Save My Profile',
     myQrTitle:'My QR Codes',myScansTitle:'My Received Leads',
-    profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first'
+    profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first',
+    syncAuthBtn:'🔄 Sync Auth',
+    clientListTitle:'📋 Clients'
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
@@ -727,6 +736,35 @@ function switchModalTab(t,btn){
   btn.classList.add('active');document.getElementById('mtab-'+t).classList.add('active')
 }
 
+function syncAllAuth(){
+  var el=document.getElementById('syncResult');
+  el.innerHTML='⏳ Sincronizando...';el.style.color='#e2e8f0';
+  QR_DB.collection('clients').get().then(function(snap){
+    var total=0,created=0;
+    snap.forEach(function(doc){var d=doc.data();
+      if(d.deleted||d.isAdminProfile)return;
+      if(d.email&&d.dashboardPass) total++;
+    });
+    if(!total){el.innerHTML='✅ No hay clientes pendientes';return}
+    el.innerHTML='⏳ 0/'+total+' creadas...';
+    var done=0;
+    snap.forEach(function(cdoc){
+      var d=cdoc.data();
+      if(d.deleted||d.isAdminProfile||!d.email||!d.dashboardPass){done++;if(done===total)finish();return}
+      CLIENT_AUTH.createUserWithEmailAndPassword(d.email,d.dashboardPass).then(function(){
+        created++;done++;el.innerHTML='⏳ '+done+'/'+total+' creadas...';
+        if(done===total)finish();
+      }).catch(function(err){
+        done++;el.innerHTML='⏳ '+done+'/'+total+(err.code==='auth/email-already-in-use'?' (ya existe)':' (error)')+'...';
+        if(done===total)finish();
+      });
+    });
+    function finish(){
+      el.innerHTML='✅ '+created+' cuentas creadas de '+total+' clientes';
+      CLIENT_AUTH.signOut();
+    }
+  });
+}
 function loadClients(){
   QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
     _clients=[];var html='';
