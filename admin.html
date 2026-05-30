@@ -185,10 +185,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label data-lang="dashboardPass">Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
       <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto que aparece precargado en el formulario)</small></label>      <textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
-      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
-      <div class="form-group"><label>EmailJS Public Key</label><input id="ncEmailjsKey" placeholder="abc123def456" /></div>
-      <div class="form-group"><label>EmailJS Service ID</label><input id="ncEmailjsService" placeholder="service_abc123" /></div>
-      <div class="form-group"><label>EmailJS Template ID</label><input id="ncEmailjsTemplate" placeholder="template_abc123" /></div>
+      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Email con Brevo</h3>
+      <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px">300 emails/día gratis. Regístrate en <a href="https://brevo.com" target="_blank" style="color:#8b5cf6">brevo.com</a> → SMTP & API → crear API key v3</p>
+      <div class="form-group"><label>Brevo API Key v3</label><input id="ncBrevoKey" placeholder="xsksm...abc123" /></div>
+      <div class="form-group"><label>Email del remitente <small>(correo verificado en Brevo)</small></label><input id="ncBrevoSender" placeholder="tucorreo@gmail.com" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</small></label><input id="ncAutoReplyPhone" placeholder="953801340" /></div>
       <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="ncGoogleVoice" placeholder="17866811651" /></div>
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="ncWhatsAppPhoneId" placeholder="123456789012345" /></div>
@@ -264,10 +264,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         <div class="form-group"><label>Usuario de Telegram <small>(@usuario)</small></label><input id="profTelegramUser" placeholder="usuario_sin_@" /></div>
         <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="profWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
         <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
-        <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
-        <div class="form-group"><label>EmailJS Public Key</label><input id="profEmailjsKey" placeholder="abc123def456" /></div>
-        <div class="form-group"><label>EmailJS Service ID</label><input id="profEmailjsService" placeholder="service_abc123" /></div>
-        <div class="form-group"><label>EmailJS Template ID</label><input id="profEmailjsTemplate" placeholder="template_abc123" /></div>
+        <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Email con Brevo</h3>
+        <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px">300 emails/día gratis. <a href="https://brevo.com" target="_blank" style="color:#8b5cf6">Brevo.com</a> → API Key v3</p>
+        <div class="form-group"><label>Brevo API Key v3</label><input id="profBrevoKey" placeholder="xsksm...abc123" /></div>
+        <div class="form-group"><label>Email del remitente</label><input id="profBrevoSender" placeholder="tucorreo@gmail.com" /></div>
         <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</label><input id="profAutoReplyPhone" placeholder="953801340" /></div>
         <div class="form-group"><label>Google Voice</label><input id="profGoogleVoice" placeholder="17866811651" /></div>
         <div class="form-group"><label>WhatsApp Cloud Phone ID</label><input id="profWhatsAppPhoneId" placeholder="123456789012345" /></div>
@@ -350,11 +350,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
       <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
-      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
-      <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px" data-lang="emailAutoReplyDesc">Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.</p>
-      <div class="form-group"><label>EmailJS Public Key</label><input id="editEmailjsKey" placeholder="ej: abc123def456" /></div>
-      <div class="form-group"><label>EmailJS Service ID</label><input id="editEmailjsService" placeholder="ej: service_abc123" /></div>
-      <div class="form-group"><label>EmailJS Template ID</label><input id="editEmailjsTemplate" placeholder="ej: template_abc123" /></div>
+      <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Email con Brevo</h3>
+      <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px">300 emails/día gratis. <a href="https://brevo.com" target="_blank" style="color:#8b5cf6">Brevo.com</a> → SMTP & API → API Key v3</p>
+      <div class="form-group"><label>Brevo API Key v3</label><input id="editBrevoKey" placeholder="xsksm...abc123" /></div>
+      <div class="form-group"><label>Email del remitente <small>(verificado en Brevo)</small></label><input id="editBrevoSender" placeholder="tucorreo@gmail.com" /></div>
       <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto <small data-lang="autoReplyPhoneDesc">(aparece en el email auto-respuesta)</small></label><input id="editAutoReplyPhone" placeholder="953801340" /></div>
       <div class="form-group"><label>Google Voice <small>teléfono para llamadas</small></label><input id="editGoogleVoice" placeholder="17866811651" /></div>
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="editWhatsAppPhoneId" placeholder="123456789012345" /></div>
@@ -422,7 +421,7 @@ var _TRANS={
     selectQrType:'Selecciona el tipo de QR y genera:',generateQr:'Generar QR',
     newClientTitle:'Crear nuevo cliente',clientEmail:'Email del cliente',
     forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente',
-    emailAutoReply:'📧 Auto-respuesta por Email',emailAutoReplyDesc:'Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.',
+    emailAutoReply:'📧 Email con Brevo',emailAutoReplyDesc:'Configura Brevo (gratis: brevo.com, 300 emails/día) para notificaciones y auto-respuesta.',
     autoReplyPhoneLabel:'Teléfono de contacto',autoReplyPhoneDesc:'(aparece en el email auto-respuesta)',
     qrActive:'✅ Activo',qrInactive:'❌ Inactivo',qrDeletedTag:'🗑 Eliminado',
     qrDeactivate:'🔴 Desactivar',qrActivate:'🟢 Activar',qrRestore:'↩ Restaurar',
@@ -469,7 +468,7 @@ var _TRANS={
     selectQrType:'Select QR type and generate:',generateQr:'Generate QR',
     newClientTitle:'Create new client',clientEmail:'Client email',
     forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client',
-    emailAutoReply:'📧 Email auto-reply',emailAutoReplyDesc:'Configure EmailJS (free: emailjs.com) to send auto-reply to lead when they scan the QR.',
+    emailAutoReply:'📧 Email via Brevo',emailAutoReplyDesc:'Configure Brevo (free: brevo.com, 300 emails/day) for notifications and auto-reply.',
     autoReplyPhoneLabel:'Contact phone',autoReplyPhoneDesc:'(appears in the auto-reply email)',
     qrActive:'✅ Active',qrInactive:'❌ Inactive',qrDeletedTag:'🗑 Deleted',
     qrDeactivate:'🔴 Deactivate',qrActivate:'🟢 Activate',qrRestore:'↩ Restore',
@@ -612,9 +611,8 @@ function fillProfileForm(d){
   document.getElementById('profTelegramChat').value=d.telegramChatId||'';
   document.getElementById('profTelegramUser').value=d.telegramUser||'';
   document.getElementById('profWaMsg').value=d.waMessage||'';
-  document.getElementById('profEmailjsKey').value=d.emailjsKey||'';
-  document.getElementById('profEmailjsService').value=d.emailjsService||'';
-  document.getElementById('profEmailjsTemplate').value=d.emailjsTemplate||'';
+  document.getElementById('profBrevoKey').value=d.brevoApiKey||'';
+  document.getElementById('profBrevoSender').value=d.brevoSenderEmail||'';
   document.getElementById('profAutoReplyPhone').value=d.autoReplyPhone||'';
   document.getElementById('profGoogleVoice').value=d.googleVoice||'';
   document.getElementById('profWhatsAppPhoneId').value=d.whatsappPhoneId||'';
@@ -625,7 +623,7 @@ function fillProfileForm(d){
 
 function clearProfileForm(){
   ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
-   'profEmailjsKey','profEmailjsService','profEmailjsTemplate','profAutoReplyPhone','profGoogleVoice',
+   'profBrevoKey','profBrevoSender','profAutoReplyPhone','profGoogleVoice',
    'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
 }
 
@@ -638,9 +636,8 @@ function saveAdminProfile(){
     telegramChatId:document.getElementById('profTelegramChat').value.trim(),
     telegramUser:document.getElementById('profTelegramUser').value.trim().replace(/^@/,''),
     waMessage:document.getElementById('profWaMsg').value.trim(),
-    emailjsKey:document.getElementById('profEmailjsKey').value.trim(),
-    emailjsService:document.getElementById('profEmailjsService').value.trim(),
-    emailjsTemplate:document.getElementById('profEmailjsTemplate').value.trim(),
+    brevoApiKey:document.getElementById('profBrevoKey').value.trim(),
+    brevoSenderEmail:document.getElementById('profBrevoSender').value.trim(),
     autoReplyPhone:document.getElementById('profAutoReplyPhone').value.trim(),
     googleVoice:document.getElementById('profGoogleVoice').value.trim().replace(/\D/g,''),
     whatsappPhoneId:document.getElementById('profWhatsAppPhoneId').value.trim(),
@@ -868,9 +865,8 @@ function openClient(id){
     document.getElementById('editTelegramToken').value=d.telegramToken||'';document.getElementById('editTelegramChat').value=d.telegramChatId||'';
     document.getElementById('editTelegramUser').value=d.telegramUser||'';
     document.getElementById('editWaMsg').value=d.waMessage||'';
-    document.getElementById('editEmailjsKey').value=d.emailjsKey||'';
-    document.getElementById('editEmailjsService').value=d.emailjsService||'';
-    document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
+    document.getElementById('editBrevoKey').value=d.brevoApiKey||'';
+    document.getElementById('editBrevoSender').value=d.brevoSenderEmail||'';
     document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
     document.getElementById('editGoogleVoice').value=d.googleVoice||'';
     document.getElementById('editWhatsAppPhoneId').value=d.whatsappPhoneId||'';
@@ -1104,8 +1100,7 @@ function createClient(){
   var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
   var tgUser=document.getElementById('ncTelegramUser').value.trim().replace(/^@/,'');
   var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
-  var ejKey=document.getElementById('ncEmailjsKey').value.trim(),ejSvc=document.getElementById('ncEmailjsService').value.trim();
-  var ejTpl=document.getElementById('ncEmailjsTemplate').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
+  var brKey=document.getElementById('ncBrevoKey').value.trim(),brSender=document.getElementById('ncBrevoSender').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
   if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
   if(!email||!pass){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Email y contraseña del dashboard son obligatorios</span>';return}
   var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
@@ -1119,10 +1114,10 @@ function createClient(){
   // Primero crear cuenta Firebase Auth para el cliente (usando instancia separada para no cerrar sesión admin)
   CLIENT_AUTH.createUserWithEmailAndPassword(email,pass).then(function(userCred){
     // Luego guardar en Firestore
-    return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
   }).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
-    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncBrevoKey','ncBrevoSender','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
     toast('Cliente creado exitosamente');
     setTimeout(function(){var tabs=document.querySelectorAll('.tab');if(tabs[0])tabs[0].click()},1500);
   }).catch(function(err){
@@ -1166,9 +1161,8 @@ function saveClient(){
         telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
         telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
         waMessage:document.getElementById('editWaMsg').value.trim(),
-        emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
-        emailjsService:document.getElementById('editEmailjsService').value.trim(),
-        emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
+        brevoApiKey:document.getElementById('editBrevoKey').value.trim(),
+        brevoSenderEmail:document.getElementById('editBrevoSender').value.trim(),
         autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim(),
         googleVoice:document.getElementById('editGoogleVoice').value.trim().replace(/\D/g,''),
         whatsappPhoneId:document.getElementById('editWhatsAppPhoneId').value.trim(),
