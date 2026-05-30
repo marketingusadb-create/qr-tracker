@@ -72,7 +72,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
 var FBC={apiKey:"AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",authDomain:"qr-tracker-crm.firebaseapp.com",projectId:"qr-tracker-crm",storageBucket:"qr-tracker-crm.firebasestorage.app",messagingSenderId:"1085744853871",appId:"1:1085744853871:web:9a9f8413ee352ca55cae9a"};
 firebase.initializeApp(FBC,"qrTracker");var DB=firebase.firestore(firebase.app("qrTracker"));
@@ -155,41 +154,45 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 function getLang(){return navigator.language||navigator.userLanguage||'es'}
 
+function sendBrevo(toEmail,subject,htmlContent){
+  var d=_clientData;if(!d)return Promise.resolve();
+  var key=d.brevoApiKey;
+  if(!key||!toEmail)return Promise.resolve();
+  return fetch('https://api.brevo.com/v3/smtp/email',{
+    method:'POST',
+    headers:{'api-key':key,'Content-Type':'application/json'},
+    body:JSON.stringify({
+      sender:{name:d.name||'Contacto',email:d.brevoSenderEmail||'noreply@contacto.com'},
+      to:[{email:toEmail,name:toEmail}],
+      subject:subject,
+      htmlContent:htmlContent
+    })
+  }).then(function(r){if(!r.ok)console.warn('Brevo:',r.status);return r}).catch(function(err){console.warn('Brevo:',err)});
+}
+
 function sendAutoReply(lead){
   var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.emailjsKey,svc=d.emailjsService,tpl=d.emailjsTemplate,phone=d.autoReplyPhone;
-  if(!key||!svc||!tpl||!lead.email||typeof emailjs==='undefined') return Promise.resolve();
+  if(!d.brevoApiKey||!lead.email)return Promise.resolve();
   var lang=getLang().startsWith('es')?'es':'en';
+  var phone=d.autoReplyPhone||'';
   var body=lang==='es'
-    ?'Hemos recibido tu solicitud. Nos comunicaremos contigo lo antes posible.'+(phone?' Si necesitas contactarnos directamente: '+phone:'')
-    :'We have received your request. We will contact you as soon as possible.'+(phone?' If you need to contact us directly: '+phone:'');
-  emailjs.init(key);
-  return emailjs.send(svc,tpl,{
-    to_name:lead.name,to_email:lead.email,
-    from_name:d.name||'',
-    message:lead.message||'',
-    reply_phone:phone||'',
-    auto_body:body,
-    auto_subject:lang==='es'?'Hemos recibido tu solicitud':'We received your request'
-  }).then(function(){console.log('EmailJS OK')},function(err){console.warn('EmailJS:',err)});
+    ?'<p>Hemos recibido tu solicitud. Nos comunicaremos contigo lo antes posible.'+(phone?'<br>Si necesitas contactarnos directamente: <strong>'+phone+'</strong>':'')+'</p>'
+    :'<p>We have received your request. We will contact you as soon as possible.'+(phone?'<br>If you need to contact us directly: <strong>'+phone+'</strong>':'')+'</p>';
+  var subject=lang==='es'?'Hemos recibido tu solicitud':'We received your request';
+  return sendBrevo(lead.email,subject,'<h2>'+subject+'</h2>'+body+'<hr><p style="color:#888;font-size:12px">'+esc(d.name||'')+'</p>');
 }
 
 function notifyAdminEmail(lead,scanData){
   var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.emailjsKey,svc=d.emailjsService,tpl=d.emailjsTemplate,adminEmail=d.email;
-  if(!key||!svc||!tpl||!adminEmail||typeof emailjs==='undefined') return Promise.resolve();
-  emailjs.init(key);
+  if(!d.brevoApiKey||!d.email)return Promise.resolve();
   var lang=getLang().startsWith('es')?'es':'en';
-  return emailjs.send(svc,tpl,{
-    to_name:d.name||'Admin',to_email:adminEmail,
-    from_name:d.name||'',
-    message:lang==='es'
-      ?'Nuevo lead recibido:\n\n👤 Nombre: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Teléfono: '+(lead.phone||'—')+'\n💬 Mensaje: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Ubicación: '+([scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||'IP: '+scanData.ip)+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 Dispositivo: '+scanData.device+' | '+scanData.os
-      :'New lead received:\n\n👤 Name: '+lead.name+'\n📧 Email: '+(lead.email||'—')+'\n📱 Phone: '+(lead.phone||'—')+'\n💬 Message: '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 Location: '+([scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||'IP: '+scanData.ip)+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 maps.google.com/?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 Device: '+scanData.device+' | '+scanData.os,
-    reply_phone:d.autoReplyPhone||'',
-    auto_body:lang==='es'?'Se ha recibido un nuevo lead desde tu código QR.':'A new lead has been received from your QR code.',
-    auto_subject:lang==='es'?'📩 Nuevo lead - '+d.name:'📩 New lead - '+d.name
-  }).then(function(){console.log('Admin email OK')},function(err){console.warn('Admin email:',err)});
+  var loc=[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||scanData.ip||'—';
+  var mapLink=scanData.gpsLat&&scanData.gpsLng?'<br><a href="https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+'">🗺 Ver en mapa</a>':'';
+  var html=lang==='es'
+    ?'<h2>📩 Nuevo lead recibido</h2><table><tr><td><strong>Nombre:</strong></td><td>'+esc(lead.name)+'</td></tr><tr><td><strong>Email:</strong></td><td>'+(lead.email||'—')+'</td></tr><tr><td><strong>Teléfono:</strong></td><td>'+(lead.phone||'—')+'</td></tr><tr><td><strong>Mensaje:</strong></td><td>'+(lead.message||'—')+'</td></tr></table><hr><p><strong>📍 Ubicación:</strong> '+loc+mapLink+'</p><p><strong>📱 Dispositivo:</strong> '+scanData.device+' | '+scanData.os+'</p><p><strong>🆔 QR:</strong> '+(scanData.qrId||'—')+'</p>'
+    :'<h2>📩 New lead received</h2><table><tr><td><strong>Name:</strong></td><td>'+esc(lead.name)+'</td></tr><tr><td><strong>Email:</strong></td><td>'+(lead.email||'—')+'</td></tr><tr><td><strong>Phone:</strong></td><td>'+(lead.phone||'—')+'</td></tr><tr><td><strong>Message:</strong></td><td>'+(lead.message||'—')+'</td></tr></table><hr><p><strong>📍 Location:</strong> '+loc+mapLink+'</p><p><strong>📱 Device:</strong> '+scanData.device+' | '+scanData.os+'</p><p><strong>🆔 QR:</strong> '+(scanData.qrId||'—')+'</p>';
+  var subject=lang==='es'?'📩 Nuevo lead - '+d.name:'📩 New lead - '+d.name;
+  return sendBrevo(d.email,subject,html);
 }
 
 function getGPSPosition(){
