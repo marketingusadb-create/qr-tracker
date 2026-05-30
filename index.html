@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Contacto</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;padding:20px}
+.card{background:#1a1a1a;border-radius:16px;padding:30px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.card h1{font-size:22px;margin-bottom:4px}
+.card .sub{color:#e2e8f0;font-size:13px;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;color:#e2e8f0;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.form-group input,.form-group textarea{width:100%;padding:12px 14px;background:#222;border:2px solid #333;border-radius:10px;color:#fff;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group textarea:focus{border-color:#25D366}
+.form-group textarea{resize:vertical;min-height:70px}
+.btn{width:100%;padding:14px;background:#25D366;color:#000;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.loader{display:none;text-align:center;padding:40px}
+.spinner{width:48px;height:48px;border:4px solid #222;border-top-color:#25D366;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader p{color:#e2e8f0;font-size:14px}
+.error{display:none;text-align:center;padding:20px}
+.error h2{color:#e74c3c;font-size:18px;margin-bottom:8px}
+.error p{color:#e2e8f0;font-size:13px;margin-bottom:16px}
+.error .btn{background:#25D366;color:#000;display:inline-block;width:auto;padding:12px 24px}
+.service-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.service-badge.whatsapp{background:#dcfce7;color:#16a34a}
+.service-badge.telegram{background:#dbeafe;color:#1d4ed8}
+.service-badge.sms{background:#fef3c7;color:#b45309}
+.service-badge.teams{background:#f3e8ff;color:#7c3aed}
+.privacy{font-size:11px;color:#e2e8f0;text-align:center;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="card" id="formCard">
+  <div id="formContent">
+    <h1>📩 Contacto</h1>
+    <p class="sub" id="businessName">-enviando información-</p>
+    <div class="service-badge" id="serviceBadge">💬 WhatsApp</div>
+    <div class="form-group">
+      <label>Nombre</label>
+      <input id="leadName" type="text" placeholder="Tu nombre" required />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input id="leadEmail" type="email" placeholder="tu@email.com" />
+    </div>
+    <div class="form-group">
+      <label>Teléfono</label>
+      <input id="leadPhone" type="tel" placeholder="+57 300 123 4567" />
+    </div>
+    <div class="form-group">
+      <label>Mensaje</label>
+      <textarea id="leadMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
+    </div>
+    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar</button>
+    <p class="privacy">Tus datos serán compartidos con el negocio que te contacta</p>
+  </div>
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p>Enviando tu información...</p>
+  </div>
+  <div class="error" id="error">
+    <h2>⚠️ Error</h2>
+    <p id="errorMsg">Este código QR no es válido o ha sido desactivado.</p>
+    <a class="btn" id="errorBtn" href="#">Intentar de nuevo</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+var FBC={apiKey:"AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",authDomain:"qr-tracker-crm.firebaseapp.com",projectId:"qr-tracker-crm",storageBucket:"qr-tracker-crm.firebasestorage.app",messagingSenderId:"1085744853871",appId:"1:1085744853871:web:9a9f8413ee352ca55cae9a"};
+firebase.initializeApp(FBC,"qrTracker");var DB=firebase.firestore(firebase.app("qrTracker"));
+
+var params=new URLSearchParams(location.search);
+var clientId=params.get('c')||params.get('id');
+var qrId=params.get('q')||params.get('qr');
+var _serviceType=params.get('s')||'whatsapp';
+var _clientData=null;
+var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
+var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
+
+function $(id){return document.getElementById(id)}
+
+function showError(msg){
+  $('formContent').style.display='none';$('loader').style.display='none';
+  $('error').style.display='block';$('errorMsg').textContent=msg||'Este código QR no es válido.';
+}
+
+function getDeviceInfo(){
+  var ua=navigator.userAgent;
+  var mobile=/Mobi|Android/i.test(ua)?'Mobile':'Desktop';
+  var os='Unknown';
+  if(/Windows/.test(ua)) os='Windows';
+  else if(/Mac OS/.test(ua)) os='macOS';
+  else if(/Android/.test(ua)) os='Android';
+  else if(/iPhone|iPad/.test(ua)) os='iOS';
+  else if(/Linux/.test(ua)) os='Linux';
+  var browser='Unknown';
+  if(/Chrome/.test(ua)&&!/Edg/.test(ua)) browser='Chrome';
+  else if(/Firefox/.test(ua)) browser='Firefox';
+  else if(/Safari/.test(ua)&&!/Chrome/.test(ua)) browser='Safari';
+  else if(/Edg/.test(ua)) browser='Edge';
+  return{device:mobile,os:os,browser:browser,screen:screen.width+'x'+screen.height,userAgent:ua};
+}
+
+function notifyTelegram(leadData,scanData){
+  var c=_clientData;if(!c)return
+  var token=c.telegramToken,chatId=c.telegramChatId;
+  if(!token||!chatId)return
+  var msg='<b>📩 Nuevo Lead recibido</b>\n'
+    +'👤 '+esc(leadData.name)+'\n'
+    +'📧 '+(leadData.email||'—')+'\n'
+    +'📱 '+(leadData.phone||'—')+'\n'
+    +'💬 '+(leadData.message||'—')+'\n'
+    +'━━━━━━━━━━━\n'
+    +'🌐 IP: '+(scanData.ip||'—')+'\n'
+    +'📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n'
+    +'📱 '+scanData.device+' | '+scanData.os+'\n'
+    +'🆔 QR: '+(scanData.qrId||'—');
+  var url='https://api.telegram.org/bot'+token+'/sendMessage';
+  var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.send(JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
+}
+
+function notifyWhatsAppCloud(lead, scanData){
+  var d=_clientData;if(!d)return
+  var phoneId=d.whatsappPhoneId,token=d.whatsappToken,clientPhone=d.whatsapp;
+  if(!phoneId||!token||!clientPhone)return
+  var text='📩 Nuevo Lead recibido\n👤 '+lead.name+'\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n━━━━━━━━━━━\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
+  var url='https://graph.facebook.com/v21.0/'+phoneId+'/messages';
+  var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
+  xhr.setRequestHeader('Authorization','Bearer '+token);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.send(JSON.stringify({messaging_product:'whatsapp',to:clientPhone.replace(/\D/g,''),type:'text',text:{body:text}}));
+}
+
+function notifyTeams(lead, scanData){
+  var d=_clientData;if(!d)return
+  var webhook=d.teamsWebhook;
+  if(!webhook)return
+  var text='📩 Nuevo Lead recibido\n\n👤 **'+lead.name+'**\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
+  var xhr=new XMLHttpRequest();xhr.open('POST',webhook,true);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.send(JSON.stringify({title:'📩 Nuevo Lead - '+(d.name||''),text:text}));
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function getLang(){return navigator.language||navigator.userLanguage||'es'}
+
+function sendBrevo(toEmail,subject,htmlContent){
+  var d=_clientData;if(!d)return Promise.resolve();
+  var key=d.brevoApiKey;
+  var senderEmail=d.brevoSenderEmail;
+  if(!key||!toEmail||!senderEmail)return Promise.resolve();
+  return fetch('https://api.brevo.com/v3/smtp/email',{
+    method:'POST',
+    headers:{'api-key':key,'Content-Type':'application/json'},
+    body:JSON.stringify({
+      sender:{name:d.name||'Contacto',email:senderEmail},
+      to:[{email:toEmail,name:toEmail}],
+      subject:subject,
+      htmlContent:htmlContent
+    })
+  }).then(function(r){
+    if(!r.ok){
+      r.text().then(function(t){console.error('BREVO ERROR '+r.status+':',t)});
+    } else {
+      console.log('Brevo email sent OK:',toEmail);
+    }
+    return r;
+  }).catch(function(err){
+    console.error('Brevo fetch error:',err);
+  });
+}
+
+function sendAutoReply(lead){
+  var d=_clientData;if(!d)return Promise.resolve();
+  if(!d.brevoApiKey||!lead.email)return Promise.resolve();
+  var phone=d.autoReplyPhone||'';
+  var business=d.name||'';
+  var esBody='Hemos recibido tu solicitud. Nos comunicaremos contigo lo antes posible.'+(phone?'<br>Si necesitas contactarnos directamente, llámanos al <strong>'+phone+'</strong>':'')+'<br><br>Gracias por contactarnos.';
+  var enBody='We have received your request. We will contact you as soon as possible.'+(phone?'<br>If you need to reach us directly, call us at <strong>'+phone+'</strong>':'')+'<br><br>Thank you for contacting us.';
+  var subject='Thank you - Gracias';
+  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:30px 20px">'
+    +'<div style="background:#1a1a2e;border-radius:16px;padding:30px;color:#fff">'
+    +'<div style="font-size:28px;margin-bottom:4px">📩</div>'
+    +'<h2 style="margin:0 0 16px;font-size:20px;color:#fff">'+business+'</h2>'
+    +'<div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px;margin-bottom:12px">'
+    +'<p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇪🇸 '+esBody+'</p></div>'
+    +'<div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px">'
+    +'<p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇺🇸 '+enBody+'</p></div>'
+    +'<hr style="margin:20px 0;border:none;border-top:1px solid rgba(255,255,255,.1)">'
+    +'<p style="font-size:12px;color:#94a3b8;margin:0">'+business+'</p>'
+    +'</div></div>';
+  return sendBrevo(lead.email,subject,html);
+}
+
+function notifyAdminEmail(lead,scanData){
+  var d=_clientData;if(!d)return Promise.resolve();
+  if(!d.brevoApiKey||!d.email)return Promise.resolve();
+  var loc=[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||scanData.ip||'—';
+  var mapLink=scanData.gpsLat&&scanData.gpsLng?'<br><a href="https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+'" style="color:#8b5cf6">🗺 View on map</a>':'';
+  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:20px">'
+    +'<div style="background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:24px;color:#fff;border:1px solid rgba(255,255,255,.06)">'
+    +'<div style="font-size:24px;margin-bottom:8px">📩</div>'
+    +'<h2 style="margin:0 0 16px;font-size:18px;color:#f1f5f9">📩 Nuevo lead / New lead</h2>'
+    +'<table style="width:100%;font-size:13px;border-collapse:collapse">'
+    +'<tr><td style="padding:6px 8px;color:#94a3b8;width:80px">Nombre/Name</td><td style="padding:6px 8px;color:#e2e8f0"><strong>'+esc(lead.name)+'</strong></td></tr>'
+    +(lead.email?'<tr><td style="padding:6px 8px;color:#94a3b8">Email</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.email)+'</td></tr>':'')
+    +(lead.phone?'<tr><td style="padding:6px 8px;color:#94a3b8">Teléfono/Phone</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.phone)+'</td></tr>':'')
+    +(lead.message?'<tr><td style="padding:6px 8px;color:#94a3b8">Mensaje/Message</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.message)+'</td></tr>':'')
+    +'</table>'
+    +'<hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">'
+    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">📍 Ubicación/Location: '+loc+mapLink+'</p>'
+    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">📱 Dispositivo/Device: '+scanData.device+' | '+scanData.os+'</p>'
+    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">🆔 QR: '+esc(scanData.qrId||'—')+'</p>'
+    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">⏰ '+new Date().toLocaleString('es-CO')+'</p>'
+    +'</div></div>';
+  var subject='📩 Nuevo lead / New lead - '+d.name;
+  return sendBrevo(d.email,subject,html);
+}
+
+function getGPSPosition(){
+  return new Promise(function(resolve){
+    if(!navigator.geolocation){resolve(null);return}
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ resolve({lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:Math.round(pos.coords.accuracy)}) },
+      function(){ resolve(null) },
+      {enableHighAccuracy:false, timeout:15000, maximumAge:300000}
+    );
+  });
+}
+
+function reverseGeocode(lat,lng){
+  return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&zoom=16&addressdetails=1',{headers:{'User-Agent':'QR-Tracker-CRM/1.0'}})
+    .then(function(r){return r.json()}).then(function(data){
+      var a=data.address||{};
+      return {city:a.city||a.town||a.village||a.municipality||a.county||'', county:a.county||'', state:a.state||'', country:a.country||''};
+    }).catch(function(){return null});
+}
+
+function submitLead(){
+  var name=$('leadName').value.trim();
+  if(!name){$('leadName').style.borderColor='#e74c3c';return}
+  $('leadName').style.borderColor='#333';
+  $('submitBtn').disabled=true;
+
+  var lead={name:name,email:$('leadEmail').value.trim(),phone:$('leadPhone').value.trim(),message:$('leadMsg').value.trim()};
+  var info=getDeviceInfo();
+
+  getGPSPosition().then(function(gps){
+    $('formContent').style.display='none';$('loader').style.display='block';
+    var revPromise=gps?reverseGeocode(gps.lat,gps.lng):Promise.resolve(null);
+    var ipPromise=fetch('https://ip-api.com/json/?fields=query,country,city,org').then(function(r){return r.json()}).catch(function(){return{}});
+    return Promise.all([revPromise,ipPromise]).then(function(results){
+      var rev=results[0],geo=results[1];
+      var city=(rev&&rev.city)||geo.city||'';
+      var county=(rev&&rev.county)||'';
+      var country=(rev&&rev.country)||geo.country||'';
+      var state=(rev&&rev.state)||'';
+      var scan={
+        ip:geo.query||'',city:city,county:county,state:state,country:country,isp:geo.isp||'',
+        gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
+        device:info.device,os:info.os,browser:info.browser,screen:info.screen,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
+        leadName:lead.name,leadEmail:lead.email,leadPhone:lead.phone,leadMessage:lead.message,
+        status:'new',deleted:false
+      };
+      return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
+    });
+  }).then(function(scanData){
+    notifyTelegram(lead,scanData);
+    notifyWhatsAppCloud(lead,scanData);
+    notifyTeams(lead,scanData);
+    notifyAdminEmail(lead,scanData);
+    return sendAutoReply(lead).then(function(){
+      var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
+      var url='';
+      if(_serviceType==='telegram'){
+        var tu=_clientData.telegramUser||'';
+        if(tu) url='https://t.me/'+tu+'?text='+msg;
+        else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+      }else if(_serviceType==='sms'){
+        url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
+      }else if(_serviceType==='teams'){
+        var em=encodeURIComponent(_clientData.email||'');
+        if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
+        else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
+      }else{
+        url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+      }
+      if(url) location.href=url;
+      else showError('El servicio no está configurado.');
+    });
+  }).catch(function(){
+    var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
+    if(wa) location.href='https://wa.me/'+wa;
+    else showError('Error al enviar. Intenta de nuevo.');
+    $('loader').style.display='none';$('error').style.display='block';
+  });
+}
+
+/* Init */
+if(!clientId||!qrId){showError('Código QR inválido.');$('errorBtn').onclick=function(){location.reload()}}
+else{
+  DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
+    if(!qrDoc.exists){showError('Este código QR no está registrado.');return null}
+    if(qrDoc.data().active===false){showError('Este código QR ha sido desactivado.');return null}
+    return DB.collection('clients').doc(clientId).get();
+  }).then(function(clientDoc){
+    if(!clientDoc)return;
+    if(!clientDoc.exists){showError('El negocio no está registrado.');return}
+    _clientData=clientDoc.data();
+    $('businessName').textContent=_clientData.name||'Contáctanos';
+    var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
+    $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');
+    $('leadMsg').placeholder=_clientData.waMessage||'Hola, escaneé tu código QR y me gustaría recibir información...';
+    if(_clientData.waMessage) $('leadMsg').value=_clientData.waMessage;
+  }).catch(function(err){showError('Error de conexión.');console.error(err)});
+}
+</script>
+</body>
+</html>
