@@ -315,6 +315,7 @@ function submitLead(){
     notifyWhatsAppCloud(lead,scanData);
     notifyTeams(lead,scanData);
     notifyAdminEmail(lead,scanData);
+    (function(){try{var copy={};for(var k in scanData)copy[k]=scanData[k];copy.timestamp={seconds:Math.floor(Date.now()/1000)};fetch('https://hook.us2.make.com/ocybp08fomb4xlk6c2ef96h91jfkwhwg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'new_scan',scan:copy,clientId:clientId,clientName:_clientData?.name||''})})}catch(e){}})();
     return sendAutoReply(lead).then(function(){
       var defHello=_LANG==='es'?'Hola':'Hello';
       var msg=encodeURIComponent((lead.message||_clientData.waMessage||defHello)+' - '+lead.name);
