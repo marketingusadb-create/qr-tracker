@@ -113,6 +113,16 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 .flyer-card-pro.fc-light .fc-badge{color:rgba(0,0,0,.4)}
 .flyer-card-pro.fc-light .fc-text{color:rgba(0,0,0,.7)}
 @media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-controls{display:none!important}.flyer-sheet{box-shadow:none;margin:0;width:100%}.flyer-card-pro{min-height:0;height:auto;float:none;width:50%;display:inline-block;vertical-align:top}}
+/* Dashboard */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:12px;padding:14px 16px;border:1px solid rgba(255,255,255,.06);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.stat-card .stat-num{font-size:28px;font-weight:900;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.stat-card .stat-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.chart-row-admin{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+@media(max-width:640px){.chart-row-admin{grid-template-columns:1fr}}
+.chart-card-admin{background:linear-gradient(145deg,#1e293b,#334155);border-radius:10px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.05)}
+.chart-card-admin h3{font-size:11px;margin-bottom:6px;color:#f1f5f9;text-transform:uppercase;letter-spacing:.5px;opacity:.8}
+.chart-card-admin canvas{max-height:120px!important}
 </style>
 </head>
 <body>
@@ -140,13 +150,29 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   </div>
 
   <div class="tabs no-print">
-    <button class="tab active" onclick="switchTab('clients',this)"><span data-lang="clientsTitle">Clientes</span></button>
+    <button class="tab active" onclick="switchTab('dashboard',this)">📊 <span data-lang="tabDashboard">Dashboard</span></button>
+    <button class="tab" onclick="switchTab('clients',this)"><span data-lang="clientsTitle">Clientes</span></button>
     <button class="tab" onclick="switchTab('newClient',this)"><span data-lang="newClient">+ Nuevo Cliente</span></button>
     <button class="tab" onclick="switchTab('flyer',this)"><span data-lang="flyerTitle">Flyer</span></button>
     <button class="tab" onclick="switchTab('leads',this)"><span data-lang="leadsTitle">📩 Leads</span></button>
     <button class="tab" onclick="switchTab('settings',this)"><span data-lang="configTitle">Config</span></button>
     <button class="tab" onclick="switchTab('profile',this)">👤 <span data-lang="myProfile">Mi Perfil</span></button>
     <button class="tab" onclick="switchTab('trash',this)"><span data-lang="trashTitle">🗑 Papelera</span></button>
+  </div>
+
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="stats-row" id="adminStats">
+      <div class="stat-card"><div class="stat-num" id="admTotalClients">0</div><div class="stat-label" data-lang="admTotalClients">Total Clientes</div></div>
+      <div class="stat-card"><div class="stat-num" id="admActiveClients">0</div><div class="stat-label" data-lang="admActiveClients">Activos</div></div>
+      <div class="stat-card"><div class="stat-num" id="admTotalScans">0</div><div class="stat-label" data-lang="admTotalScans">Total Escaneos</div></div>
+      <div class="stat-card"><div class="stat-num" id="admTodayScans">0</div><div class="stat-label" data-lang="admTodayScans">Hoy</div></div>
+      <div class="stat-card"><div class="stat-num" id="admNewLeads">0</div><div class="stat-label" data-lang="admNewLeads">Leads Nuevos</div></div>
+    </div>
+    <div class="chart-row-admin">
+      <div class="chart-card-admin"><h3><span>📅</span> <span data-lang="admChartClients">Clientes por Mes</span></h3><canvas id="adminClientChart" height="120"></canvas></div>
+      <div class="chart-card-admin"><h3><span>📱</span> <span data-lang="admChartDevices">Dispositivos</span></h3><canvas id="adminDeviceChart" height="120"></canvas></div>
+    </div>
+    <div class="card"><h2><span>📋</span> <span data-lang="admRecentActivity">Actividad Reciente</span></h2><div id="adminRecentScans"><p style="color:#64748b;text-align:center;padding:20px">Cargando...</p></div></div>
   </div>
 
   <div id="tab-clients" class="tab-content active">
@@ -377,6 +403,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var QR_FIREBASE_CONFIG = {
   apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
@@ -441,7 +468,8 @@ var _TRANS={
     myQrTitle:'Mis Códigos QR',myScansTitle:'Mis Leads Recibidos',
     profileSaved:'✅ Perfil guardado',    myProfileNoSave:'Primero guardá tu perfil',
     syncAuthBtn:'🔄 Sincronizar Auth',
-    clientListTitle:'📋 Clientes'
+    clientListTitle:'📋 Clientes',
+    tabDashboard:'Dashboard',admTotalClients:'Total Clientes',admActiveClients:'Activos',admTotalScans:'Total Escaneos',admTodayScans:'Hoy',admNewLeads:'Leads Nuevos',admChartClients:'Clientes por Mes',admChartDevices:'Dispositivos',admRecentActivity:'Actividad Reciente'
   },
   en:{
     code:'en',label:'🇺🇸 English',lang:'en',other:'es',
@@ -488,7 +516,8 @@ var _TRANS={
     myQrTitle:'My QR Codes',myScansTitle:'My Received Leads',
     profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first',
     syncAuthBtn:'🔄 Sync Auth',
-    clientListTitle:'📋 Clients'
+    clientListTitle:'📋 Clients',
+    tabDashboard:'Dashboard',admTotalClients:'Total Clients',admActiveClients:'Active',admTotalScans:'Total Scans',admTodayScans:'Today',admNewLeads:'New Leads',admChartClients:'Clients per Month',admChartDevices:'Devices',admRecentActivity:'Recent Activity'
   }
 };
 function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
@@ -544,7 +573,7 @@ QR_AUTH.onAuthStateChanged(function(u){if(u){
   document.getElementById('loginBox').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('adminEmail').textContent=u.email;
-  loadClients();applyLang();
+  loadClients();applyLang();loadDashboard();
   var h=location.hash.replace('#tab-','');
   if(h){var btn=document.querySelector('.tab[onclick*="'+h+'"]');if(btn)btn.click()}
 }})
@@ -1359,6 +1388,96 @@ function downloadQr(imgUrl,filename){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* Admin Dashboard */
+var _adminChartsInit=false;
+function loadDashboard(){
+  QR_DB.collection('clients').get().then(function(snap){
+    var total=0,active=0;var clientMap={};var clientDates=[];
+    snap.forEach(function(doc){var d=doc.data();if(d.deleted||d.isAdminProfile)return;total++;if(d.licenciaActiva===true)active++;clientMap[doc.id]=d;if(d.createdAt){var ds=new Date(d.createdAt.seconds*1000).toISOString().slice(0,7);clientDates.push(ds)}});
+    document.getElementById('admTotalClients').textContent=total;
+    document.getElementById('admActiveClients').textContent=active+'/'+total;
+
+    var ids=Object.keys(clientMap);
+    if(!ids.length){document.getElementById('admTotalScans').textContent='0';document.getElementById('admTodayScans').textContent='0';document.getElementById('admNewLeads').textContent='0';document.getElementById('adminRecentScans').innerHTML='<p style="color:#64748b;text-align:center;padding:20px" data-lang="noClients">No hay clientes.</p>';return}
+
+    var scanPromises=[];var allScans=[];var today=new Date().toISOString().slice(0,10);
+    ids.forEach(function(cid){
+      scanPromises.push(QR_DB.collection('clients').doc(cid).collection('scans').orderBy('timestamp','desc').limit(50).get().then(function(ssnap){
+        ssnap.forEach(function(sdoc){var sd=sdoc.data();if(sd.deleted)return;sd._clientId=cid;sd._clientName=clientMap[cid].name||'—';allScans.push(sd)});
+      }));
+    });
+    Promise.all(scanPromises).then(function(){
+      var totalScans=allScans.length,todayScans=0,newLeads=0;var devices={};
+      allScans.sort(function(a,b){return(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0)});
+      allScans.forEach(function(s){
+        if(s.timestamp){
+          var ds=new Date(s.timestamp.seconds*1000).toISOString().slice(0,10);
+          if(ds===today)todayScans++;
+        }
+        if(s.status==='new'||!s.status)newLeads++;
+        var dev=s.device||'Desconocida';devices[dev]=(devices[dev]||0)+1;
+      });
+      document.getElementById('admTotalScans').textContent=totalScans;
+      document.getElementById('admTodayScans').textContent=todayScans;
+      document.getElementById('admNewLeads').textContent=newLeads;
+
+      /* Recent scans */
+      var recent=allScans.slice(0,20);var rh='<table class="scan-table"><tr><th>'+__('fecha')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('ubicacion')+'</th><th>Cliente</th><th>'+__('dispositivo')+'</th></tr>';
+      recent.forEach(function(s){
+        var dt=s.timestamp?new Date(s.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—';
+        var loc=[s.city,s.country].filter(Boolean).join(', ')||'—';
+        rh+='<tr><td style="white-space:nowrap;font-size:11px">'+dt+'</td><td>'+esc(s.leadName||'—')+'</td><td>'+(s.leadEmail?'📧 '+esc(s.leadEmail):'')+(s.leadPhone?(s.leadEmail?' ':'')+'📱 '+esc(s.leadPhone):'')+'</td><td style="font-size:11px;color:#94a3b8">'+loc+'</td><td style="font-size:11px">'+esc(s._clientName)+'</td><td>'+(s.device==='Mobile'?'<span class="badge badge-mobile">📱 Móvil</span>':'<span class="badge badge-desktop">💻 Escritorio</span>')+'</td></tr>';
+      });
+      rh+='</table>';
+      document.getElementById('adminRecentScans').innerHTML=rh;
+
+      /* Charts */
+      if(!_adminChartsInit){initAdminCharts();_adminChartsInit=true}
+      updateAdminCharts(clientDates,devices);
+    });
+  });
+}
+
+var _admClientChart=null,_admDeviceChart=null;
+function initAdminCharts(){
+  var cc=document.getElementById('adminClientChart');
+  if(cc&&!_admClientChart){
+    _admClientChart=new Chart(cc,{type:'bar',data:{labels:[],datasets:[{label:'',data:[],backgroundColor:'rgba(99,102,241,.6)',borderColor:'#6366f1',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:'#64748b',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'},beginAtZero:true}},plugins:{legend:{display:false}}}});
+  }
+  var dc=document.getElementById('adminDeviceChart');
+  if(dc&&!_admDeviceChart){
+    _admDeviceChart=new Chart(dc,{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:['#3b82f6','#8b5cf6','#f59e0b','#10b981'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#cbd5e1',boxWidth:10,font:{size:10}}}}}});
+  }
+}
+
+function updateAdminCharts(clientDates,devices){
+  if(_admClientChart){
+    var monthCounts={};clientDates.forEach(function(m){monthCounts[m]=(monthCounts[m]||0)+1});
+    var months=Object.keys(monthCounts).sort();
+    _admClientChart.data.labels=months;
+    _admClientChart.data.datasets[0].data=months.map(function(m){return monthCounts[m]});
+    _admClientChart.data.datasets[0].label=__('admTotalClients');
+    _admClientChart.update();
+  }
+  if(_admDeviceChart){
+    var devKeys=Object.keys(devices);
+    _admDeviceChart.data.labels=devKeys;
+    _admDeviceChart.data.datasets[0].data=devKeys.map(function(k){return devices[k]});
+    _admDeviceChart.update();
+  }
+}
+
+/* Patch switchTab to load dashboard */
+switchTab=function(t,btn){
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
+  btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active');
+  if(t==='dashboard') loadDashboard();
+  if(t==='trash') loadDeletedClients();
+  if(t==='leads') loadLeads();
+  if(t==='profile') loadAdminProfile();
+};
 </script>
 </body>
 </html>
