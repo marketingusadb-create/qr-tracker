@@ -135,7 +135,17 @@ textarea{min-height:60px;resize:vertical}
 .flyer-card-pro.fc-light .fc-badge{color:rgba(0,0,0,.4)}
 .flyer-card-pro.fc-light .fc-text{color:rgba(0,0,0,.7)}
 @media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-controls{display:none!important}.flyer-sheet{box-shadow:none;margin:0;width:100%}.flyer-card-pro{min-height:0;height:auto;float:none;width:50%;display:inline-block;vertical-align:top}}
-@media(max-width:640px){
+  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  @media(max-width:768px){.chart-row{grid-template-columns:1fr}}
+  .chart-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06)}
+  .chart-card h3{font-size:13px;margin-bottom:10px;color:#f1f5f9;text-transform:uppercase;letter-spacing:.5px}
+  .search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .search-bar input{flex:1;min-width:150px;margin:0;padding:10px 14px}
+  .notification-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-left:6px;animation:pulse 1s ease-in-out infinite;vertical-align:middle}
+  .new-scan-toast{position:fixed;top:24px;right:24px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .4s ease;display:flex;align-items:center;gap:8px}
+  .new-scan-toast.show{transform:translateX(0)}
+  .export-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;justify-content:flex-end}
+  @media(max-width:640px){
   body{padding:12px}
   .header{padding:12px 16px;flex-wrap:wrap;gap:8px}
   .header-logo{width:40px;height:40px}
@@ -193,6 +203,17 @@ textarea{min-height:60px;resize:vertical}
         <div class="stat-card"><div class="num" id="mobilePct">0%</div><div class="label" data-lang="statMobile">Móvil</div></div>
       </div>
 
+      <div class="chart-row">
+        <div class="chart-card">
+          <h3><span>📱</span> <span data-lang="deviceChartTitle">Dispositivos</span></h3>
+          <canvas id="deviceChart" height="180"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3><span>📈</span> <span data-lang="trendChartTitle">Escaneos (últimos 7 días)</span></h3>
+          <canvas id="trendChart" height="180"></canvas>
+        </div>
+      </div>
+
       <div class="card" id="topCitiesCard">
         <h2><span>📍</span> <span data-lang="topCitiesTitle">Ciudades con más escaneos</span></h2>
         <div class="top-cities" id="topCitiesWrap"><p class="empty" data-lang="loadingLocations">Cargando...</p></div>
@@ -205,6 +226,7 @@ textarea{min-height:60px;resize:vertical}
           <button class="btn btn-sm btn-outline" onclick="setFilter('today',this)" data-lang="filterToday">Hoy</button>
           <button class="btn btn-sm btn-outline" onclick="setFilter('week',this)" data-lang="filterWeek">Esta semana</button>
           <button class="btn btn-sm btn-outline" onclick="setFilter('month',this)" data-lang="filterMonth">Este mes</button>
+          <button class="btn btn-sm btn-success" onclick="exportScansCSV()" style="margin-left:auto">📊 <span data-lang="exportBtn">Exportar</span></button>
         </div>
         <div class="scroll-wrap">
           <table class="scan-table">
@@ -315,6 +337,10 @@ textarea{min-height:60px;resize:vertical}
       <div class="card">
         <h2>📩 <span data-lang="leadsTitle">Mis Leads</span></h2>
         <p style="font-size:13px;color:#94a3b8;margin-bottom:12px" data-lang="leadsDesc">Gestioná las personas que escanearon tus códigos QR.</p>
+        <div class="search-bar">
+          <input id="leadSearch" type="text" placeholder="🔍 Search by name, email, phone, city..." oninput="renderLeads()" />
+          <button class="btn btn-sm btn-success" onclick="exportLeadsCSV()">📊 <span data-lang="exportBtn">Exportar</span></button>
+        </div>
         <div class="scroll-wrap">
           <table class="scan-table">
             <thead><tr>
@@ -358,11 +384,13 @@ textarea{min-height:60px;resize:vertical}
 </div>
 
 <div id="toast" class="toast"></div>
+<div class="new-scan-toast" id="newScanToast">🔔 <span id="newScanToastMsg">Nuevo escaneo recibido!</span></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var QR_FIREBASE_CONFIG = {
   apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
@@ -553,6 +581,9 @@ function loadScans(){
     renderTopCities();
     renderScans();
     renderLeads();
+    initCharts();
+    updateCharts();
+    checkNewScan();
   });
 }
 
@@ -900,36 +931,6 @@ function saveProfile(){
 }
 
 /* Leads */
-function renderLeads(){
-  var html='';var c=0;
-  _allScans.forEach(function(d){
-    c++;
-    var st=d.status||'new';
-    var stCls=st==='contacted'?'badge-contacted':st==='closed'?'badge-closed':'badge-new';
-    var stTxt=st==='contacted'?__('statusContacted'):st==='closed'?__('statusClosed'):__('statusNew');
-    var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—';
-    var loc=[d.city,d.country].filter(Boolean).join(', ')||'—';
-    var ph=d.leadPhone||'';var em=d.leadEmail||'';
-    var msg=encodeURIComponent(d.leadMessage||'Hola, gracias por contactarnos');
-    html+='<tr'+(st==='closed'?' style="opacity:.5"':'')+'>'
-      +'<td style="white-space:nowrap;font-size:11px">'+dt+'</td>'
-      +'<td><div class="lead-name">'+esc(d.leadName||'—')+'</div></td>'
-      +'<td>'+(em?'<div class="lead-email">📧 '+esc(em)+'</div>':'')+(ph?'<div class="lead-phone">📱 '+esc(ph)+'</div>':'')+'</td>'
-      +'<td><div class="lead-msg" title="'+esc(d.leadMessage||'')+'">'+esc(d.leadMessage||'—')+'</div></td>'
-      +'<td style="font-size:11px;color:#cbd5e1">'+loc+'</td>'
-      +'<td><span class="badge '+stCls+'" onclick="updateStatus(\''+d._id+'\',\''+st+'\')" style="cursor:pointer">'+stTxt+'</span></td>'
-      +'<td contenteditable="true" onblur="updateNote(\''+d._id+'\',this.textContent)" style="font-size:11px;color:#94a3b8;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
-      +'<td style="white-space:nowrap">'
-      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
-      +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
-      +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
-      +'<button onclick="deleteScanFromLead(\''+d._id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
-      +'</td></tr>';
-  });
-  document.getElementById('leadBody').innerHTML=html;
-  document.getElementById('leadEmpty').style.display=c?'none':'block';
-}
-
 function updateStatus(scanId,current){
   var next=current==='new'?'contacted':current==='contacted'?'closed':'new';
   if(!_clientDocId)return
@@ -993,6 +994,125 @@ function permDeleteScan(scanId){
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* Charts */
+var _deviceChart=null,_trendChart=null,_prevScanCount=0;
+
+function initCharts(){
+  var dc=document.getElementById('deviceChart');
+  if(dc&&!_deviceChart){
+    _deviceChart=new Chart(dc,{type:'pie',data:{labels:[],datasets:[{data:[],backgroundColor:['#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981','#ec4899'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#cbd5e1',boxWidth:12,font:{size:11}}}}}});
+  }
+  var tc=document.getElementById('trendChart');
+  if(tc&&!_trendChart){
+    _trendChart=new Chart(tc,{type:'line',data:{labels:[],datasets:[{label:'',data:[],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.15)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#3b82f6',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},beginAtZero:true}},plugins:{legend:{display:false}}}});
+  }
+}
+
+function updateCharts(){
+  if(!_deviceChart||!_trendChart)return;
+  var devices={};
+  _allScans.forEach(function(d){var dev=d.device||__('unknown');devices[dev]=(devices[dev]||0)+1});
+  var devKeys=Object.keys(devices);
+  _deviceChart.data.labels=devKeys;
+  _deviceChart.data.datasets[0].data=devKeys.map(function(k){return devices[k]});
+  _deviceChart.update();
+
+  var days=[];var counts={};
+  for(var i=6;i>=0;i--){var d=new Date(Date.now()-i*864e5);var key=d.toISOString().slice(0,10);days.push(key);counts[key]=0}
+  _allScans.forEach(function(d){
+    if(!d.timestamp)return;
+    var ds=new Date(d.timestamp.seconds*1000).toISOString().slice(0,10);
+    if(counts[ds]!==undefined)counts[ds]++
+  });
+  var shortDays=days.map(function(d){var p=d.split('-');return p[1]+'/'+p[2]});
+  _trendChart.data.labels=shortDays;
+  _trendChart.data.datasets[0].data=days.map(function(d){return counts[d]});
+  _trendChart.data.datasets[0].label=__('statTotal');
+  _trendChart.update();
+}
+
+/* Search + Export */
+function renderLeads(){
+  var html='';var c=0;
+  var q=document.getElementById('leadSearch').value.toLowerCase().trim();
+  _allScans.forEach(function(d){
+    var searchable=(d.leadName||'')+' '+(d.leadEmail||'')+' '+(d.leadPhone||'')+' '+(d.city||'')+' '+(d.leadMessage||'');
+    if(q&&searchable.toLowerCase().indexOf(q)===-1)return;
+    c++;
+    var st=d.status||'new';
+    var stCls=st==='contacted'?'badge-contacted':st==='closed'?'badge-closed':'badge-new';
+    var stTxt=st==='contacted'?__('statusContacted'):st==='closed'?__('statusClosed'):__('statusNew');
+    var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—';
+    var loc=[d.city,d.country].filter(Boolean).join(', ')||'—';
+    var ph=d.leadPhone||'';var em=d.leadEmail||'';
+    var msg=encodeURIComponent(d.leadMessage||'Hola, gracias por contactarnos');
+    html+='<tr'+(st==='closed'?' style="opacity:.5"':'')+'>'
+      +'<td style="white-space:nowrap;font-size:11px">'+dt+'</td>'
+      +'<td><div class="lead-name">'+esc(d.leadName||'—')+'</div></td>'
+      +'<td>'+(em?'<div class="lead-email">📧 '+esc(em)+'</div>':'')+(ph?'<div class="lead-phone">📱 '+esc(ph)+'</div>':'')+'</td>'
+      +'<td><div class="lead-msg" title="'+esc(d.leadMessage||'')+'">'+esc(d.leadMessage||'—')+'</div></td>'
+      +'<td style="font-size:11px;color:#cbd5e1">'+loc+'</td>'
+      +'<td><span class="badge '+stCls+'" onclick="updateStatus(\''+d._id+'\',\''+st+'\')" style="cursor:pointer">'+stTxt+'</span></td>'
+      +'<td contenteditable="true" onblur="updateNote(\''+d._id+'\',this.textContent)" style="font-size:11px;color:#94a3b8;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
+      +'<td style="white-space:nowrap">'
+      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+      +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
+      +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+      +'<button onclick="deleteScanFromLead(\''+d._id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
+      +'</td></tr>';
+  });
+  document.getElementById('leadBody').innerHTML=html;
+  document.getElementById('leadEmpty').style.display=c?'none':'block';
+}
+
+function exportScansCSV(){
+  if(!_allScans.length){toast('No data to export');return}
+  var headers=['Date','Name','Email','Phone','Message','City','Country','Device','Status','Note'];
+  var rows=_allScans.map(function(d){
+    var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toISOString():'';
+    return[dt,d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.city||'',d.country||'',d.device||'',d.status||'new',(d.note||'').replace(/"/g,'""')];
+  });
+  downloadCSV(headers,rows,'scans_export_'+Date.now()+'.csv');
+}
+
+function exportLeadsCSV(){
+  if(!_allScans.length){toast('No data to export');return}
+  var q=document.getElementById('leadSearch').value.toLowerCase().trim();
+  var filtered=_allScans.filter(function(d){
+    var s=(d.leadName||'')+' '+(d.leadEmail||'')+' '+(d.leadPhone||'')+' '+(d.city||'')+' '+(d.leadMessage||'');
+    return !q||s.toLowerCase().indexOf(q)!==-1;
+  });
+  var headers=['Date','Name','Email','Phone','Message','City','Country','Status','Note'];
+  var rows=filtered.map(function(d){
+    var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toISOString():'';
+    return[dt,d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.city||'',d.country||'',d.status||'new',(d.note||'').replace(/"/g,'""')];
+  });
+  downloadCSV(headers,rows,'leads_export_'+Date.now()+'.csv');
+}
+
+function downloadCSV(headers,rows,filename){
+  var csv=headers.join(',')+'\n'+rows.map(function(r){return r.map(function(v){return'"'+v+'"'}).join(',')}).join('\n');
+  var bom='\uFEFF';
+  var blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+/* Real-time notification */
+function checkNewScan(){
+  var c=_allScans.length;
+  if(_prevScanCount>0&&c>_prevScanCount){
+    var el=document.getElementById('newScanToast');
+    var msg=document.getElementById('newScanToastMsg');
+    msg.textContent=_LANG==='es'?'🔔 '+(c-_prevScanCount)+' nuevo(s) escaneo(s)!':'🔔 '+(c-_prevScanCount)+' new scan(s)!';
+    el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show')},4000);
+  }
+  _prevScanCount=c;
+}
+
 </script>
 </body>
 </html>
