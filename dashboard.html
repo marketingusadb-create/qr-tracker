@@ -135,10 +135,11 @@ textarea{min-height:60px;resize:vertical}
 .flyer-card-pro.fc-light .fc-badge{color:rgba(0,0,0,.4)}
 .flyer-card-pro.fc-light .fc-text{color:rgba(0,0,0,.7)}
 @media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-controls{display:none!important}.flyer-sheet{box-shadow:none;margin:0;width:100%}.flyer-card-pro{min-height:0;height:auto;float:none;width:50%;display:inline-block;vertical-align:top}}
-  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-  @media(max-width:768px){.chart-row{grid-template-columns:1fr}}
-  .chart-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06)}
-  .chart-card h3{font-size:13px;margin-bottom:10px;color:#f1f5f9;text-transform:uppercase;letter-spacing:.5px}
+  .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  @media(max-width:640px){.chart-row{grid-template-columns:1fr}}
+  .chart-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:10px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.05)}
+  .chart-card h3{font-size:11px;margin-bottom:6px;color:#f1f5f9;text-transform:uppercase;letter-spacing:.5px;opacity:.8}
+  .chart-card canvas{max-height:120px!important}
   .search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
   .search-bar input{flex:1;min-width:150px;margin:0;padding:10px 14px}
   .notification-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-left:6px;animation:pulse 1s ease-in-out infinite;vertical-align:middle}
@@ -446,6 +447,7 @@ var _TRANS={
     statusNew:'🆕 Nuevo',statusContacted:'📞 Contactado',statusClosed:'✅ Cerrado',
     clickEdit:'Click para editar',whatsapp:'WhatsApp',email:'Email',sms:'SMS',delete:'Eliminar',
     qrPosLeft:'Izq',qrPosCenter:'Centro',qrPosRight:'Der',
+    deviceChartTitle:'Dispositivos',trendChartTitle:'Escaneos (últimos 7 días)',exportBtn:'Exportar CSV',
     errorLoginRequired:'Ingresa email y contraseña'
   },
   en:{
@@ -487,6 +489,7 @@ var _TRANS={
     statusNew:'🆕 New',statusContacted:'📞 Contacted',statusClosed:'✅ Closed',
     clickEdit:'Click to edit',whatsapp:'WhatsApp',email:'Email',sms:'SMS',delete:'Delete',
     qrPosLeft:'Left',qrPosCenter:'Center',qrPosRight:'Right',
+    deviceChartTitle:'Devices',trendChartTitle:'Scans (last 7 days)',exportBtn:'Export CSV',
     errorLoginRequired:'Enter email and password'
   }
 };
