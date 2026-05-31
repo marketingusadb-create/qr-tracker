@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Contacto</title>
+<title>Contact</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;padding:20px}
@@ -36,37 +36,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </head>
 <body>
 <div class="card" id="formCard">
+  <div style="text-align:right;margin-bottom:8px">
+    <button id="langBtn" onclick="toggleLang()" style="background:transparent;border:2px solid #333;color:#e2e8f0;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .2s" onmouseover="this.style.borderColor='#25D366'" onmouseout="this.style.borderColor='#333'">🇪🇸 ES</button>
+  </div>
   <div id="formContent">
-    <h1>📩 Contacto</h1>
-    <p class="sub" id="businessName">-enviando información-</p>
+    <h1><span data-lang="title">Contact Us</span> 📩</h1>
+    <p class="sub" id="businessName">-loading-</p>
     <div class="service-badge" id="serviceBadge">💬 WhatsApp</div>
     <div class="form-group">
-      <label>Nombre</label>
-      <input id="leadName" type="text" placeholder="Tu nombre" required />
+      <label data-lang="nameLabel">Name</label>
+      <input id="leadName" type="text" data-lang-placeholder="namePlace" placeholder="Your name" required />
     </div>
     <div class="form-group">
-      <label>Email</label>
-      <input id="leadEmail" type="email" placeholder="tu@email.com" />
+      <label data-lang="emailLabel">Email</label>
+      <input id="leadEmail" type="email" data-lang-placeholder="emailPlace" placeholder="your@email.com" />
     </div>
     <div class="form-group">
-      <label>Teléfono</label>
-      <input id="leadPhone" type="tel" placeholder="+57 300 123 4567" />
+      <label data-lang="phoneLabel">Phone</label>
+      <input id="leadPhone" type="tel" data-lang-placeholder="phonePlace" placeholder="+1 555 123 4567" />
     </div>
     <div class="form-group">
-      <label>Mensaje</label>
-      <textarea id="leadMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
+      <label data-lang="msgLabel">Message</label>
+      <textarea id="leadMsg" placeholder="Hello, I scanned your QR code and would like more information..."></textarea>
     </div>
-    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar</button>
-    <p class="privacy">Tus datos serán compartidos con el negocio que te contacta</p>
+    <button class="btn" id="submitBtn" onclick="submitLead()">Send</button>
+    <p class="privacy" data-lang="privacy">Your data will be shared with the business contacting you</p>
   </div>
   <div class="loader" id="loader">
     <div class="spinner"></div>
-    <p>Enviando tu información...</p>
+    <p data-lang="sending">Sending your information...</p>
   </div>
   <div class="error" id="error">
-    <h2>⚠️ Error</h2>
-    <p id="errorMsg">Este código QR no es válido o ha sido desactivado.</p>
-    <a class="btn" id="errorBtn" href="#">Intentar de nuevo</a>
+    <h2>⚠️ <span data-lang="errorTitle">Error</span></h2>
+    <p id="errorMsg">This QR code is invalid or has been deactivated.</p>
+    <a class="btn" id="errorBtn" href="#"><span data-lang="tryAgain">Try again</span></a>
   </div>
 </div>
 
@@ -84,11 +87,53 @@ var _clientData=null;
 var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
 var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
+var _LANG=navigator.language&&navigator.language.startsWith('es')?'es':'en';
+
+var _TEXTS={
+  en:{
+    title:'Contact Us',nameLabel:'Name',emailLabel:'Email',phoneLabel:'Phone',msgLabel:'Message',
+    namePlace:'Your name',emailPlace:'your@email.com',phonePlace:'+1 555 123 4567',
+    privacy:'Your data will be shared with the business contacting you',
+    sending:'Sending your information...',errorTitle:'Error',tryAgain:'Try again',
+    invalidQr:'This QR code is invalid or has been deactivated.',
+    invalidCode:'Invalid QR code.',notRegistered:'This QR code is not registered.',
+    deactivated:'This QR code has been deactivated.',notFound:'The business is not registered.',
+    contactUs:'Contact us',sendAnd:'Send and contact via',connError:'Connection error.',
+    serviceNotConfig:'The service is not configured.',sendError:'Error sending. Try again.',
+    loading:'-loading-'
+  },
+  es:{
+    title:'Contacto',nameLabel:'Nombre',emailLabel:'Email',phoneLabel:'Teléfono',msgLabel:'Mensaje',
+    namePlace:'Tu nombre',emailPlace:'tu@email.com',phonePlace:'+57 300 123 4567',
+    privacy:'Tus datos serán compartidos con el negocio que te contacta',
+    sending:'Enviando tu información...',errorTitle:'Error',tryAgain:'Intentar de nuevo',
+    invalidQr:'Este código QR no es válido o ha sido desactivado.',
+    invalidCode:'Código QR inválido.',notRegistered:'Este código QR no está registrado.',
+    deactivated:'Este código QR ha sido desactivado.',notFound:'El negocio no está registrado.',
+    contactUs:'Contáctanos',sendAnd:'Enviar y contactar por',connError:'Error de conexión.',
+    serviceNotConfig:'El servicio no está configurado.',sendError:'Error al enviar. Intenta de nuevo.',
+    loading:'-enviando información-'
+  }
+};
+
+function __(k){var t=_TEXTS[_LANG];return t[k]||_TEXTS.en[k]||k}
+
+function toggleLang(){
+  _LANG=_LANG==='es'?'en':'es';applyLang();
+  document.getElementById('langBtn').textContent=_LANG==='es'?'🇺🇸 EN':'🇪🇸 ES';
+}
+
+function applyLang(){
+  document.querySelectorAll('[data-lang]').forEach(function(e){e.textContent=__(e.dataset.lang)});
+  document.querySelectorAll('[data-lang-placeholder]').forEach(function(e){e.placeholder=__(e.dataset.langPlaceholder)});
+  document.documentElement.lang=_LANG;
+}
+
 function $(id){return document.getElementById(id)}
 
 function showError(msg){
   $('formContent').style.display='none';$('loader').style.display='none';
-  $('error').style.display='block';$('errorMsg').textContent=msg||'Este código QR no es válido.';
+  $('error').style.display='block';$('errorMsg').textContent=msg||__('invalidQr');
 }
 
 function getDeviceInfo(){
@@ -271,7 +316,8 @@ function submitLead(){
     notifyTeams(lead,scanData);
     notifyAdminEmail(lead,scanData);
     return sendAutoReply(lead).then(function(){
-      var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
+      var defHello=_LANG==='es'?'Hola':'Hello';
+      var msg=encodeURIComponent((lead.message||_clientData.waMessage||defHello)+' - '+lead.name);
       var url='';
       if(_serviceType==='telegram'){
         var tu=_clientData.telegramUser||'';
@@ -287,33 +333,35 @@ function submitLead(){
         url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
       }
       if(url) location.href=url;
-      else showError('El servicio no está configurado.');
+      else showError(__('serviceNotConfig'));
     });
   }).catch(function(){
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
     if(wa) location.href='https://wa.me/'+wa;
-    else showError('Error al enviar. Intenta de nuevo.');
+    else showError(__('sendError'));
     $('loader').style.display='none';$('error').style.display='block';
   });
 }
 
-/* Init */
-if(!clientId||!qrId){showError('Código QR inválido.');$('errorBtn').onclick=function(){location.reload()}}
+applyLang();
+
+if(!clientId||!qrId){showError(__('invalidCode'));$('errorBtn').onclick=function(){location.reload()}}
 else{
   DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
-    if(!qrDoc.exists){showError('Este código QR no está registrado.');return null}
-    if(qrDoc.data().active===false){showError('Este código QR ha sido desactivado.');return null}
+    if(!qrDoc.exists){showError(__('notRegistered'));return null}
+    if(qrDoc.data().active===false){showError(__('deactivated'));return null}
     return DB.collection('clients').doc(clientId).get();
   }).then(function(clientDoc){
     if(!clientDoc)return;
-    if(!clientDoc.exists){showError('El negocio no está registrado.');return}
+    if(!clientDoc.exists){showError(__('notFound'));return}
     _clientData=clientDoc.data();
-    $('businessName').textContent=_clientData.name||'Contáctanos';
+    $('businessName').textContent=_clientData.name||__('contactUs');
     var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
-    $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');
-    $('leadMsg').placeholder=_clientData.waMessage||'Hola, escaneé tu código QR y me gustaría recibir información...';
+    $('submitBtn').textContent=__('sendAnd')+' '+(_svcNames[_serviceType]||'WhatsApp');
+    var defMsg=_LANG==='es'?'Hola, escaneé tu código QR y me gustaría recibir información...':'Hello, I scanned your QR code and would like more information...';
+    $('leadMsg').placeholder=_clientData.waMessage||defMsg;
     if(_clientData.waMessage) $('leadMsg').value=_clientData.waMessage;
-  }).catch(function(err){showError('Error de conexión.');console.error(err)});
+  }).catch(function(err){showError(__('connError'));console.error(err)});
 }
 </script>
 </body>
