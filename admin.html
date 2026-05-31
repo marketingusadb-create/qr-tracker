@@ -250,12 +250,34 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
           <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#a78bfa">🤖 Generar fondo con IA</summary>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
             <input id="aiPrompt" placeholder="Escribí acá tu prompt personalizado..." style="flex:1;min-width:200px;margin:0" />
+            <select id="aiStyle" style="width:auto;min-width:130px;margin:0;padding:8px;font-size:12px;background:#1e293b;color:#e2e8f0;border:2px solid #475569;border-radius:8px;cursor:pointer" onchange="if(!this.value)return;document.getElementById('aiPrompt').value=this.value;this.value=''">
+              <option value="">🎯 Estilos rápidos...</option>
+              <optgroup label="🥋 Artes Marciales">
+              <option value="Professional martial arts academy background, dojo with mats and mirrors, warm dramatic lighting, red and black tones, clean space for text top and bottom, no text, high resolution, photorealistic">Dojo profesional</option>
+              <option value="Dynamic martial arts action scene silhouette, martial artist kicking, sunset sky background, red orange gradient, empty space on left and right for text and QR, epic cinematic style, no text, high resolution">Acción dinámica</option>
+              <option value="Premium dark abstract background, carbon fiber texture with gold accents, geometric martial arts motif, empty rectangular space top for logo, clean area bottom for QR code, luxury professional style, no text, high resolution">Carbon fiber premium</option>
+              <option value="Kids martial arts class, cheerful children in white uniforms, bright colorful gym, fun family atmosphere, empty sky area top for text, clear space right side for QR, warm inviting style, no text, high resolution">Niños felices</option>
+              <option value="Martial arts belt display, black belt with gold stripe, red background with subtle pattern, elegant dojo wood floor, space for text top left, empty area bottom right for QR, clean professional, no text">Cinturones arte marcial</option>
+              <option value="Japanese calligraphy brush stroke effect, black ink on textured paper, subtle red accent, zen minimal style, large empty area top for headline, clean bottom section for QR code, no text, high resolution">Caligrafía japonesa</option>
+              </optgroup>
+              <optgroup label="🎨 General">
+              <option value="Professional abstract background with blue navy to purple gradient with light particles, empty rectangular space top for logo, clean space center for text, empty square frame bottom right for QR code, no text, modern elegant style, high resolution">Abstracto profesional</option>
+              <option value="Dark luxury background with gold geometric patterns, subtle sparkle effects, empty space top for brand, clean center for headline, empty bottom right for QR, premium corporate style, no text">Lujo dorado</option>
+              <option value="Clean modern gradient background, teal to deep blue, subtle wave pattern, minimalist design, large empty areas for text and QR code placement, professional business style, no text">Gradiente moderno</option>
+              </optgroup>
+            </select>
+            <select id="aiAspect" style="width:auto;margin:0;padding:8px;font-size:12px;background:#1e293b;color:#e2e8f0;border:2px solid #475569;border-radius:8px;cursor:pointer">
+              <option value="1:1">⬜ Cuadrado (1:1)</option>
+              <option value="16:9">🖥 Horizontal (16:9)</option>
+              <option value="4:3">📋 Carta (4:3)</option>
+              <option value="3:4">📱 Vertical (3:4)</option>
+            </select>
             <button class="btn btn-sm btn-primary" onclick="generateAiImage()">🎨 Crear</button>
             <button class="btn btn-sm btn-outline" onclick="copyPromptEjemplo()">📋 Prompt ej.</button>
           </div>
           <div style="margin-top:6px;font-size:11px;color:#64748b">
             ⚠️ **No le pidas a la IA que escriba texto** (lo hace mal). Pedile solo fondos con espacios vacíos. Vos agregás los textos, logo y QR en el Diseñador Pro.
-            <code id="aiExamplePrompt" style="display:block;margin:4px 0;padding:8px 10px;background:rgba(0,0,0,.4);border-radius:8px;font-size:11px;line-height:1.4;cursor:pointer;border:1px solid rgba(139,92,246,.3);transition:all .2s" onclick="copyPromptEjemplo()" onmouseover="this.style.borderColor='rgba(139,92,246,.8)'" onmouseout="this.style.borderColor='rgba(139,92,246,.3)'" title="Click para copiar este ejemplo al input">🎯 Click acá → Fondo profesional abstracto para flyer de negocio, gradiente de azul marino a púrpura oscuro con partículas de luz, espacio rectangular vacío en la parte superior para logo, espacio en blanco en el centro para texto, marco cuadrado vacío en esquina inferior derecha para código QR, sin texto escrito, estilo moderno elegante, alta resolución</code>
+            <code id="aiExamplePrompt" style="display:block;margin:4px 0;padding:8px 10px;background:rgba(0,0,0,.4);border-radius:8px;font-size:11px;line-height:1.4;cursor:pointer;border:1px solid rgba(139,92,246,.3);transition:all .2s" onclick="copyPromptEjemplo()" onmouseover="this.style.borderColor='rgba(139,92,246,.8)'" onmouseout="this.style.borderColor='rgba(139,92,246,.3)'" title="Click para copiar este ejemplo al input">🎯 Click acá → Fondo profesional para academia de artes marciales, dojo con tatami y espejos, iluminación cálida dramática, tonos rojo y negro, espacio vacío para texto arriba y abajo, sin texto escrito, estilo cinematográfico, alta resolución</code>
           </div>
           <div id="aiImageResult" style="margin-top:10px;display:none;text-align:center">
             <img id="aiImageTag" style="max-width:100%;max-height:300px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);cursor:pointer" onclick="copyAiImageUrl()" title="Click para copiar URL" />
@@ -1355,9 +1377,17 @@ function downloadFlyerImg(){
 
 function generateAiImage(){
   var prompt=document.getElementById('aiPrompt').value.trim();
-  if(!prompt){toast(__('writePrompt'));return}
+  var style=document.getElementById('aiStyle')?document.getElementById('aiStyle').value:'';
+  if(!prompt&&!style){toast(__('writePrompt'));return}
+  var finalPrompt=prompt||style;
+  if(style&&prompt) finalPrompt=prompt+', '+style;
   var div=document.getElementById('aiImageResult');var img=document.getElementById('aiImageTag');
-  img.src='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=1024&height=1024&nologo=true&seed='+Date.now();
+  var ar=document.getElementById('aiAspect')?document.getElementById('aiAspect').value:'1:1';
+  var dims={width:1024,height:1024};
+  if(ar==='16:9'){dims.width=1024;dims.height=576}
+  if(ar==='4:3'){dims.width=1024;dims.height=768}
+  if(ar==='3:4'){dims.width=768;dims.height=1024}
+  img.src='https://image.pollinations.ai/prompt/'+encodeURIComponent(finalPrompt)+'?width='+dims.width+'&height='+dims.height+'&nologo=true&seed='+Date.now();
   div.style.display='block';
   toast(__('generating'));
 }
@@ -1373,7 +1403,7 @@ function downloadAiImage(){
 }
 function copyPromptEjemplo(){
   var input=document.getElementById('aiPrompt');
-  var ej='Fondo profesional abstracto para flyer de academia de karate, gradiente de azul marino a púrpura oscuro con partículas de luz dorada, espacio rectangular vacío en la parte superior izquierda para logo, espacio limpio en el centro para texto, marco cuadrado vacío en esquina inferior derecha para código QR, sin texto escrito, estilo moderno elegante, alta resolución';
+  var ej='Fondo profesional para academia de artes marciales, dojo con tatami y espejos, iluminación cálida dramática, tonos rojo y negro, espacio vacío para texto arriba y abajo, sin texto escrito, estilo cinematográfico, alta resolución, fotorealista';
   input.value=ej;
   input.focus();
   toast(__('copyExample'));
