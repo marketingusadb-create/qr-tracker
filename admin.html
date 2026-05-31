@@ -275,24 +275,25 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
             <button class="btn btn-sm btn-primary" onclick="generateAiImage()">🎨 Crear</button>
             <button class="btn btn-sm btn-outline" onclick="copyPromptEjemplo()">📋 Prompt ej.</button>
           </div>
-          <div style="margin-top:6px;font-size:11px;color:#64748b">
-            ⚠️ **No le pidas a la IA que escriba texto** (lo hace mal). Pedile solo fondos con espacios vacíos. Vos agregás los textos, logo y QR en el Diseñador Pro.
+          <div style="margin-top:6px;font-size:11px;color:#94a3b8">
+            💡 La IA genera el fondo visual. El texto, QR y logo se superponen automáticamente con HTML perfecto. Seleccioná clientes arriba y usá la imagen como fondo del flyer.
             <code id="aiExamplePrompt" style="display:block;margin:4px 0;padding:8px 10px;background:rgba(0,0,0,.4);border-radius:8px;font-size:11px;line-height:1.4;cursor:pointer;border:1px solid rgba(139,92,246,.3);transition:all .2s" onclick="copyPromptEjemplo()" onmouseover="this.style.borderColor='rgba(139,92,246,.8)'" onmouseout="this.style.borderColor='rgba(139,92,246,.3)'" title="Click para copiar este ejemplo al input">🎯 Click acá → Fondo profesional para academia de artes marciales, dojo con tatami y espejos, iluminación cálida dramática, tonos rojo y negro, espacio vacío para texto arriba y abajo, sin texto escrito, estilo cinematográfico, alta resolución</code>
           </div>
           <div id="aiImageResult" style="margin-top:10px;display:none;text-align:center">
             <img id="aiImageTag" style="max-width:100%;max-height:300px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);cursor:pointer" onclick="copyAiImageUrl()" title="Click para copiar URL" />
             <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
+              <button class="btn btn-sm btn-primary" onclick="useAiAsFlyerBg()">🖼 Usar como fondo del flyer</button>
               <button class="btn btn-sm btn-outline" onclick="copyAiImageUrl()">📋 Copiar URL</button>
               <button class="btn btn-sm btn-success" onclick="downloadAiImage()">⬇ Descargar fondo</button>
-              <button class="btn btn-sm btn-primary" onclick="sendToDesigner()">🎨 Abrir en Diseñador Pro</button>
             </div>
-            <p style="font-size:11px;color:#64748b;margin-top:6px">Después de descargar, subí la imagen al Diseñador Pro como fondo y superponé el logo y QR reales</p>
+            <p style="font-size:11px;color:#64748b;margin-top:6px">✅ La imagen se aplica como fondo del flyer. El texto y QR se superponen automáticamente. Editá los textos en las tarjetas de arriba.</p>
           </div>
         </details>
         <div class="flyer-actions">
           <button class="btn btn-primary" onclick="generateFlyer()">🔄 Generar Flyer</button>
           <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar Imagen</button>
           <button class="btn btn-outline" onclick="printFlyer()">🖨 Imprimir</button>
+          <button class="btn btn-sm btn-outline" onclick="clearAiBg()" id="clearAiBgBtn" style="display:none">✕ Quitar fondo IA</button>
           <a href="designer.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;margin-left:8px">🎨 Diseñador Pro</a>
         </div>
       </div>
@@ -485,7 +486,7 @@ var _TRANS={
     flyerGenerated:'✅ Flyer generado',imageDownloaded:'✅ Imagen descargada',
     imgLibError:'Error al cargar librería de imagen',imgGenError:'Error al generar imagen',
     aiCopied:'📋 URL copiada',aiCopyError:'Error al copiar',firstGenImage:'Primero generá una imagen',
-    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear',
+    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear',aiDownloaded:'✅ Imagen descargada',aiDownloadNewTab:'⬇ Abriendo en nueva pestaña para descargar',aiBgSet:'✅ Imagen aplicada como fondo del flyer',
     myProfile:'Mi Perfil',myProfileTitle:'Mi Perfil de Negocio',myProfileDesc:'Configurá tu propio negocio para generar tus QR personales y recibir tus leads.',saveProfile:'Guardar Mi Perfil',
     myQrTitle:'Mis Códigos QR',myScansTitle:'Mis Leads Recibidos',
     profileSaved:'✅ Perfil guardado',    myProfileNoSave:'Primero guardá tu perfil',
@@ -533,7 +534,7 @@ var _TRANS={
     flyerGenerated:'✅ Flyer generated',imageDownloaded:'✅ Image downloaded',
     imgLibError:'Error loading image library',imgGenError:'Error generating image',
     aiCopied:'📋 URL copied',aiCopyError:'Error copying',firstGenImage:'Generate an image first',
-    copyExample:'📋 Example pasted in input — edit and click Create',
+    copyExample:'📋 Example pasted in input — edit and click Create',aiDownloaded:'✅ Image downloaded',aiDownloadNewTab:'⬇ Opening in new tab to download',aiBgSet:'✅ Image applied as flyer background',
     myProfile:'My Profile',myProfileTitle:'My Business Profile',myProfileDesc:'Set up your own business to generate your personal QR codes and receive leads.',saveProfile:'Save My Profile',
     myQrTitle:'My QR Codes',myScansTitle:'My Received Leads',
     profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first',
@@ -1262,7 +1263,7 @@ var _flyerThemes={
   black:{bg1:'#0a0a0a',bg2:'#27272a',text:'#fff',accent:'#f59e0b',badge:'#a1a1aa',dark:true},
   light:{bg1:'#f8fafc',bg2:'#e2e8f0',text:'#222',accent:'#2563eb',badge:'#64748b',dark:false}
 };
-var _flyerData={};
+var _flyerData={},_flyerAiBg=null;
 
 function setFlyerTheme(t){
   _flyerTheme=t;
@@ -1337,24 +1338,43 @@ function setQrPos(id,pos){
 function renderFlyer(){
   var checked=document.querySelectorAll('#flyerClientList input:checked');
   var theme=_flyerThemes[_flyerTheme]||_flyerThemes.blue;
-  var html='<div class="flyer-sheet" id="flyerSheet">';
+  var aiBg=_flyerAiBg;
+  var el=document.getElementById('clearAiBgBtn');
+  if(el) el.style.display=aiBg?'inline-block':'none';
+  var html='<div class="flyer-sheet" id="flyerSheet"'+(aiBg?' style="background:url('+aiBg+') center/cover no-repeat"':'')+'>';
   checked.forEach(function(cb){var id=cb.value;var d=_flyerData[id]||{};
     var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
     var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
     var phone=document.getElementById('fp_'+id);var p=phone?phone.value:d.phone;
     var qrClass=d.qrPos==='left'?'fc-qr-left':d.qrPos==='right'?'fc-qr-right':'';
-    html+='<div class="flyer-card-pro '+(theme.dark?'fc-dark':'fc-light')+'">'
-      +'<div class="fc-bg" style="background:linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')"></div>'
+    var cardBg=aiBg?'rgba(0,0,0,0.55)':'linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')';
+    var textColor=aiBg?'#fff':theme.text;
+    var badgeColor=aiBg?'rgba(255,255,255,0.6)':theme.badge;
+    html+='<div class="flyer-card-pro '+(aiBg?'fc-dark':(theme.dark?'fc-dark':'fc-light'))+'">'
+      +'<div class="fc-bg" style="background:'+cardBg+'"></div>'
       +'<div class="fc-content">'
-      +'<div class="fc-badge" style="color:'+theme.badge+'">✦ Escanea y contáctanos</div>'
-      +'<div class="fc-title" style="color:'+theme.text+'">'+esc(t||'')+'</div>'
-      +'<div class="fc-text" style="color:'+theme.text+'">'+esc(ds||'')+'</div>'
+      +'<div class="fc-badge" style="color:'+badgeColor+'">✦ Escanea y contáctanos</div>'
+      +'<div class="fc-title" style="color:'+textColor+'">'+esc(t||'')+'</div>'
+      +'<div class="fc-text" style="color:'+textColor+'">'+esc(ds||'')+'</div>'
       +'<div class="fc-qr '+qrClass+'"><img src="'+d.qrImg+'" alt="QR"/></div>'
-      +'<div class="fc-phone" style="color:'+theme.accent+'">'+(p?'📱 '+esc(p):'')+'</div>'
+      +'<div class="fc-phone" style="color:'+(aiBg?'#fbbf24':theme.accent)+'">'+(p?'📱 '+esc(p):'')+'</div>'
       +'</div></div>';
   });
   html+='</div><div style="clear:both"></div>';
   document.getElementById('flyerResult').innerHTML=html;
+}
+
+function useAiAsFlyerBg(){
+  var img=document.getElementById('aiImageTag');
+  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}
+  _flyerAiBg=img.src;
+  renderFlyer();
+  toast(__('aiBgSet'));
+}
+function clearAiBg(){
+  _flyerAiBg=null;
+  renderFlyer();
+  toast('✅ Fondo IA quitado');
 }
 
 function printFlyer(){window.print()}
@@ -1387,7 +1407,10 @@ function generateAiImage(){
   if(ar==='16:9'){dims.width=1024;dims.height=576}
   if(ar==='4:3'){dims.width=1024;dims.height=768}
   if(ar==='3:4'){dims.width=768;dims.height=1024}
-  img.src='https://image.pollinations.ai/prompt/'+encodeURIComponent(finalPrompt)+'?width='+dims.width+'&height='+dims.height+'&nologo=true&seed='+Date.now();
+  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(finalPrompt)+'?width='+dims.width+'&height='+dims.height+'&seed='+Date.now();
+  img.crossOrigin='anonymous';
+  img.onerror=function(){console.warn('Pollinations image load error, retrying...');setTimeout(function(){img.src=url+'&retry='+Date.now()},1500)};
+  img.src=url;
   div.style.display='block';
   toast(__('generating'));
 }
@@ -1397,9 +1420,21 @@ function copyAiImageUrl(){
 }
 function downloadAiImage(){
   var img=document.getElementById('aiImageTag');
-  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}  var a=document.createElement('a');a.href=img.src;a.download='fondo-ia-'+Date.now()+'.png';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  toast('⬇ Descargando fondo...');
+  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}
+  var canvas=document.createElement('canvas');canvas.width=img.naturalWidth||1024;canvas.height=img.naturalHeight||1024;
+  var ctx=canvas.getContext('2d');
+  try{
+    ctx.drawImage(img,0,0);
+    canvas.toBlob(function(blob){
+      if(!blob){toast(__('aiCopyError'));return}
+      var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='fondo-ia-'+Date.now()+'.png';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+      toast(__('aiDownloaded'));
+    });
+  }catch(e){
+    window.open(img.src,'_blank');
+    toast(__('aiDownloadNewTab'));
+  }
 }
 function copyPromptEjemplo(){
   var input=document.getElementById('aiPrompt');
