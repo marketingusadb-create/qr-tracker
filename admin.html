@@ -247,53 +247,20 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         </div>
         <div class="flyer-card-editors" id="flyerEditor"></div>
         <details open style="margin:12px 0;background:rgba(139,92,246,.1);border-radius:12px;padding:14px;border:1px solid rgba(139,92,246,.2)">
-          <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#a78bfa">🤖 Generar fondo con IA</summary>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <input id="aiPrompt" placeholder="Escribí acá tu prompt personalizado..." style="flex:1;min-width:200px;margin:0" />
-            <select id="aiStyle" style="width:auto;min-width:130px;margin:0;padding:8px;font-size:12px;background:#1e293b;color:#e2e8f0;border:2px solid #475569;border-radius:8px;cursor:pointer" onchange="if(!this.value)return;document.getElementById('aiPrompt').value=this.value;this.value=''">
-              <option value="">🎯 Estilos rápidos...</option>
-              <optgroup label="🥋 Artes Marciales">
-              <option value="Professional martial arts academy background, dojo with mats and mirrors, warm dramatic lighting, red and black tones, clean space for text top and bottom, no text, high resolution, photorealistic">Dojo profesional</option>
-              <option value="Dynamic martial arts action scene silhouette, martial artist kicking, sunset sky background, red orange gradient, empty space on left and right for text and QR, epic cinematic style, no text, high resolution">Acción dinámica</option>
-              <option value="Premium dark abstract background, carbon fiber texture with gold accents, geometric martial arts motif, empty rectangular space top for logo, clean area bottom for QR code, luxury professional style, no text, high resolution">Carbon fiber premium</option>
-              <option value="Kids martial arts class, cheerful children in white uniforms, bright colorful gym, fun family atmosphere, empty sky area top for text, clear space right side for QR, warm inviting style, no text, high resolution">Niños felices</option>
-              <option value="Martial arts belt display, black belt with gold stripe, red background with subtle pattern, elegant dojo wood floor, space for text top left, empty area bottom right for QR, clean professional, no text">Cinturones arte marcial</option>
-              <option value="Japanese calligraphy brush stroke effect, black ink on textured paper, subtle red accent, zen minimal style, large empty area top for headline, clean bottom section for QR code, no text, high resolution">Caligrafía japonesa</option>
-              </optgroup>
-              <optgroup label="🎨 General">
-              <option value="Professional abstract background with blue navy to purple gradient with light particles, empty rectangular space top for logo, clean space center for text, empty square frame bottom right for QR code, no text, modern elegant style, high resolution">Abstracto profesional</option>
-              <option value="Dark luxury background with gold geometric patterns, subtle sparkle effects, empty space top for brand, clean center for headline, empty bottom right for QR, premium corporate style, no text">Lujo dorado</option>
-              <option value="Clean modern gradient background, teal to deep blue, subtle wave pattern, minimalist design, large empty areas for text and QR code placement, professional business style, no text">Gradiente moderno</option>
-              </optgroup>
-            </select>
-            <select id="aiAspect" style="width:auto;margin:0;padding:8px;font-size:12px;background:#1e293b;color:#e2e8f0;border:2px solid #475569;border-radius:8px;cursor:pointer">
-              <option value="1:1">⬜ Cuadrado (1:1)</option>
-              <option value="16:9">🖥 Horizontal (16:9)</option>
-              <option value="4:3">📋 Carta (4:3)</option>
-              <option value="3:4">📱 Vertical (3:4)</option>
-            </select>
-            <button class="btn btn-sm btn-primary" onclick="generateAiImage()">🎨 Crear</button>
-            <button class="btn btn-sm btn-outline" onclick="copyPromptEjemplo()">📋 Prompt ej.</button>
+          <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#a78bfa">🖼 Fondos para flyer</summary>
+          <div style="margin-top:8px;font-size:12px;color:#94a3b8">Seleccioná un fondo o pegá una URL de imagen. El texto y QR se superponen automáticamente.</div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            <input id="bgCustomUrl" placeholder="https://... (pegá URL de imagen)" style="flex:1;min-width:200px;margin:0;font-size:12px" />
+            <button class="btn btn-sm btn-primary" onclick="useBgUrl()">🖼 <span data-lang="bgUseUrl">Usar URL</span></button>
           </div>
-          <div style="margin-top:6px;font-size:11px;color:#94a3b8">
-            💡 La IA genera el fondo visual. El texto, QR y logo se superponen automáticamente con HTML perfecto. Seleccioná clientes arriba y usá la imagen como fondo del flyer.
-            <code id="aiExamplePrompt" style="display:block;margin:4px 0;padding:8px 10px;background:rgba(0,0,0,.4);border-radius:8px;font-size:11px;line-height:1.4;cursor:pointer;border:1px solid rgba(139,92,246,.3);transition:all .2s" onclick="copyPromptEjemplo()" onmouseover="this.style.borderColor='rgba(139,92,246,.8)'" onmouseout="this.style.borderColor='rgba(139,92,246,.3)'" title="Click para copiar este ejemplo al input">🎯 Click acá → Fondo profesional para academia de artes marciales, dojo con tatami y espejos, iluminación cálida dramática, tonos rojo y negro, espacio vacío para texto arriba y abajo, sin texto escrito, estilo cinematográfico, alta resolución</code>
-          </div>
-          <div id="aiImageResult" style="margin-top:10px;display:none;text-align:center">
-            <img id="aiImageTag" style="max-width:100%;max-height:300px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);cursor:pointer" onclick="copyAiImageUrl()" title="Click para copiar URL" />
-            <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
-              <button class="btn btn-sm btn-primary" onclick="useAiAsFlyerBg()">🖼 Usar como fondo del flyer</button>
-              <button class="btn btn-sm btn-outline" onclick="copyAiImageUrl()">📋 Copiar URL</button>
-              <button class="btn btn-sm btn-success" onclick="downloadAiImage()">⬇ Descargar fondo</button>
-            </div>
-            <p style="font-size:11px;color:#64748b;margin-top:6px">✅ La imagen se aplica como fondo del flyer. El texto y QR se superponen automáticamente. Editá los textos en las tarjetas de arriba.</p>
-          </div>
+          <div id="bgGallery" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px"></div>
+          <div style="margin-top:6px;font-size:10px;color:#64748b">🎨 Fondos CSS profesionales integrados (sin APIs externas)</div>
         </details>
         <div class="flyer-actions">
           <button class="btn btn-primary" onclick="generateFlyer()">🔄 Generar Flyer</button>
           <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar Imagen</button>
           <button class="btn btn-outline" onclick="printFlyer()">🖨 Imprimir</button>
-          <button class="btn btn-sm btn-outline" onclick="clearAiBg()" id="clearAiBgBtn" style="display:none">✕ Quitar fondo IA</button>
+          <button class="btn btn-sm btn-outline" onclick="clearAiBg()" id="clearAiBgBtn" style="display:none">✕ Quitar fondo</button>
           <a href="designer.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;margin-left:8px">🎨 Diseñador Pro</a>
         </div>
       </div>
@@ -479,14 +446,11 @@ var _TRANS={
     qrActivated:'✅ QR activado',qrDeactivated:'🔴 QR desactivado',
     qrSentTrash:'QR enviado a la papelera',qrRestored:'QR restaurado',
     qrPosLeft:'Izq',qrPosCenter:'Centro',qrPosRight:'Der',
-    writePrompt:'Escribí un prompt primero',generating:'🎨 Generando...',
     manualQrTitle:'Generar QR manualmente',manualQrDesc:'Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.',
     manualQrIdPlaceholder:'ID opcional (se genera solo si lo dejas vacío)',manualQrGenerate:'Generar QR',
     maxFour:'Máximo 4 clientes por flyer',selectOneFour:'Selecciona entre 1 y 4 clientes',
     flyerGenerated:'✅ Flyer generado',imageDownloaded:'✅ Imagen descargada',
     imgLibError:'Error al cargar librería de imagen',imgGenError:'Error al generar imagen',
-    aiCopied:'📋 URL copiada',aiCopyError:'Error al copiar',firstGenImage:'Primero generá una imagen',
-    copyExample:'📋 Ejemplo pegado en el input — editá y clickeá Crear',aiDownloaded:'✅ Imagen descargada',aiDownloadNewTab:'⬇ Abriendo en nueva pestaña para descargar',aiBgSet:'✅ Imagen aplicada como fondo del flyer',
     myProfile:'Mi Perfil',myProfileTitle:'Mi Perfil de Negocio',myProfileDesc:'Configurá tu propio negocio para generar tus QR personales y recibir tus leads.',saveProfile:'Guardar Mi Perfil',
     myQrTitle:'Mis Códigos QR',myScansTitle:'Mis Leads Recibidos',
     profileSaved:'✅ Perfil guardado',    myProfileNoSave:'Primero guardá tu perfil',
@@ -527,14 +491,11 @@ var _TRANS={
     qrActivated:'✅ QR activated',qrDeactivated:'🔴 QR deactivated',
     qrSentTrash:'QR sent to trash',qrRestored:'QR restored',
     qrPosLeft:'Left',qrPosCenter:'Center',qrPosRight:'Right',
-    writePrompt:'Write a prompt first',generating:'🎨 Generating...',
     manualQrTitle:'Generate QR manually',manualQrDesc:'Useful if you already have clients and want to generate additional QR codes.',
     manualQrIdPlaceholder:'Optional ID (auto-generated if empty)',manualQrGenerate:'Generate QR',
     maxFour:'Maximum 4 clients per flyer',selectOneFour:'Select between 1 and 4 clients',
     flyerGenerated:'✅ Flyer generated',imageDownloaded:'✅ Image downloaded',
     imgLibError:'Error loading image library',imgGenError:'Error generating image',
-    aiCopied:'📋 URL copied',aiCopyError:'Error copying',firstGenImage:'Generate an image first',
-    copyExample:'📋 Example pasted in input — edit and click Create',aiDownloaded:'✅ Image downloaded',aiDownloadNewTab:'⬇ Opening in new tab to download',aiBgSet:'✅ Image applied as flyer background',
     myProfile:'My Profile',myProfileTitle:'My Business Profile',myProfileDesc:'Set up your own business to generate your personal QR codes and receive leads.',saveProfile:'Save My Profile',
     myQrTitle:'My QR Codes',myScansTitle:'My Received Leads',
     profileSaved:'✅ Profile saved',myProfileNoSave:'Save your profile first',
@@ -1341,7 +1302,12 @@ function renderFlyer(){
   var aiBg=_flyerAiBg;
   var el=document.getElementById('clearAiBgBtn');
   if(el) el.style.display=aiBg?'inline-block':'none';
-  var html='<div class="flyer-sheet" id="flyerSheet"'+(aiBg?' style="background:url('+aiBg+') center/cover no-repeat"':'')+'>';
+  var isCssBg=aiBg&&(aiBg.indexOf('linear-gradient')===0||aiBg.indexOf('repeating-linear-gradient')===0||aiBg.indexOf('radial-gradient')===0);
+  var sheetStyle='';
+  if(aiBg){
+    sheetStyle=isCssBg?'background:'+aiBg:'background:url('+aiBg+') center/cover no-repeat';
+  }
+  var html='<div class="flyer-sheet" id="flyerSheet"'+(sheetStyle?' style="'+sheetStyle+'"':'')+'>';
   checked.forEach(function(cb){var id=cb.value;var d=_flyerData[id]||{};
     var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
     var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
@@ -1364,17 +1330,60 @@ function renderFlyer(){
   document.getElementById('flyerResult').innerHTML=html;
 }
 
-function useAiAsFlyerBg(){
-  var img=document.getElementById('aiImageTag');
-  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}
-  _flyerAiBg=img.src;
+var _bgGallery=[
+  {type:'css',label:'🔥 Carbon fiber',css:'repeating-linear-gradient(45deg,#1a1a1a 0px,#1a1a1a 2px,#222 2px,#222 4px)'},
+  {type:'css',label:'⚫ Oscuro elegante',css:'linear-gradient(135deg,#0f0f0f 0%,#1a1a2e 50%,#0f0f0f 100%)'},
+  {type:'css',label:'🔴 Rojo martial',css:'linear-gradient(135deg,#1a0000 0%,#4a0000 30%,#8b0000 70%,#1a0000 100%)'},
+  {type:'css',label:'🟤 Oro premium',css:'linear-gradient(135deg,#1a1410 0%,#3d2b1f 40%,#6b4c2a 70%,#1a1410 100%)'},
+  {type:'css',label:'⚪ Zen minimal',css:'linear-gradient(135deg,#f5f0e8 0%,#e8e0d0 50%,#f5f0e8 100%)'},
+  {type:'css',label:'🔵 Azul profundo',css:'linear-gradient(135deg,#000814 0%,#001233 30%,#002855 70%,#000814 100%)'},
+  {type:'css',label:'🟢 Bosque',css:'linear-gradient(135deg,#0a1a0a 0%,#1a3a1a 40%,#2d5a2d 70%,#0a1a0a 100%)'},
+  {type:'css',label:'⬛ Carbono dorado',css:'repeating-linear-gradient(45deg,#1a1a1a 0px,#1a1a1a 3px,#2a2a1a 3px,#2a2a1a 6px),linear-gradient(135deg,#1a1a1a,#3d2b1f)'},
+  {type:'css',label:'🌊 Ola azul',css:'linear-gradient(135deg,#0c1828 0%,#1a365d 30%,#2b6cb0 60%,#1a365d 100%)'},
+  {type:'css',label:'🏆 Campeón',css:'linear-gradient(135deg,#1a0000 0%,#8b0000 25%,#ffd700 50%,#8b0000 75%,#1a0000 100%)'},
+  {type:'css',label:'🥋 Dojo tradicional',css:'linear-gradient(135deg,#2a1f1a 0%,#4a3728 30%,#6b5740 60%,#4a3728 100%)'},
+  {type:'css',label:'🌙 Noche',css:'linear-gradient(135deg,#0a0a1a 0%,#1a1a3a 30%,#2a1a4a 60%,#0a0a1a 100%)'},
+  {type:'css',label:'📜 Pergamino',css:'linear-gradient(135deg,#f5e6c8 0%,#e8d5a8 30%,#d4c498 60%,#f5e6c8 100%)'},
+  {type:'css',label:'⚡ Rayo',css:'linear-gradient(135deg,#1a1a2e 0%,#16213e 30%,#e94560 50%,#16213e 70%,#1a1a2e 100%)'}
+];
+
+function initBgGallery(){
+  var el=document.getElementById('bgGallery');if(!el)return;
+  _bgGallery.forEach(function(bg,i){
+    var d=document.createElement('div');
+    d.style.cssText='cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:all .2s;aspect-ratio:16/10;position:relative';
+    d.onclick=function(){_flyerAiBg=bg.css;renderFlyer();toast('✅ Fondo aplicado')};
+    d.onmouseover=function(){this.style.borderColor='#a78bfa';this.style.transform='scale(1.05)'};
+    d.onmouseout=function(){this.style.borderColor='transparent';this.style.transform='scale(1)'};
+    var prev=document.createElement('div');
+    prev.style.cssText='position:absolute;inset:0;background:'+bg.css;
+    d.appendChild(prev);
+    var lbl=document.createElement('div');
+    lbl.textContent=bg.label;
+    lbl.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;padding:3px 6px;text-align:center';
+    d.appendChild(lbl);
+    el.appendChild(d);
+  });
+}
+setTimeout(initBgGallery,100);
+
+function useBgUrl(){
+  var input=document.getElementById('bgCustomUrl');var url=input.value.trim();
+  if(!url){toast('Pegá una URL de imagen');return}
+  _flyerAiBg=url;renderFlyer();toast('✅ Fondo aplicado');
+}
+
+function useAiAsFlyerBg(cssOrUrl){
+  _flyerAiBg=cssOrUrl;
   renderFlyer();
-  toast(__('aiBgSet'));
+  toast('✅ Fondo aplicado');
 }
 function clearAiBg(){
   _flyerAiBg=null;
+  var el=document.getElementById('clearAiBgBtn');
+  if(el) el.style.display='none';
   renderFlyer();
-  toast('✅ Fondo IA quitado');
+  toast(__('aiBgCleared'));
 }
 
 function printFlyer(){window.print()}
@@ -1395,59 +1404,6 @@ function downloadFlyerImg(){
   document.head.appendChild(s);
 }
 
-function generateAiImage(){
-  var prompt=document.getElementById('aiPrompt').value.trim();
-  var style=document.getElementById('aiStyle')?document.getElementById('aiStyle').value:'';
-  if(!prompt&&!style){toast(__('writePrompt'));return}
-  var finalPrompt=prompt||style;
-  if(style&&prompt) finalPrompt=prompt+', '+style;
-  var div=document.getElementById('aiImageResult');var img=document.getElementById('aiImageTag');
-  var ar=document.getElementById('aiAspect')?document.getElementById('aiAspect').value:'1:1';
-  var dims={width:1024,height:1024};
-  if(ar==='16:9'){dims.width=1024;dims.height=576}
-  if(ar==='4:3'){dims.width=1024;dims.height=768}
-  if(ar==='3:4'){dims.width=768;dims.height=1024}
-  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(finalPrompt)+'?width='+dims.width+'&height='+dims.height+'&seed='+Date.now();
-  img.crossOrigin='anonymous';
-  img.onerror=function(){console.warn('Pollinations image load error, retrying...');setTimeout(function(){img.src=url+'&retry='+Date.now()},1500)};
-  img.src=url;
-  div.style.display='block';
-  toast(__('generating'));
-}
-function copyAiImageUrl(){
-  var url=document.getElementById('aiImageTag').src;
-  if(url&&url.indexOf('pollinations')>0){navigator.clipboard.writeText(url).then(function(){toast(__('aiCopied'))}).catch(function(){toast(__('aiCopyError'))})}
-}
-function downloadAiImage(){
-  var img=document.getElementById('aiImageTag');
-  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast(__('firstGenImage'));return}
-  var canvas=document.createElement('canvas');canvas.width=img.naturalWidth||1024;canvas.height=img.naturalHeight||1024;
-  var ctx=canvas.getContext('2d');
-  try{
-    ctx.drawImage(img,0,0);
-    canvas.toBlob(function(blob){
-      if(!blob){toast(__('aiCopyError'));return}
-      var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='fondo-ia-'+Date.now()+'.png';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-      toast(__('aiDownloaded'));
-    });
-  }catch(e){
-    window.open(img.src,'_blank');
-    toast(__('aiDownloadNewTab'));
-  }
-}
-function copyPromptEjemplo(){
-  var input=document.getElementById('aiPrompt');
-  var ej='Fondo profesional para academia de artes marciales, dojo con tatami y espejos, iluminación cálida dramática, tonos rojo y negro, espacio vacío para texto arriba y abajo, sin texto escrito, estilo cinematográfico, alta resolución, fotorealista';
-  input.value=ej;
-  input.focus();
-  toast(__('copyExample'));
-}
-function sendToDesigner(){
-  var img=document.getElementById('aiImageTag');
-  if(!img||!img.src||img.src.indexOf('pollinations')<0){toast('Primero generá una imagen');return}
-  location.href='designer.html?bg='+encodeURIComponent(img.src);
-}
 function downloadQr(imgUrl,filename){
   var a=document.createElement('a');a.href=imgUrl;a.download=filename||'qr.png';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
