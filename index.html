@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Contact</title>
+<title>Contacto</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;padding:20px}
@@ -36,40 +36,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </head>
 <body>
 <div class="card" id="formCard">
-  <div style="text-align:right;margin-bottom:8px">
-    <button id="langBtn" onclick="toggleLang()" style="background:transparent;border:2px solid #333;color:#e2e8f0;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .2s" onmouseover="this.style.borderColor='#25D366'" onmouseout="this.style.borderColor='#333'">🇪🇸 ES</button>
-  </div>
   <div id="formContent">
-    <h1><span data-lang="title">Contact Us</span> 📩</h1>
-    <p class="sub" id="businessName">-loading-</p>
+    <h1>📩 Contacto</h1>
+    <p class="sub" id="businessName">-enviando información-</p>
     <div class="service-badge" id="serviceBadge">💬 WhatsApp</div>
     <div class="form-group">
-      <label data-lang="nameLabel">Name</label>
-      <input id="leadName" type="text" data-lang-placeholder="namePlace" placeholder="Your name" required />
+      <label>Nombre</label>
+      <input id="leadName" type="text" placeholder="Tu nombre" required />
     </div>
     <div class="form-group">
-      <label data-lang="emailLabel">Email</label>
-      <input id="leadEmail" type="email" data-lang-placeholder="emailPlace" placeholder="your@email.com" />
+      <label>Email</label>
+      <input id="leadEmail" type="email" placeholder="tu@email.com" />
     </div>
     <div class="form-group">
-      <label data-lang="phoneLabel">Phone</label>
-      <input id="leadPhone" type="tel" data-lang-placeholder="phonePlace" placeholder="+1 555 123 4567" />
+      <label>Teléfono</label>
+      <input id="leadPhone" type="tel" placeholder="+57 300 123 4567" />
     </div>
     <div class="form-group">
-      <label data-lang="msgLabel">Message</label>
-      <textarea id="leadMsg" placeholder="Hello, I scanned your QR code and would like more information..."></textarea>
+      <label>Mensaje</label>
+      <textarea id="leadMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
     </div>
-    <button class="btn" id="submitBtn" onclick="submitLead()">Send</button>
-    <p class="privacy" data-lang="privacy">Your data will be shared with the business contacting you</p>
+    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar</button>
+    <p class="privacy">Tus datos serán compartidos con el negocio que te contacta</p>
   </div>
   <div class="loader" id="loader">
     <div class="spinner"></div>
-    <p data-lang="sending">Sending your information...</p>
+    <p>Enviando tu información...</p>
   </div>
   <div class="error" id="error">
-    <h2>⚠️ <span data-lang="errorTitle">Error</span></h2>
-    <p id="errorMsg">This QR code is invalid or has been deactivated.</p>
-    <a class="btn" id="errorBtn" href="#"><span data-lang="tryAgain">Try again</span></a>
+    <h2>⚠️ Error</h2>
+    <p id="errorMsg">Este código QR no es válido o ha sido desactivado.</p>
+    <a class="btn" id="errorBtn" href="#">Intentar de nuevo</a>
   </div>
 </div>
 
@@ -87,53 +84,11 @@ var _clientData=null;
 var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
 var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
-var _LANG=navigator.language&&navigator.language.startsWith('es')?'es':'en';
-
-var _TEXTS={
-  en:{
-    title:'Contact Us',nameLabel:'Name',emailLabel:'Email',phoneLabel:'Phone',msgLabel:'Message',
-    namePlace:'Your name',emailPlace:'your@email.com',phonePlace:'+1 555 123 4567',
-    privacy:'Your data will be shared with the business contacting you',
-    sending:'Sending your information...',errorTitle:'Error',tryAgain:'Try again',
-    invalidQr:'This QR code is invalid or has been deactivated.',
-    invalidCode:'Invalid QR code.',notRegistered:'This QR code is not registered.',
-    deactivated:'This QR code has been deactivated.',notFound:'The business is not registered.',
-    contactUs:'Contact us',sendAnd:'Send and contact via',connError:'Connection error.',
-    serviceNotConfig:'The service is not configured.',sendError:'Error sending. Try again.',
-    loading:'-loading-'
-  },
-  es:{
-    title:'Contacto',nameLabel:'Nombre',emailLabel:'Email',phoneLabel:'Teléfono',msgLabel:'Mensaje',
-    namePlace:'Tu nombre',emailPlace:'tu@email.com',phonePlace:'+57 300 123 4567',
-    privacy:'Tus datos serán compartidos con el negocio que te contacta',
-    sending:'Enviando tu información...',errorTitle:'Error',tryAgain:'Intentar de nuevo',
-    invalidQr:'Este código QR no es válido o ha sido desactivado.',
-    invalidCode:'Código QR inválido.',notRegistered:'Este código QR no está registrado.',
-    deactivated:'Este código QR ha sido desactivado.',notFound:'El negocio no está registrado.',
-    contactUs:'Contáctanos',sendAnd:'Enviar y contactar por',connError:'Error de conexión.',
-    serviceNotConfig:'El servicio no está configurado.',sendError:'Error al enviar. Intenta de nuevo.',
-    loading:'-enviando información-'
-  }
-};
-
-function __(k){var t=_TEXTS[_LANG];return t[k]||_TEXTS.en[k]||k}
-
-function toggleLang(){
-  _LANG=_LANG==='es'?'en':'es';applyLang();
-  document.getElementById('langBtn').textContent=_LANG==='es'?'🇺🇸 EN':'🇪🇸 ES';
-}
-
-function applyLang(){
-  document.querySelectorAll('[data-lang]').forEach(function(e){e.textContent=__(e.dataset.lang)});
-  document.querySelectorAll('[data-lang-placeholder]').forEach(function(e){e.placeholder=__(e.dataset.langPlaceholder)});
-  document.documentElement.lang=_LANG;
-}
-
 function $(id){return document.getElementById(id)}
 
 function showError(msg){
   $('formContent').style.display='none';$('loader').style.display='none';
-  $('error').style.display='block';$('errorMsg').textContent=msg||__('invalidQr');
+  $('error').style.display='block';$('errorMsg').textContent=msg||'Este código QR no es válido.';
 }
 
 function getDeviceInfo(){
@@ -154,112 +109,92 @@ function getDeviceInfo(){
 }
 
 function notifyTelegram(leadData,scanData){
-  var c=_clientData;if(!c)return
-  var token=c.telegramToken,chatId=c.telegramChatId;
-  if(!token||!chatId)return
-  var msg='<b>📩 Nuevo Lead recibido</b>\n'
-    +'👤 '+esc(leadData.name)+'\n'
-    +'📧 '+(leadData.email||'—')+'\n'
-    +'📱 '+(leadData.phone||'—')+'\n'
-    +'💬 '+(leadData.message||'—')+'\n'
-    +'━━━━━━━━━━━\n'
-    +'🌐 IP: '+(scanData.ip||'—')+'\n'
-    +'📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n'
-    +'📱 '+scanData.device+' | '+scanData.os+'\n'
-    +'🆔 QR: '+(scanData.qrId||'—');
-  var url='https://api.telegram.org/bot'+token+'/sendMessage';
-  var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.send(JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
+  return new Promise(function(resolve){
+    var c=_clientData;if(!c){resolve();return}
+    var token=c.telegramToken,chatId=c.telegramChatId;
+    if(!token||!chatId){resolve();return}
+    var msg='<b>📩 Nuevo Lead recibido</b>\n'
+      +'👤 '+esc(leadData.name)+'\n'
+      +'📧 '+(leadData.email||'—')+'\n'
+      +'📱 '+(leadData.phone||'—')+'\n'
+      +'💬 '+(leadData.message||'—')+'\n'
+      +'━━━━━━━━━━━\n'
+      +'🌐 IP: '+(scanData.ip||'—')+'\n'
+      +'📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n'
+      +'📱 '+scanData.device+' | '+scanData.os+'\n'
+      +'🆔 QR: '+(scanData.qrId||'—');
+    var url='https://api.telegram.org/bot'+token+'/sendMessage';
+    var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.onload=function(){resolve()};
+    xhr.onerror=function(){resolve()};
+    xhr.send(JSON.stringify({chat_id:chatId,text:msg,parse_mode:'HTML'}));
+  });
 }
 
 function notifyWhatsAppCloud(lead, scanData){
-  var d=_clientData;if(!d)return
-  var phoneId=d.whatsappPhoneId,token=d.whatsappToken,clientPhone=d.whatsapp;
-  if(!phoneId||!token||!clientPhone)return
-  var text='📩 Nuevo Lead recibido\n👤 '+lead.name+'\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n━━━━━━━━━━━\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
-  var url='https://graph.facebook.com/v21.0/'+phoneId+'/messages';
-  var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
-  xhr.setRequestHeader('Authorization','Bearer '+token);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.send(JSON.stringify({messaging_product:'whatsapp',to:clientPhone.replace(/\D/g,''),type:'text',text:{body:text}}));
+  return new Promise(function(resolve){
+    var d=_clientData;if(!d){resolve();return}
+    var phoneId=d.whatsappPhoneId,token=d.whatsappToken,clientPhone=d.whatsapp;
+    if(!phoneId||!token||!clientPhone){resolve();return}
+    var text='📩 Nuevo Lead recibido\n👤 '+lead.name+'\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n━━━━━━━━━━━\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
+    var url='https://graph.facebook.com/v21.0/'+phoneId+'/messages';
+    var xhr=new XMLHttpRequest();xhr.open('POST',url,true);
+    xhr.setRequestHeader('Authorization','Bearer '+token);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.onload=function(){resolve()};
+    xhr.onerror=function(){resolve()};
+    xhr.send(JSON.stringify({messaging_product:'whatsapp',to:clientPhone.replace(/\D/g,''),type:'text',text:{body:text}}));
+  });
 }
 
 function notifyTeams(lead, scanData){
-  var d=_clientData;if(!d)return
-  var webhook=d.teamsWebhook;
-  if(!webhook)return
-  var text='📩 Nuevo Lead recibido\n\n👤 **'+lead.name+'**\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
-  var xhr=new XMLHttpRequest();xhr.open('POST',webhook,true);
-  xhr.setRequestHeader('Content-Type','application/json');
-  xhr.send(JSON.stringify({title:'📩 Nuevo Lead - '+(d.name||''),text:text}));
+  return new Promise(function(resolve){
+    var d=_clientData;if(!d){resolve();return}
+    var webhook=d.teamsWebhook;
+    if(!webhook){resolve();return}
+    var text='📩 Nuevo Lead recibido\n\n👤 **'+lead.name+'**\n📧 '+(lead.email||'—')+'\n📱 '+(lead.phone||'—')+'\n💬 '+(lead.message||'—')+'\n\n🌐 IP: '+(scanData.ip||'—')+'\n📍 '+[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')+(scanData.gpsLat&&scanData.gpsLng?'\n🗺 https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng:'')+'\n📱 '+scanData.device+' | '+scanData.os+'\n🆔 QR: '+(scanData.qrId||'—');
+    var xhr=new XMLHttpRequest();xhr.open('POST',webhook,true);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.onload=function(){resolve()};
+    xhr.onerror=function(){resolve()};
+    xhr.send(JSON.stringify({title:'📩 Nuevo Lead - '+(d.name||''),text:text}));
+  });
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
 function getLang(){return navigator.language||navigator.userLanguage||'es'}
 
-function sendBrevo(toEmail,subject,htmlContent){
-  var d=_clientData;if(!d)return Promise.resolve();
-  var key=d.brevoApiKey;
-  if(!key||!toEmail)return Promise.resolve();
-  return fetch('https://api.brevo.com/v3/smtp/email',{
-    method:'POST',
-    headers:{'api-key':key,'Content-Type':'application/json'},
-    body:JSON.stringify({
-      sender:{name:d.name||'Contacto',email:d.brevoSenderEmail||'noreply@contacto.com'},
-      to:[{email:toEmail,name:toEmail}],
-      subject:subject,
-      htmlContent:htmlContent
-    })
-  }).then(function(r){if(!r.ok)console.warn('Brevo:',r.status);return r}).catch(function(err){console.warn('Brevo:',err)});
+var BREVO_WORKER='https://long-breeze-7e8a.dbkoryo.workers.dev/';
+
+function sendBrevo(toArray,subject,htmlContent){
+  if(!toArray||!toArray.length)return Promise.resolve();
+  return fetch(BREVO_WORKER,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({to:toArray,subject,htmlContent})
+  }).then(function(r){
+    if(!r.ok)console.warn('BrevoWorker status:',r.status);else console.log('BrevoWorker OK:',toArray[0].email);
+  }).catch(function(err){console.error('BrevoWorker:',err)});
 }
 
 function sendAutoReply(lead){
   var d=_clientData;if(!d)return Promise.resolve();
-  if(!d.brevoApiKey||!lead.email)return Promise.resolve();
-  var phone=d.autoReplyPhone||'';
-  var business=d.name||'';
+  if(!lead.email)return Promise.resolve();
+  var phone=d.autoReplyPhone||d.whatsapp||'';
   var esBody='Hemos recibido tu solicitud. Nos comunicaremos contigo lo antes posible.'+(phone?'<br>Si necesitas contactarnos directamente, llámanos al <strong>'+phone+'</strong>':'')+'<br><br>Gracias por contactarnos.';
   var enBody='We have received your request. We will contact you as soon as possible.'+(phone?'<br>If you need to reach us directly, call us at <strong>'+phone+'</strong>':'')+'<br><br>Thank you for contacting us.';
-  var subject='Thank you - Gracias';
-  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:30px 20px">'
-    +'<div style="background:#1a1a2e;border-radius:16px;padding:30px;color:#fff">'
-    +'<div style="font-size:28px;margin-bottom:4px">📩</div>'
-    +'<h2 style="margin:0 0 16px;font-size:20px;color:#fff">'+business+'</h2>'
-    +'<div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px;margin-bottom:12px">'
-    +'<p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇪🇸 '+esBody+'</p></div>'
-    +'<div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px">'
-    +'<p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇺🇸 '+enBody+'</p></div>'
-    +'<hr style="margin:20px 0;border:none;border-top:1px solid rgba(255,255,255,.1)">'
-    +'<p style="font-size:12px;color:#94a3b8;margin:0">'+business+'</p>'
-    +'</div></div>';
-  return sendBrevo(lead.email,subject,html);
+  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:30px 20px"><div style="background:#1a1a2e;border-radius:16px;padding:30px;color:#fff"><h2 style="margin:0 0 16px;font-size:20px;color:#fff">'+(d.name||'')+'</h2><div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px;margin-bottom:12px"><p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇪🇸 '+esBody+'</p></div><div style="background:rgba(255,255,255,.05);padding:16px;border-radius:10px"><p style="font-size:14px;line-height:1.6;color:#e2e8f0;margin:0">🇺🇸 '+enBody+'</p></div></div></div>';
+  return sendBrevo([{email:lead.email,name:lead.name}],'Thank you / Gracias',html);
 }
 
 function notifyAdminEmail(lead,scanData){
   var d=_clientData;if(!d)return Promise.resolve();
-  if(!d.brevoApiKey||!d.email)return Promise.resolve();
+  if(!d.email)return Promise.resolve();
   var loc=[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||scanData.ip||'—';
-  var mapLink=scanData.gpsLat&&scanData.gpsLng?'<br><a href="https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+'" style="color:#8b5cf6">🗺 View on map</a>':'';
-  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:20px">'
-    +'<div style="background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:24px;color:#fff;border:1px solid rgba(255,255,255,.06)">'
-    +'<div style="font-size:24px;margin-bottom:8px">📩</div>'
-    +'<h2 style="margin:0 0 16px;font-size:18px;color:#f1f5f9">📩 Nuevo lead / New lead</h2>'
-    +'<table style="width:100%;font-size:13px;border-collapse:collapse">'
-    +'<tr><td style="padding:6px 8px;color:#94a3b8;width:80px">Nombre/Name</td><td style="padding:6px 8px;color:#e2e8f0"><strong>'+esc(lead.name)+'</strong></td></tr>'
-    +(lead.email?'<tr><td style="padding:6px 8px;color:#94a3b8">Email</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.email)+'</td></tr>':'')
-    +(lead.phone?'<tr><td style="padding:6px 8px;color:#94a3b8">Teléfono/Phone</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.phone)+'</td></tr>':'')
-    +(lead.message?'<tr><td style="padding:6px 8px;color:#94a3b8">Mensaje/Message</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.message)+'</td></tr>':'')
-    +'</table>'
-    +'<hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">'
-    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">📍 Ubicación/Location: '+loc+mapLink+'</p>'
-    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">📱 Dispositivo/Device: '+scanData.device+' | '+scanData.os+'</p>'
-    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">🆔 QR: '+esc(scanData.qrId||'—')+'</p>'
-    +'<p style="font-size:12px;color:#94a3b8;margin:4px 0">⏰ '+new Date().toLocaleString('es-CO')+'</p>'
-    +'</div></div>';
-  var subject='📩 Nuevo lead / New lead - '+d.name;
-  return sendBrevo(d.email,subject,html);
+  var mapLink=scanData.gpsLat?'<br><a href="https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+'" style="color:#8b5cf6">🗺 View on map</a>':'';
+  var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:20px"><div style="background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:24px;color:#fff;border:1px solid rgba(255,255,255,.06)"><h2 style="margin:0 0 16px;font-size:18px;color:#f1f5f9">📩 Nuevo lead / New lead</h2><table style="width:100%;font-size:13px;border-collapse:collapse"><tr><td style="padding:6px 8px;color:#94a3b8;width:80px">Nombre/Name</td><td style="padding:6px 8px;color:#e2e8f0"><strong>'+esc(lead.name)+'</strong></td></tr>'+(lead.email?'<tr><td style="padding:6px 8px;color:#94a3b8">Email</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.email)+'</td></tr>':'')+(lead.phone?'<tr><td style="padding:6px 8px;color:#94a3b8">Teléfono/Phone</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.phone)+'</td></tr>':'')+(lead.message?'<tr><td style="padding:6px 8px;color:#94a3b8">Mensaje/Message</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.message)+'</td></tr>':'')+'</table><hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,.08)"><p style="font-size:12px;color:#94a3b8;margin:4px 0">📍 Ubicación/Location: '+loc+mapLink+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">📱 Dispositivo/Device: '+scanData.device+' | '+scanData.os+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">🆔 QR: '+esc(scanData.qrId||'—')+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">⏰ '+new Date().toLocaleString('es-CO')+'</p></div></div>';
+  return sendBrevo([{email:d.email,name:d.name||'Admin'}],'📩 Nuevo lead / New lead - '+(d.name||''),html);
 }
 
 function getGPSPosition(){
@@ -311,14 +246,14 @@ function submitLead(){
       return DB.collection('clients').doc(clientId).collection('scans').add(scan).then(function(){return scan});
     });
   }).then(function(scanData){
-    notifyTelegram(lead,scanData);
-    notifyWhatsAppCloud(lead,scanData);
-    notifyTeams(lead,scanData);
-    notifyAdminEmail(lead,scanData);
-    (function(){try{var copy={};for(var k in scanData)copy[k]=scanData[k];copy.timestamp={seconds:Math.floor(Date.now()/1000)};fetch('https://hook.us2.make.com/ocybp08fomb4xlk6c2ef96h91jfkwhwg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'new_scan',scan:copy,clientId:clientId,clientName:_clientData?.name||''})})}catch(e){}})();
-    return sendAutoReply(lead).then(function(){
-      var defHello=_LANG==='es'?'Hola':'Hello';
-      var msg=encodeURIComponent((lead.message||_clientData.waMessage||defHello)+' - '+lead.name);
+    return Promise.all([
+      notifyTelegram(lead,scanData),
+      notifyWhatsAppCloud(lead,scanData),
+      notifyTeams(lead,scanData),
+      notifyAdminEmail(lead,scanData),
+      sendAutoReply(lead)
+    ]).then(function(){
+      var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
       var url='';
       if(_serviceType==='telegram'){
         var tu=_clientData.telegramUser||'';
@@ -334,35 +269,33 @@ function submitLead(){
         url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
       }
       if(url) location.href=url;
-      else showError(__('serviceNotConfig'));
+      else showError('El servicio no está configurado.');
     });
   }).catch(function(){
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
     if(wa) location.href='https://wa.me/'+wa;
-    else showError(__('sendError'));
+    else showError('Error al enviar. Intenta de nuevo.');
     $('loader').style.display='none';$('error').style.display='block';
   });
 }
 
-applyLang();
-
-if(!clientId||!qrId){showError(__('invalidCode'));$('errorBtn').onclick=function(){location.reload()}}
+/* Init */
+if(!clientId||!qrId){showError('Código QR inválido.');$('errorBtn').onclick=function(){location.reload()}}
 else{
   DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
-    if(!qrDoc.exists){showError(__('notRegistered'));return null}
-    if(qrDoc.data().active===false){showError(__('deactivated'));return null}
+    if(!qrDoc.exists){showError('Este código QR no está registrado.');return null}
+    if(qrDoc.data().active===false){showError('Este código QR ha sido desactivado.');return null}
     return DB.collection('clients').doc(clientId).get();
   }).then(function(clientDoc){
     if(!clientDoc)return;
-    if(!clientDoc.exists){showError(__('notFound'));return}
+    if(!clientDoc.exists){showError('El negocio no está registrado.');return}
     _clientData=clientDoc.data();
-    $('businessName').textContent=_clientData.name||__('contactUs');
+    $('businessName').textContent=_clientData.name||'Contáctanos';
     var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
-    $('submitBtn').textContent=__('sendAnd')+' '+(_svcNames[_serviceType]||'WhatsApp');
-    var defMsg=_LANG==='es'?'Hola, escaneé tu código QR y me gustaría recibir información...':'Hello, I scanned your QR code and would like more information...';
-    $('leadMsg').placeholder=_clientData.waMessage||defMsg;
+    $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');
+    $('leadMsg').placeholder=_clientData.waMessage||'Hola, escaneé tu código QR y me gustaría recibir información...';
     if(_clientData.waMessage) $('leadMsg').value=_clientData.waMessage;
-  }).catch(function(err){showError(__('connError'));console.error(err)});
+  }).catch(function(err){showError('Error de conexión.');console.error(err)});
 }
 </script>
 </body>
