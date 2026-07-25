@@ -220,7 +220,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="ncWhatsAppPhoneId" placeholder="123456789012345" /></div>
       <div class="form-group"><label>WhatsApp Cloud Token <small>(Access Token de Meta)</small></label><input id="ncWhatsAppToken" placeholder="EAAx..." /></div>
       <div class="form-group"><label>Teams Webhook URL <small>(de Canal de Teams)</small></label><input id="ncTeamsWebhook" placeholder="https://...webhook..." /></div>
-      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input type="file" id="ncLogoFile" accept="image/*" onchange="uploadLogo('ncLogoFile','ncLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="ncLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
+      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input id="ncLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('ncLogoUrl','ncLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 Subí la imagen a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a>, copiá el link directo (termina en .jpg/.png) y pegalo acá.</div><img id="ncLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
       <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
       <div class="form-group"><label><input id="ncLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
@@ -289,7 +289,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         <div class="form-group"><label>WhatsApp Cloud Phone ID</label><input id="profWhatsAppPhoneId" placeholder="123456789012345" /></div>
         <div class="form-group"><label>WhatsApp Cloud Token</label><input id="profWhatsAppToken" placeholder="EAAx..." /></div>
         <div class="form-group"><label>Teams Webhook URL</label><input id="profTeamsWebhook" placeholder="https://...webhook..." /></div>
-        <div class="form-group"><label>Logo</label><input type="file" id="profLogoFile" accept="image/*" onchange="uploadLogo('profLogoFile','profLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="profLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
+        <div class="form-group"><label>Logo</label><input id="profLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('profLogoUrl','profLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 Subí la imagen a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a>, copiá el link directo (termina en .jpg/.png) y pegalo acá.</div><img id="profLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /><div style="font-size:11px;color:#fbbf24;margin-top:4px">⚠️ Después de pegar el link, hacé clic en "Guardar Mi Perfil" más abajo para que se guarde.</div></div>
         <button class="btn btn-primary" onclick="saveAdminProfile()" style="margin-top:16px">💾 <span data-lang="saveProfile">Guardar Mi Perfil</span></button>
         <div id="profResult" style="margin-top:10px;font-size:13px"></div>
       </div>
@@ -375,7 +375,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div class="form-group"><label>WhatsApp Cloud Phone ID <small>(de Meta Business)</small></label><input id="editWhatsAppPhoneId" placeholder="123456789012345" /></div>
       <div class="form-group"><label>WhatsApp Cloud Token <small>(Access Token de Meta)</small></label><input id="editWhatsAppToken" placeholder="EAAx..." /></div>
       <div class="form-group"><label>Teams Webhook URL <small>(de Canal de Teams)</small></label><input id="editTeamsWebhook" placeholder="https://...webhook..." /></div>
-      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input type="file" id="editLogoFile" accept="image/*" onchange="uploadLogo('editLogoFile','editLogoUrl')" style="padding:6px;font-size:12px;border:2px solid #475569;border-radius:8px;background:#1e293b;color:#e2e8f0" /><input id="editLogoUrl" placeholder="O pega URL manualmente" style="margin-top:4px" /></div>
+      <div class="form-group"><label>Logo <small>(imagen para el dashboard del cliente)</small></label><input id="editLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('editLogoUrl','editLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 Subí la imagen a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a>, copiá el link directo (termina en .jpg/.png) y pegalo acá.</div><img id="editLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /></div>
       <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
       <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🔑 Licencia</h3>
       <div class="form-group"><label><input id="editLicenciaActiva" type="checkbox" style="width:auto;margin-right:6px" /> Licencia activa</label></div>
@@ -392,7 +392,6 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var QR_FIREBASE_CONFIG = {
@@ -528,15 +527,16 @@ function resetPassword(){
     document.getElementById('loginError').style.display='block';
   });
 }
-function uploadLogo(fileInputId,urlInputId){
-  var file=document.getElementById(fileInputId).files[0];
-  if(!file)return;
-  if(file.size>2*1024*1024){toast('⚠️ Máximo 2MB');return}
-  var ref=firebase.storage(firebase.app("qrTracker")).ref('logos/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,''));
-  ref.put(file).then(function(snapshot){return snapshot.ref.getDownloadURL()}).then(function(url){
-    document.getElementById(urlInputId).value=url;
-    toast('✅ Logo subido correctamente');
-  }).catch(function(err){toast('Error al subir: '+err.message)});
+function previewLogoUrl(urlInputId,previewId){
+  var url=document.getElementById(urlInputId).value.trim();
+  var previewEl=document.getElementById(previewId);
+  if(url){
+    previewEl.src=url;
+    previewEl.style.display='inline-block';
+    previewEl.onerror=function(){previewEl.style.display='none'};
+  }else{
+    previewEl.style.display='none';previewEl.src='';
+  }
 }
 function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
 
@@ -632,6 +632,8 @@ function fillProfileForm(d){
   document.getElementById('profWhatsAppToken').value=d.whatsappToken||'';
   document.getElementById('profTeamsWebhook').value=d.teamsWebhook||'';
   document.getElementById('profLogoUrl').value=d.logoUrl||'';
+  var profPrev=document.getElementById('profLogoUrlPreview');
+  if(d.logoUrl){profPrev.src=d.logoUrl;profPrev.style.display='inline-block'}else{profPrev.style.display='none';profPrev.src=''}
 }
 
 function clearProfileForm(){
@@ -886,6 +888,8 @@ function openClient(id){
     document.getElementById('editWhatsAppToken').value=d.whatsappToken||'';
     document.getElementById('editTeamsWebhook').value=d.teamsWebhook||'';
     document.getElementById('editLogoUrl').value=d.logoUrl||'';
+    var editPrev=document.getElementById('editLogoUrlPreview');
+    if(d.logoUrl){editPrev.src=d.logoUrl;editPrev.style.display='inline-block'}else{editPrev.style.display='none';editPrev.src=''}
     document.getElementById('editLicenciaActiva').checked=d.licenciaActiva||false;
     document.getElementById('editLicenciaVence').value=d.licenciaVence||'';
     document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);

@@ -98,6 +98,7 @@ details summary{outline:none}
     <button class="tab active" onclick="switchTab('scans',this)">📩 Escaneos</button>
     <button class="tab" onclick="switchTab('qrs',this)">📱 Mis QR</button>
     <button class="tab" onclick="switchTab('flyer',this)">🎨 Flyer</button>
+    <button class="tab" onclick="switchTab('perfil',this)">👤 Mi Perfil</button>
   </div>
 
   <div id="tab-scans" class="tab-content active">
@@ -161,6 +162,22 @@ details summary{outline:none}
       <div id="flyerResult"></div>
     </div>
   </div>
+
+  <div id="tab-perfil" class="tab-content">
+    <div class="card">
+      <h2>👤 Mi Perfil de Negocio</h2>
+      <p style="font-size:13px;color:#94a3b8;margin-bottom:16px">Actualizá el logo y los datos de tu negocio.</p>
+      <label>Nombre del negocio</label><input id="clientName" placeholder="Ej: Mi Empresa" />
+      <label>WhatsApp <small style="color:#94a3b8">(a donde redirige el QR)</small></label><input id="clientWhatsapp" placeholder="573001234567" />
+      <label>Logo</label>
+      <input id="clientLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('clientLogoUrl','clientLogoPreview')" />
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px;margin-bottom:8px">💡 Subí la imagen a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a>, copiá el link directo (termina en .jpg/.png) y pegalo acá.</div>
+      <img id="clientLogoPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin:8px 0;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" />
+      <div style="font-size:11px;color:#fbbf24;margin-bottom:10px">⚠️ Después de pegar el link, hacé clic en "Guardar Perfil" para que se aplique.</div>
+      <button class="btn btn-primary" onclick="saveMyProfile()" style="margin-top:6px">💾 Guardar Perfil</button>
+      <div id="profileResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -194,6 +211,7 @@ function login(){
     checkLicense();
     loadScans();
     loadQrs();
+    fillMyProfileForm();
   }).catch(function(err){$('loginError').textContent='Error de conexión';$('loginError').style.display='block';console.error(err)});
 }
 
@@ -359,6 +377,46 @@ function useAiBg(){
   _flyerBg=$('aiImg').src;
   renderFlyerCli();
   toast('✅ Fondo aplicado');
+}
+
+// ----- MI PERFIL -----
+function fillMyProfileForm(){
+  $('clientName').value=_clientData.name||'';
+  $('clientWhatsapp').value=_clientData.whatsapp||'';
+  $('clientLogoUrl').value=_clientData.logoUrl||'';
+  var prev=$('clientLogoPreview');
+  if(_clientData.logoUrl){prev.src=_clientData.logoUrl;prev.style.display='inline-block'}else{prev.style.display='none';prev.src=''}
+}
+
+function previewLogoUrl(urlInputId,previewId){
+  var url=$(urlInputId).value.trim();
+  var previewEl=$(previewId);
+  if(url){
+    previewEl.src=url;
+    previewEl.style.display='inline-block';
+    previewEl.onerror=function(){previewEl.style.display='none'};
+  }else{
+    previewEl.style.display='none';previewEl.src='';
+  }
+}
+
+function saveMyProfile(){
+  if(!_clientId){toast('❌ Sesión no válida');return}
+  var data={
+    name:$('clientName').value.trim(),
+    whatsapp:$('clientWhatsapp').value.trim().replace(/\D/g,''),
+    logoUrl:$('clientLogoUrl').value.trim()
+  };
+  DB.collection('clients').doc(_clientId).update(data).then(function(){
+    _clientData.name=data.name;_clientData.whatsapp=data.whatsapp;_clientData.logoUrl=data.logoUrl;
+    $('panelTitle').textContent='📊 '+(data.name||'Mi Panel');
+    $('profileResult').innerHTML='<span style="color:#16a34a">✅ Perfil actualizado</span>';
+    toast('✅ Perfil guardado');
+  }).catch(function(err){
+    $('profileResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>';
+    toast('❌ Error al guardar: '+err.message);
+    console.error('saveMyProfile error:',err);
+  });
 }
 </script>
 </body>
