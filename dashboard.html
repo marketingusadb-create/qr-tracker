@@ -319,7 +319,7 @@ textarea{min-height:60px;resize:vertical}
           <div class="form-group"><label>Brevo API Key v3</label><input id="profBrevoKey" placeholder="xsksm...abc123" /></div>
           <div class="form-group"><label>Email del remitente <small>(verificado en Brevo)</small></label><input id="profBrevoSender" placeholder="tucorreo@gmail.com" /></div>
           <div class="form-group"><label>Teléfono de contacto <small>(aparece en auto-respuesta)</small></label><input id="profAutoReplyPhone" placeholder="953801340" /></div>
-          <div class="form-group"><label>Logo <small>(imagen para tu dashboard y flyers)</small></label><input id="profLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('profLogoUrl','profLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 Subí la imagen a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a>, copiá el link directo (termina en .jpg/.png) y pegalo acá.</div><img id="profLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /><div style="font-size:11px;color:#fbbf24;margin-top:4px">⚠️ Después de pegar el link, hacé clic en "Guardar" para que se aplique.</div></div>
+          <div class="form-group"><label>Logo <small>(imagen para tu dashboard y flyers)</small></label><input id="profLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('profLogoUrl','profLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 ¿No tenés un link de imagen? Andá a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a> (página gratis para subir fotos, no hace falta crear cuenta), arrastrá tu logo ahí, esperá a que suba y copiá el link que te da (empieza con https://i.imgur.com/...). Pegalo acá abajo.</div><img id="profLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /><div style="font-size:11px;color:#fbbf24;margin-top:4px">⚠️ Después de pegar el link, hacé clic en "Guardar" para que se aplique.</div></div>
           <button class="btn btn-primary" onclick="saveProfile()" style="margin-top:16px">💾 <span data-lang="saveProfile">Guardar</span></button>
           <div id="profResult" style="margin-top:10px;font-size:13px"></div>
         </div>
@@ -691,10 +691,11 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
-// Dibuja un QR en un <div id="containerId">. El logo SIEMPRE se muestra en pantalla (como overlay visual,
-// no depende de permisos CORS del servidor de la imagen). Para la descarga, intenta además "hornear" el logo
-// dentro del PNG; si el servidor de la imagen no permite CORS, la descarga sale sin logo (con aviso) pero
-// la vista en pantalla queda igual. Nivel de corrección de error ALTO ('H') para que el logo nunca rompa la lectura.
+// Dibuja un QR en un <div id="containerId">. El logo SIEMPRE se muestra en pantalla (overlay visual,
+// no depende de permisos CORS del servidor de la imagen). Para la descarga, además intenta "hornear" el logo
+// dentro del PNG; si el servidor de la imagen no permite CORS, la descarga sale sin logo (con aviso claro,
+// mostrado debajo del QR) pero la vista en pantalla queda igual. Nivel de corrección de error ALTO ('H')
+// para que el logo nunca rompa la lectura.
 function renderQrCanvas(containerId,qrData,logoUrl,size){
   var container=document.getElementById(containerId);
   if(!container)return;
@@ -702,10 +703,13 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
   var canvas=document.createElement('canvas');
   QRCode.toCanvas(canvas,qrData,{width:s,margin:1,errorCorrectionLevel:'H'},function(err){
     if(err){container.innerHTML='<p style="color:#f87171;font-size:11px">Error generando QR</p>';console.error(err);return}
-    canvas.style.width='100%';canvas.style.maxWidth=s+'px';canvas.style.borderRadius='8px';canvas.style.display='block';canvas.style.margin='0 auto';
+    container.removeAttribute('style');
+    container.style.cssText='text-align:center';
     container.innerHTML='';
+    canvas.width=s;canvas.height=s;
+    canvas.style.cssText='display:block;width:100%;max-width:'+s+'px;height:auto;aspect-ratio:1/1;border-radius:8px;margin:0 auto';
     var wrap=document.createElement('div');
-    wrap.style.cssText='position:relative;display:block;max-width:'+s+'px;margin:0 auto';
+    wrap.style.cssText='position:relative;display:block;width:100%;max-width:'+s+'px;margin:0 auto';
     wrap.appendChild(canvas);
     container.appendChild(wrap);
     try{container.dataset.qrDataUrl=canvas.toDataURL('image/png')}catch(e){container.dataset.qrDataUrl=''}
@@ -739,8 +743,8 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
     };
     bakeImg.onerror=function(){
       var note=document.createElement('div');
-      note.style.cssText='font-size:10px;color:#fbbf24;margin-top:4px;text-align:center';
-      note.textContent='⚠️ El logo se ve en pantalla, pero para que también quede en el PNG descargado, subilo a Imgur (este link no lo permite).';
+      note.style.cssText='font-size:10px;color:#fbbf24;margin-top:6px;text-align:center;line-height:1.4';
+      note.innerHTML='⚠️ El logo se ve en pantalla, pero esta imagen no se puede incluir en el PNG descargado.<br>Para que también quede en la descarga, subila gratis a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6;text-decoration:underline">imgur.com/upload</a> y usá ese link.';
       container.appendChild(note);
     };
     bakeImg.src=logoUrl;
