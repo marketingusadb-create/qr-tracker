@@ -319,6 +319,12 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 
   <div id="tab-settings" class="tab-content">
     <div class="card">
+      <h2>🔐 Mi cuenta de administrador</h2>
+      <p style="font-size:13px;color:#e2e8f0;margin-bottom:12px">Sesión iniciada como: <strong id="adminAccountEmail">-</strong></p>
+      <button class="btn btn-outline" onclick="changeAdminPassword()">🔑 Cambiar mi contraseña</button>
+      <div id="changePassResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+    <div class="card">
       <h2 data-lang="manualQrTitle">Generar QR manualmente</h2>
       <p style="font-size:13px;color:#e2e8f0;margin-bottom:12px" data-lang="manualQrDesc">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
       <select id="manualClient"></select>
@@ -532,6 +538,23 @@ function applyLang(){
   if(rs) rs.style.display='none';
 }
 
+function changeAdminPassword(){
+  var u=QR_AUTH.currentUser;if(!u)return;
+  var newPass=prompt('Escribí tu nueva contraseña (mínimo 6 caracteres):');
+  if(!newPass)return;
+  if(newPass.length<6){document.getElementById('changePassResult').innerHTML='<span style="color:#e74c3c">La contraseña debe tener al menos 6 caracteres</span>';return}
+  u.updatePassword(newPass).then(function(){
+    document.getElementById('changePassResult').innerHTML='<span style="color:#16a34a">✅ Contraseña actualizada correctamente</span>';
+    toast('✅ Contraseña actualizada');
+  }).catch(function(err){
+    if(err.code==='auth/requires-recent-login'){
+      document.getElementById('changePassResult').innerHTML='<span style="color:#fbbf24">⚠️ Por seguridad, cerrá sesión y volvé a entrar antes de cambiar la contraseña.</span>';
+    }else{
+      document.getElementById('changePassResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>';
+    }
+  });
+}
+
 function resetPassword(){
   var e=document.getElementById('loginEmail').value.trim();
   if(!e){document.getElementById('loginError').textContent=__('errorLoginRequired');document.getElementById('loginError').style.display='block';return}
@@ -648,13 +671,14 @@ QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementB
 applyLang();
 
 function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent=__('errorLoginRequired');document.getElementById('loginError').style.display='block';return}
-QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients();applyLang()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;var aae=document.getElementById('adminAccountEmail');if(aae)aae.textContent=e;loadClients();applyLang()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
 
 function logout(){QR_AUTH.signOut();location.reload()}
 QR_AUTH.onAuthStateChanged(function(u){if(u){
   document.getElementById('loginBox').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('adminEmail').textContent=u.email;
+  var aae2=document.getElementById('adminAccountEmail');if(aae2)aae2.textContent=u.email;
   loadClients();applyLang();loadDashboard();
   var h=location.hash.replace('#tab-','');
   if(h){var btn=document.querySelector('.tab[onclick*="'+h+'"]');if(btn)btn.click()}
