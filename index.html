@@ -32,41 +32,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .service-badge.sms{background:#fef3c7;color:#b45309}
 .service-badge.teams{background:#f3e8ff;color:#7c3aed}
 .privacy{font-size:11px;color:#e2e8f0;text-align:center;margin-top:12px}
+.brand-logo{display:none;width:64px;height:64px;object-fit:contain;border-radius:12px;background:#fff;padding:6px;margin:0 auto 12px}
+.lang-switch{text-align:right;margin-bottom:8px}
+.lang-switch button{background:rgba(255,255,255,.08);color:#e2e8f0;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
 <div class="card" id="formCard">
+  <div class="lang-switch"><button onclick="toggleLang()" id="langBtn">🇺🇸 EN</button></div>
   <div id="formContent">
-    <h1>📩 Contacto</h1>
+    <img class="brand-logo" id="brandLogo" src="" alt="Logo" />
+    <h1 id="pageTitle">📩 Contacto</h1>
     <p class="sub" id="businessName">-enviando información-</p>
     <div class="service-badge" id="serviceBadge">💬 WhatsApp</div>
     <div class="form-group">
-      <label>Nombre</label>
-      <input id="leadName" type="text" placeholder="Tu nombre" required />
+      <label data-lang="lblName">Nombre</label>
+      <input id="leadName" type="text" data-lang-ph="phName" placeholder="Tu nombre" required />
     </div>
     <div class="form-group">
-      <label>Email</label>
+      <label data-lang="lblEmail">Email</label>
       <input id="leadEmail" type="email" placeholder="tu@email.com" />
     </div>
     <div class="form-group">
-      <label>Teléfono</label>
+      <label data-lang="lblPhone">Teléfono</label>
       <input id="leadPhone" type="tel" placeholder="+57 300 123 4567" />
     </div>
     <div class="form-group">
-      <label>Mensaje</label>
-      <textarea id="leadMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
+      <label data-lang="lblMsg">Mensaje</label>
+      <textarea id="leadMsg" data-lang-ph="phMsg" placeholder="Hola, escaneé tu código QR y me gustaría recibir información..."></textarea>
     </div>
-    <button class="btn" id="submitBtn" onclick="submitLead()">Enviar</button>
-    <p class="privacy">Tus datos serán compartidos con el negocio que te contacta</p>
+    <button class="btn" id="submitBtn" onclick="submitLead()" data-lang="btnSend">Enviar</button>
+    <p class="privacy" data-lang="privacyTxt">Tus datos serán compartidos con el negocio que te contacta</p>
   </div>
   <div class="loader" id="loader">
     <div class="spinner"></div>
-    <p>Enviando tu información...</p>
+    <p data-lang="sendingTxt">Enviando tu información...</p>
   </div>
   <div class="error" id="error">
-    <h2>⚠️ Error</h2>
+    <h2 data-lang="errorTitle">⚠️ Error</h2>
     <p id="errorMsg">Este código QR no es válido o ha sido desactivado.</p>
-    <a class="btn" id="errorBtn" href="#">Intentar de nuevo</a>
+    <a class="btn" id="errorBtn" href="#" data-lang="retryBtn">Intentar de nuevo</a>
   </div>
 </div>
 
@@ -84,11 +89,43 @@ var _clientData=null;
 var _svcLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Microsoft Teams'};
 var _svcNames={whatsapp:'WhatsApp',telegram:'Telegram',sms:'SMS',teams:'Microsoft Teams'};
 
+var _LANG=localStorage.getItem('qrLang')||'es';
+var TRANS={
+  es:{pageTitle:'📩 Contacto',lblName:'Nombre',lblEmail:'Email',lblPhone:'Teléfono',lblMsg:'Mensaje',
+    phName:'Tu nombre',phMsg:'Hola, escaneé tu código QR y me gustaría recibir información...',
+    btnSend:'Enviar',privacyTxt:'Tus datos serán compartidos con el negocio que te contacta',
+    sendingTxt:'Enviando tu información...',errorTitle:'⚠️ Error',retryBtn:'Intentar de nuevo',
+    defaultBusiness:'Contáctanos',sendAndContact:'Enviar y contactar por ',
+    errGeneric:'Este código QR no es válido.',errNotRegistered:'Este código QR no está registrado.',
+    errDisabled:'Este código QR ha sido desactivado.',errBusinessNotRegistered:'El negocio no está registrado.',
+    errConnection:'Error de conexión.',errServiceNotConfigured:'El servicio no está configurado.',
+    errSendFailed:'Error al enviar. Intenta de nuevo.',redirectingTxt:'Redirigiendo...'},
+  en:{pageTitle:'📩 Contact',lblName:'Name',lblEmail:'Email',lblPhone:'Phone',lblMsg:'Message',
+    phName:'Your name',phMsg:'Hi, I scanned your QR code and would like more information...',
+    btnSend:'Send',privacyTxt:'Your info will be shared with the business contacting you',
+    sendingTxt:'Sending your information...',errorTitle:'⚠️ Error',retryBtn:'Try again',
+    defaultBusiness:'Contact us',sendAndContact:'Send and contact via ',
+    errGeneric:'This QR code is not valid.',errNotRegistered:'This QR code is not registered.',
+    errDisabled:'This QR code has been deactivated.',errBusinessNotRegistered:'The business is not registered.',
+    errConnection:'Connection error.',errServiceNotConfigured:'This service is not configured.',
+    errSendFailed:'Error sending. Please try again.',redirectingTxt:'Redirecting...'}
+};
+function __(k){return (TRANS[_LANG]&&TRANS[_LANG][k])||TRANS.es[k]||k}
+function applyLang(){
+  document.documentElement.lang=_LANG;
+  document.getElementById('langBtn').textContent=_LANG==='es'?'🇺🇸 EN':'🇪🇸 ES';
+  document.querySelectorAll('[data-lang]').forEach(function(el){el.textContent=__(el.getAttribute('data-lang'))});
+  document.querySelectorAll('[data-lang-ph]').forEach(function(el){el.placeholder=__(el.getAttribute('data-lang-ph'))});
+  document.title=__('pageTitle');
+}
+function toggleLang(){_LANG=_LANG==='es'?'en':'es';localStorage.setItem('qrLang',_LANG);applyLang()}
+applyLang();
+
 function $(id){return document.getElementById(id)}
 
 function showError(msg){
   $('formContent').style.display='none';$('loader').style.display='none';
-  $('error').style.display='block';$('errorMsg').textContent=msg||'Este código QR no es válido.';
+  $('error').style.display='block';$('errorMsg').textContent=msg||__('errGeneric');
 }
 
 function getDeviceInfo(){
@@ -269,19 +306,19 @@ function submitLead(){
         url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
       }
       if(url) location.href=url;
-      else showError('El servicio no está configurado.');
+      else showError(__('errServiceNotConfigured'));
     });
   }).catch(function(){
     var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
     if(wa) location.href='https://wa.me/'+wa;
-    else showError('Error al enviar. Intenta de nuevo.');
+    else showError(__('errSendFailed'));
     $('loader').style.display='none';$('error').style.display='block';
   });
 }
 
 function handleWeblinkRedirect(targetUrl){
   $('formContent').style.display='none';$('loader').style.display='block';
-  $('loader').querySelector('p').textContent='Redirigiendo...';
+  $('loader').querySelector('p').textContent=__('redirectingTxt');
   var info=getDeviceInfo();
   getGPSPosition().then(function(gps){
     var revPromise=gps?reverseGeocode(gps.lat,gps.lng):Promise.resolve(null);
@@ -315,24 +352,25 @@ if(!clientId||!qrId){location.href='admin.html';}
 else{
   var _qrDocData=null;
   DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
-    if(!qrDoc.exists){showError('Este código QR no está registrado.');return null}
-    if(qrDoc.data().active===false){showError('Este código QR ha sido desactivado.');return null}
+    if(!qrDoc.exists){showError(__('errNotRegistered'));return null}
+    if(qrDoc.data().active===false){showError(__('errDisabled'));return null}
     _qrDocData=qrDoc.data();
     return DB.collection('clients').doc(clientId).get();
   }).then(function(clientDoc){
     if(!clientDoc)return;
-    if(!clientDoc.exists){showError('El negocio no está registrado.');return}
+    if(!clientDoc.exists){showError(__('errBusinessNotRegistered'));return}
     _clientData=clientDoc.data();
     if(_qrDocData&&_qrDocData.type==='weblink'&&_qrDocData.targetUrl){
       handleWeblinkRedirect(_qrDocData.targetUrl);
       return;
     }
-    $('businessName').textContent=_clientData.name||'Contáctanos';
+    $('businessName').textContent=_clientData.name||__('defaultBusiness');
+    if(_clientData.logoUrl){$('brandLogo').src=_clientData.logoUrl;$('brandLogo').style.display='block';$('brandLogo').onerror=function(){this.style.display='none'}}
     var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
-    $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');
+    $('submitBtn').textContent=__('sendAndContact')+(_svcNames[_serviceType]||'WhatsApp');
     $('leadMsg').placeholder=_clientData.waMessage||'Hola, escaneé tu código QR y me gustaría recibir información...';
     if(_clientData.waMessage) $('leadMsg').value=_clientData.waMessage;
-  }).catch(function(err){showError('Error de conexión.');console.error(err)});
+  }).catch(function(err){showError(__('errConnection'));console.error(err)});
 }
 </script>
 </body>
