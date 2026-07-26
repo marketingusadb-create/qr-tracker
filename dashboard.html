@@ -269,10 +269,10 @@ textarea{min-height:60px;resize:vertical}
     <div id="tab-flyer" class="tab-content">
       <div class="flyer-wrap">
         <div class="flyer-controls no-print">
-          <h3>🎨 <span data-lang="flyerTitle">Creador Profesional de Flyer</span></h3>
-          <p style="font-size:13px;color:#94a3b8;margin-bottom:12px" data-lang="flyerDescPro">Flyer tamaño carta (8.5×11) en 4 tarjetas. Seleccioná tus códigos QR, personalizá y descargá o imprimí.</p>
-          <div class="flyer-clients" id="flyerClientList"></div>
-          <div style="font-size:12px;color:#888;margin-bottom:10px" data-lang="chooseTheme">Tema de color:</div>
+          <h3>🎨 <span data-lang="flyerTitle">Creador de Flyer</span></h3>
+          <p style="font-size:13px;color:#94a3b8;margin-bottom:12px">Elegí tu QR, un color, y listo — la vista previa se actualiza sola.</p>
+          <div class="form-group"><label style="font-size:12px;color:#888">1. Elegí tu código QR</label><select id="flyerQrSelect" onchange="onFlyerQrChange()"></select></div>
+          <div style="font-size:12px;color:#888;margin-bottom:6px">2. Elegí un color</div>
           <div class="flyer-theme" id="flyerTheme">
             <button style="background:#1a1a2e;color:#fff;border:2px solid rgba(255,255,255,.1)" data-theme="dark" onclick="setFlyerTheme('dark')">🌙 Oscuro</button>
             <button style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:2px solid rgba(255,255,255,.2)" data-theme="blue" onclick="setFlyerTheme('blue')" class="active">💙 Azul</button>
@@ -281,23 +281,13 @@ textarea{min-height:60px;resize:vertical}
             <button style="background:#222;color:#fff;border:2px solid rgba(255,255,255,.1)" data-theme="black" onclick="setFlyerTheme('black')">🖤 Negro</button>
             <button style="background:#fff;color:#222;border:2px solid #ddd" data-theme="light" onclick="setFlyerTheme('light')">⬜ Claro</button>
           </div>
-          <div class="flyer-card-editors" id="flyerEditor"></div>
-          <details open style="margin:12px 0;background:rgba(139,92,246,.1);border-radius:12px;padding:14px;border:1px solid rgba(139,92,246,.2)">
-            <summary style="cursor:pointer;font-weight:700;font-size:14px;color:#a78bfa">🖼 <span data-lang="bgTitle">Fondos para flyer</span></summary>
-            <div style="margin-top:8px;font-size:12px;color:#94a3b8" data-lang="bgInfo">Seleccioná un fondo o pegá una URL de imagen. El texto y QR se superponen automáticamente.</div>
-            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-              <input id="bgCustomUrl" placeholder="https://... (pegá URL de imagen)" style="flex:1;min-width:200px;margin:0;font-size:12px" />
-              <button class="btn btn-sm btn-primary" onclick="useBgUrl()">🖼 <span data-lang="bgUseUrl">Usar URL</span></button>
-            </div>
-            <div id="bgGallery" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px"></div>
-            <div style="margin-top:6px;font-size:10px;color:#64748b" data-lang="bgUnsplash">🎨 Fondos CSS profesionales integrados (sin APIs externas)</div>
-          </details>
+          <div style="font-size:12px;color:#888;margin:12px 0 6px">3. (Opcional) Ajustá el texto</div>
+          <div class="form-group"><label>Título</label><input id="flyerTitleInput" placeholder="Título" oninput="renderFlyerPro()" /></div>
+          <div class="form-group"><label>Texto</label><textarea id="flyerTextInput" rows="2" placeholder="Texto descriptivo" oninput="renderFlyerPro()"></textarea></div>
+          <div class="form-group"><label>Teléfono</label><input id="flyerPhoneInput" placeholder="Teléfono" oninput="renderFlyerPro()" /></div>
           <div class="flyer-actions">
-            <button class="btn btn-primary" onclick="generateFlyer()">🔄 <span data-lang="generateFlyerBtn">Generar Flyer</span></button>
             <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ <span data-lang="downloadFlyer">Descargar Imagen</span></button>
             <button class="btn btn-outline" onclick="printFlyer()">🖨 <span data-lang="printFlyer">Imprimir</span></button>
-            <button class="btn btn-sm btn-outline" onclick="clearAiBg()" id="clearAiBgBtn" style="display:none">✕ <span data-lang="clearAiBg">Quitar fondo</span></button>
-            <a href="designer.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;margin-left:8px">🎨 <span data-lang="designerPro">Diseñador Pro</span></a>
           </div>
         </div>
         <div id="flyerResult"></div>
@@ -848,171 +838,69 @@ var _flyerThemes={
   light:{bg1:'#f8fafc',bg2:'#e2e8f0',text:'#222',accent:'#2563eb',badge:'#64748b',dark:false}
 };
 
+function setFlyerTheme(theme){
+  _flyerTheme=theme;
+  document.querySelectorAll('#flyerTheme button').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-theme')===theme)});
+  renderFlyerPro();
+}
+
 function populateFlyerQrList(){
   if(!_clientDocId)return
   QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').get().then(function(snap){
-    _flyerQrCodes=[];var html='';var idx=0;
+    _flyerQrCodes=[];var html='';
+    var typeEmojis={whatsapp:'💬',telegram:'✈️',sms:'📱',teams:'💼',weblink:'🔗'};
     snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;
       _flyerQrCodes.push({id:doc.id,data:d});
-      var label=d.label||doc.id;var type=d.type||'whatsapp';
-      var typeEmojis={whatsapp:'💬',telegram:'✈️',sms:'📱',teams:'💼'};
-      var em=typeEmojis[type]||'💬';
-      var disabled=idx>=4?' style="opacity:.4;pointer-events:none"':'';
-      html+='<label id="fql_'+idx+'" onclick="toggleFlyerQr('+idx+')"'+disabled+'>'
-        +'<input type="checkbox" id="fqb_'+idx+'" value="'+idx+'" onchange="checkFlyerQrCount()"/> '
-        +em+' '+esc(label)+'</label>';
-      idx++;
+      var label=d.label||doc.id;var em=typeEmojis[d.type]||'💬';
+      html+='<option value="'+doc.id+'">'+em+' '+esc(label)+'</option>';
     });
-    if(!html) html='<p style="color:#94a3b8;font-size:13px" data-lang="noQrCodes">Sin códigos QR. Generá uno primero en la pestaña Mis QR.</p>';
-    document.getElementById('flyerClientList').innerHTML=html;
+    var sel=document.getElementById('flyerQrSelect');
+    if(!html){sel.innerHTML='<option value="">'+__('noQrCodes')+'</option>';document.getElementById('flyerResult').innerHTML='';return}
+    sel.innerHTML=html;
+    onFlyerQrChange();
   });
 }
 
-function toggleFlyerQr(idx){
-  var cb=document.getElementById('fqb_'+idx);
-  if(!cb)return;
-  cb.checked=!cb.checked;cb.onchange();
-  cb.parentElement.classList.toggle('checked',cb.checked);
-}
-
-function checkFlyerQrCount(){
-  var c=document.querySelectorAll('#flyerClientList input:checked').length;
-  if(c>4){toast(__('maxFour'));return}
-  document.querySelectorAll('#flyerClientList input:checked').forEach(function(cb){cb.parentElement.classList.add('checked')});
-  document.querySelectorAll('#flyerClientList input:not(:checked)').forEach(function(cb){cb.parentElement.classList.remove('checked')});
-}
-
-function generateFlyer(){
-  var checked=document.querySelectorAll('#flyerClientList input:checked');
-  if(!checked.length||checked.length>4){toast(__('selectOneFour'));return}
-  var baseUrl=getBaseUrl();var ed=document.getElementById('flyerEditor');ed.innerHTML='';
-  checked.forEach(function(cb){
-    var idx=parseInt(cb.value);
-    var item=_flyerQrCodes[idx];if(!item)return;
-    var qrData=baseUrl+'?c='+_clientDocId+'&q='+item.id;
-    var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(qrData);
-    _flyerData[item.id]={name:_clientData.name||'Negocio',qrData:qrData,qrImg:qrImg,phone:_clientData.whatsapp||'',title:_clientData.name||'Negocio',text:'¡Escanea el código QR y contáctanos! Estamos listos para atenderte.',qrPos:'center'};
-    var label=item.data.label||item.id;
-    var typeEmojis={whatsapp:'💬',telegram:'✈️',sms:'📱',teams:'💼'};
-    var em=typeEmojis[item.data.type]||'💬';
-    ed.innerHTML+='<div class="flyer-card-editor" id="fce_'+item.id+'">'
-      +'<div class="fce-header"><div class="fce-color" style="background:'+_flyerThemes[_flyerTheme].bg1+'"></div><strong>'+em+' '+esc(label)+'</strong></div>'
-      +'<input id="ft_'+item.id+'" placeholder="Título" value="'+esc(_clientData.name||'')+'" oninput="renderFlyerPro()" />'
-      +'<textarea id="fd_'+item.id+'" placeholder="Texto descriptivo" rows="2" oninput="renderFlyerPro()">¡Escanea el código QR y contáctanos! Estamos listos para atenderte.</textarea>'
-      +'<input id="fp_'+item.id+'" placeholder="Teléfono" value="'+esc(_clientData.whatsapp||'')+'" oninput="renderFlyerPro()" />'
-      +'<div class="fce-qr-pos"><span style="font-size:11px;color:#888">QR:</span>'
-      +'<button onclick="setQrPosPro(\''+item.id+'\',\'left\')" class="active">'+__('qrPosLeft')+'</button>'
-      +'<button onclick="setQrPosPro(\''+item.id+'\',\'center\')">'+__('qrPosCenter')+'</button>'
-      +'<button onclick="setQrPosPro(\''+item.id+'\',\'right\')">'+__('qrPosRight')+'</button></div>'
-      +'</div>';
-  });
-  renderFlyerPro();
-  toast(__('flyerGenerated'));
-}
-
-function setQrPosPro(id,pos){
-  if(!_flyerData[id])return
-  _flyerData[id].qrPos=pos;
-  document.querySelectorAll('#fce_'+id+' .fce-qr-pos button').forEach(function(b){b.classList.remove('active')});
-  var btns=document.querySelectorAll('#fce_'+id+' .fce-qr-pos button');
-  var idx={left:0,center:1,right:2}[pos]||1;
-  if(btns[idx]) btns[idx].classList.add('active');
+function onFlyerQrChange(){
+  var qrId=document.getElementById('flyerQrSelect').value;
+  var item=_flyerQrCodes.filter(function(x){return x.id===qrId})[0];
+  if(!item)return;
+  var baseUrl=getBaseUrl();
+  var qrData=baseUrl+'?c='+_clientDocId+'&q='+item.id+'&s='+(item.data.type||'whatsapp');
+  _flyerData={id:item.id,qrData:qrData};
+  document.getElementById('flyerTitleInput').value=_clientData.name||'';
+  document.getElementById('flyerTextInput').value='¡Escanea el código QR y contáctanos! Estamos listos para atenderte.';
+  document.getElementById('flyerPhoneInput').value=_clientData.whatsapp||'';
   renderFlyerPro();
 }
 
 function renderFlyerPro(){
-  var checked=document.querySelectorAll('#flyerClientList input:checked');
+  if(!_flyerData||!_flyerData.qrData){document.getElementById('flyerResult').innerHTML='';return}
   var theme=_flyerThemes[_flyerTheme]||_flyerThemes.blue;
-  var aiBg=_flyerAiBg;
-  var el=document.getElementById('clearAiBgBtn');
-  if(el) el.style.display=aiBg?'inline-block':'none';
-  var isCssBg=aiBg&&(aiBg.indexOf('linear-gradient')===0||aiBg.indexOf('repeating-linear-gradient')===0||aiBg.indexOf('radial-gradient')===0);
-  var sheetStyle='';
-  if(aiBg){
-    sheetStyle=isCssBg?'background:'+aiBg:'background:url('+aiBg+') center/cover no-repeat';
-  }
-  var html='<div class="flyer-sheet" id="flyerSheet"'+(sheetStyle?' style="'+sheetStyle+'"':'')+'>';
-  checked.forEach(function(cb){
-    var idx=parseInt(cb.value);
-    var item=_flyerQrCodes[idx];if(!item)return;
-    var id=item.id;var d=_flyerData[id]||{};
-    var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
-    var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
-    var phone=document.getElementById('fp_'+id);var p=phone?phone.value:d.phone;
-    var qrClass=d.qrPos==='left'?'fc-qr-left':d.qrPos==='right'?'fc-qr-right':'';
-    var cardBg=aiBg?'rgba(0,0,0,0.55)':'linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')';
-    var textColor=aiBg?'#fff':theme.text;
-    var badgeColor=aiBg?'rgba(255,255,255,0.6)':theme.badge;
-    html+='<div class="flyer-card-pro '+(aiBg?'fc-dark':(theme.dark?'fc-dark':'fc-light'))+'">'
-      +'<div class="fc-bg" style="background:'+cardBg+'"></div>'
-      +'<div class="fc-content">'
-      +'<div class="fc-badge" style="color:'+badgeColor+'">✦ Escanea y contáctanos</div>'
-      +'<div class="fc-title" style="color:'+textColor+'">'+esc(t||'')+'</div>'
-      +'<div class="fc-text" style="color:'+textColor+'">'+esc(ds||'')+'</div>'
-      +'<div class="fc-qr '+qrClass+'"><img src="'+d.qrImg+'" alt="QR"/></div>'
-      +'<div class="fc-phone" style="color:'+(aiBg?'#fbbf24':theme.accent)+'">'+(p?'📱 '+esc(p):'')+'</div>'
-      +'</div></div>';
-  });
-  html+='</div><div style="clear:both"></div>';
+  var t=document.getElementById('flyerTitleInput').value;
+  var ds=document.getElementById('flyerTextInput').value;
+  var p=document.getElementById('flyerPhoneInput').value;
+  var canvasId='flyerQrCanvas';
+  var logoUrl=(_clientData&&_clientData.logoUrl)||'';
+  var html='<div class="flyer-sheet" id="flyerSheet">'
+    +'<div class="flyer-card-pro '+(theme.dark?'fc-dark':'fc-light')+'">'
+    +'<div class="fc-bg" style="background:linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')"></div>'
+    +'<div class="fc-content">'
+    +'<div class="fc-badge" style="color:'+theme.badge+'">✦ Escanea y contáctanos</div>'
+    +'<div class="fc-title" style="color:'+theme.text+'">'+esc(t||'')+'</div>'
+    +'<div class="fc-text" style="color:'+theme.text+'">'+esc(ds||'')+'</div>'
+    +'<div class="fc-qr"><div id="'+canvasId+'" style="width:160px;height:160px;margin:0 auto"></div></div>'
+    +'<div class="fc-phone" style="color:'+theme.accent+'">'+(p?'📱 '+esc(p):'')+'</div>'
+    +'</div></div></div><div style="clear:both"></div>';
   document.getElementById('flyerResult').innerHTML=html;
-}
-
-var _bgGallery=[
-  {type:'css',label:'🔥 Carbon fiber',css:'repeating-linear-gradient(45deg,#1a1a1a 0px,#1a1a1a 2px,#222 2px,#222 4px)'},
-  {type:'css',label:'⚫ Oscuro elegante',css:'linear-gradient(135deg,#0f0f0f 0%,#1a1a2e 50%,#0f0f0f 100%)'},
-  {type:'css',label:'🔴 Rojo martial',css:'linear-gradient(135deg,#1a0000 0%,#4a0000 30%,#8b0000 70%,#1a0000 100%)'},
-  {type:'css',label:'🟤 Oro premium',css:'linear-gradient(135deg,#1a1410 0%,#3d2b1f 40%,#6b4c2a 70%,#1a1410 100%)'},
-  {type:'css',label:'⚪ Zen minimal',css:'linear-gradient(135deg,#f5f0e8 0%,#e8e0d0 50%,#f5f0e8 100%)'},
-  {type:'css',label:'🔵 Azul profundo',css:'linear-gradient(135deg,#000814 0%,#001233 30%,#002855 70%,#000814 100%)'},
-  {type:'css',label:'🟢 Bosque',css:'linear-gradient(135deg,#0a1a0a 0%,#1a3a1a 40%,#2d5a2d 70%,#0a1a0a 100%)'},
-  {type:'css',label:'⬛ Carbono dorado',css:'repeating-linear-gradient(45deg,#1a1a1a 0px,#1a1a1a 3px,#2a2a1a 3px,#2a2a1a 6px),linear-gradient(135deg,#1a1a1a,#3d2b1f)'},
-  {type:'css',label:'🌊 Ola azul',css:'linear-gradient(135deg,#0c1828 0%,#1a365d 30%,#2b6cb0 60%,#1a365d 100%)'},
-  {type:'css',label:'🏆 Campeón',css:'linear-gradient(135deg,#1a0000 0%,#8b0000 25%,#ffd700 50%,#8b0000 75%,#1a0000 100%)'},
-  {type:'css',label:'🥋 Dojo tradicional',css:'linear-gradient(135deg,#2a1f1a 0%,#4a3728 30%,#6b5740 60%,#4a3728 100%)'},
-  {type:'css',label:'🌙 Noche',css:'linear-gradient(135deg,#0a0a1a 0%,#1a1a3a 30%,#2a1a4a 60%,#0a0a1a 100%)'},
-  {type:'css',label:'📜 Pergamino',css:'linear-gradient(135deg,#f5e6c8 0%,#e8d5a8 30%,#d4c498 60%,#f5e6c8 100%)'},
-  {type:'css',label:'⚡ Rayo',css:'linear-gradient(135deg,#1a1a2e 0%,#16213e 30%,#e94560 50%,#16213e 70%,#1a1a2e 100%)'}
-];
-
-function initBgGallery(){
-  var el=document.getElementById('bgGallery');if(!el)return;
-  _bgGallery.forEach(function(bg,i){
-    var d=document.createElement('div');
-    d.style.cssText='cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:all .2s;aspect-ratio:16/10;position:relative';
-    d.onclick=function(){_flyerAiBg=bg.css;renderFlyerPro();toast('✅ Fondo aplicado')};
-    d.onmouseover=function(){this.style.borderColor='#a78bfa';this.style.transform='scale(1.05)'};
-    d.onmouseout=function(){this.style.borderColor='transparent';this.style.transform='scale(1)'};
-    var prev=document.createElement('div');
-    prev.style.cssText='position:absolute;inset:0;background:'+bg.css;
-    d.appendChild(prev);
-    var lbl=document.createElement('div');
-    lbl.textContent=bg.label;
-    lbl.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;padding:3px 6px;text-align:center';
-    d.appendChild(lbl);
-    el.appendChild(d);
-  });
-}
-setTimeout(initBgGallery,100);
-
-function useBgUrl(){
-  var input=document.getElementById('bgCustomUrl');var url=input.value.trim();
-  if(!url){toast('Pegá una URL de imagen');return}
-  _flyerAiBg=url;renderFlyerPro();toast('✅ Fondo aplicado');
-}
-
-function clearAiBg(){
-  _flyerAiBg=null;
-  var el=document.getElementById('clearAiBgBtn');
-  if(el) el.style.display='none';
-  renderFlyerPro();
-  toast(__('aiBgCleared'));
+  renderQrCanvas(canvasId,_flyerData.qrData,logoUrl,160);
 }
 
 function printFlyer(){window.print()}
 
 function downloadFlyerImg(){
   var sheet=document.getElementById('flyerSheet');
-  if(!sheet){toast('Genera el flyer primero');return}
+  if(!sheet){toast('Elegí un QR primero');return}
   var s=document.createElement('script');
   s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
   s.onload=function(){
