@@ -134,6 +134,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
   <input id="loginPass" type="password" placeholder="Contraseña" />
   <button class="btn btn-primary" onclick="login()"><span data-lang="loginBtn">Ingresar</span></button>
   <p style="margin-top:12px;font-size:12px;color:#64748b"><a href="#" onclick="resetPassword()" style="color:#8b5cf6;font-weight:700" data-lang="forgotPass">¿Olvidaste tu contraseña?</a></p>
+  <p style="margin-top:6px;font-size:12px;color:#64748b">¿No tenés cuenta todavía? <a href="#" onclick="showRegister()" style="color:#8b5cf6;font-weight:700">Crear cuenta</a></p>
   <div id="loginError" style="color:#f87171;font-size:13px;margin-top:8px;display:none"></div>
   <div id="resetSuccess" style="color:#34d399;font-size:13px;margin-top:8px;display:none"></div>
 </div>
@@ -639,7 +640,7 @@ function setQrType(t){_qrType=t;document.querySelectorAll('#clientModal .qr-type
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
 
-function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 <span data-lang="createAccount">Crear cuenta</span></h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="'+__('passwordPlaceholder')+'" /><button class="btn btn-primary" onclick="register()"><span data-lang="createAccount">Crear cuenta</span></button>'}
+function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 <span data-lang="createAccount">Crear cuenta</span></h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="'+__('passwordPlaceholder')+'" /><button class="btn btn-primary" onclick="register()"><span data-lang="createAccount">Crear cuenta</span></button><p style="margin-top:12px;font-size:12px;color:#64748b"><a href="#" onclick="location.reload()" style="color:#8b5cf6;font-weight:700">← Volver a iniciar sesión</a></p><div id="loginError" style="color:#f87171;font-size:13px;margin-top:8px;display:none"></div>'}
 
 function register(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
 QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>'}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
