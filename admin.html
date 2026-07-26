@@ -141,7 +141,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
 
 <div id="app" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
+    <h1 style="display:flex;align-items:center;gap:10px"><img id="brandLogo" src="" style="display:none;width:36px;height:36px;object-fit:contain;border-radius:8px;background:#fff;padding:3px" /><span id="brandTitle">📊 QR Tracker</span> <small id="adminEmail"></small></h1>
     <div style="display:flex;gap:6px;align-items:center">
       <button class="btn btn-sm btn-outline no-print" onclick="toggleLang()" id="langBtn">🇺🇸 EN</button>
       <a href="https://marketingusadb-create.github.io/qr-tracker/dashboard.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">👤 Panel Cliente</a>
@@ -735,12 +735,30 @@ function fillProfileForm(d){
   document.getElementById('profLogoUrl').value=d.logoUrl||'';
   var profPrev=document.getElementById('profLogoUrlPreview');
   if(d.logoUrl){profPrev.src=d.logoUrl;profPrev.style.display='inline-block'}else{profPrev.style.display='none';profPrev.src=''}
+  applyBranding(d);
+}
+
+// Muestra el nombre y logo del propio admin en el encabezado del panel, para que se vea con marca propia.
+function applyBranding(d){
+  d=d||{};
+  var titleEl=document.getElementById('brandTitle');
+  var logoEl=document.getElementById('brandLogo');
+  if(d.name){
+    titleEl.textContent='📊 '+d.name;
+    document.title=d.name+' - Admin';
+  }else{
+    titleEl.textContent='📊 QR Tracker';
+    document.title='QR Tracker - Admin';
+  }
+  if(d.logoUrl){logoEl.src=d.logoUrl;logoEl.style.display='inline-block'}
+  else{logoEl.style.display='none';logoEl.src=''}
 }
 
 function clearProfileForm(){
   ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
    'profBrevoKey','profBrevoSender','profAutoReplyPhone','profGoogleVoice',
    'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
+  applyBranding(null);
 }
 
 function saveAdminProfile(){
@@ -769,6 +787,7 @@ function saveAdminProfile(){
       document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
       toast(__('profileSaved'));
       _profileData=data;
+      applyBranding(data);
       adminLoadQrCodes();
     }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
   } else {
@@ -778,6 +797,7 @@ function saveAdminProfile(){
       document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
       toast(__('profileSaved'));
       _profileData=data;
+      applyBranding(data);
       document.getElementById('profileQrCard').style.display='block';
       document.getElementById('profileScansCard').style.display='block';
     }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
@@ -1283,27 +1303,37 @@ function saveClient(){
   if(!_currentClientId) return;
   var newEmail=document.getElementById('editEmail').value.trim();
   var newPass=document.getElementById('editPass').value.trim();
+  document.getElementById('editResult').innerHTML='⏳ Guardando...';
   // Obtener email actual del cliente para saber si cambió
   QR_DB.collection('clients').doc(_currentClientId).get().then(function(doc){
     if(!doc.exists)return;
     var oldData=doc.data();
+    var emailChanged=newEmail&&newEmail!==oldData.email;
+    var passChanged=newPass&&newPass!==oldData.dashboardPass;
     var authPromise=Promise.resolve();
-    // Si cambió email o password, actualizar Firebase Auth
-    if((newEmail&&newEmail!==oldData.email)||(newPass&&newPass!==oldData.dashboardPass)){
-      // Necesitamos encontrar el UID del cliente por email
+    if(emailChanged){
+      // El email de Firebase Auth ya no se puede editar directo (Google lo bloquea por seguridad).
+      // En vez de eso: se borra la cuenta vieja y se crea una nueva con el email/contraseña nuevos.
       authPromise=CLIENT_AUTH.signInWithEmailAndPassword(oldData.email,oldData.dashboardPass).then(function(cred){
-        var user=cred.user;
-        var updates=[];
-        if(newEmail&&newEmail!==oldData.email) updates.push(user.updateEmail(newEmail));
-        if(newPass) updates.push(user.updatePassword(newPass));
-        return Promise.all(updates).then(function(){CLIENT_AUTH.signOut()});
+        return cred.user.delete();
       }).catch(function(err){
-        // Si no existe cuenta Auth, crearla
-        if(err.code==='auth/user-not-found'&&newEmail&&newPass){
-          return CLIENT_AUTH.createUserWithEmailAndPassword(newEmail,newPass).then(function(){CLIENT_AUTH.signOut()});
+        if(err.code!=='auth/user-not-found') throw err;
+        // si no existía cuenta vieja, no pasa nada, seguimos a crear la nueva
+      }).then(function(){
+        return CLIENT_AUTH.createUserWithEmailAndPassword(newEmail,newPass||oldData.dashboardPass);
+      }).then(function(){
+        return CLIENT_AUTH.signOut();
+      });
+    } else if(passChanged){
+      authPromise=CLIENT_AUTH.signInWithEmailAndPassword(oldData.email,oldData.dashboardPass).then(function(cred){
+        return cred.user.updatePassword(newPass);
+      }).then(function(){
+        return CLIENT_AUTH.signOut();
+      }).catch(function(err){
+        if(err.code==='auth/user-not-found'&&oldData.email&&newPass){
+          return CLIENT_AUTH.createUserWithEmailAndPassword(oldData.email,newPass).then(function(){return CLIENT_AUTH.signOut()});
         }
-        console.warn('Auth update failed:',err);
-        return Promise.resolve();
+        throw err;
       });
     }
     return authPromise.then(function(){
@@ -1325,8 +1355,12 @@ function saveClient(){
         licenciaVence:document.getElementById('editLicenciaVence').value
       });
     });
-  }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
-  .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+  }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado (login del cliente sincronizado)</span>';toast('Cambios guardados')})
+  .catch(function(err){
+    var msg=err.message;
+    if(err.code==='auth/email-already-in-use') msg='Ese email ya está en uso por otra cuenta. El resto de los datos NO se guardó para evitar que quede desincronizado.';
+    document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+msg+' — revisá e intentá de nuevo.</span>';
+  });
 }
 
 function toggleClientActive(id,newState){
