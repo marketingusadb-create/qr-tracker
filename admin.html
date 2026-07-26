@@ -560,11 +560,17 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
-// Dibuja un QR en un <div id="containerId">. El logo SIEMPRE se muestra en pantalla (overlay visual,
-// no depende de permisos CORS del servidor de la imagen). Para la descarga, además intenta "hornear" el logo
-// dentro del PNG; si el servidor de la imagen no permite CORS, la descarga sale sin logo (con aviso claro,
-// mostrado debajo del QR) pero la vista en pantalla queda igual. Nivel de corrección de error ALTO ('H')
-// para que el logo nunca rompa la lectura.
+// Convierte cualquier link de imagen en una versión que sí permite ser leída entre sitios (CORS),
+// usando un servicio intermediario gratuito y confiable. Así el logo se puede incrustar en la
+// descarga sin que el usuario tenga que resubir la imagen a otro lugar.
+function corsProxyUrl(url){
+  return 'https://images.weserv.nl/?url='+encodeURIComponent(url.replace(/^https?:\/\//,''));
+}
+
+// Dibuja un QR en un <div id="containerId">. El logo SIEMPRE se muestra en pantalla (overlay visual).
+// Para la descarga, intenta incrustar el logo directo y, si el sitio de la imagen no permite CORS,
+// reintenta automáticamente a través de un proxy de imágenes antes de rendirse. Nivel de corrección
+// de error ALTO ('H') para que el logo nunca rompa la lectura del QR.
 function renderQrCanvas(containerId,qrData,logoUrl,size){
   var container=document.getElementById(containerId);
   if(!container)return;
@@ -575,7 +581,6 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
     container.removeAttribute('style');
     container.style.cssText='text-align:center';
     container.innerHTML='';
-    canvas.width=s;canvas.height=s;
     canvas.style.cssText='display:block;width:100%;max-width:'+s+'px;height:auto;aspect-ratio:1/1;border-radius:8px;margin:0 auto';
     var wrap=document.createElement('div');
     wrap.style.cssText='position:relative;display:block;width:100%;max-width:'+s+'px;margin:0 auto';
@@ -595,28 +600,32 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
     logoImg.src=logoUrl;
     logoWrap.appendChild(logoImg);
     wrap.appendChild(logoWrap);
-    // Intento de "hornear" el logo en el PNG para que también salga en la descarga (requiere CORS).
-    var bakeImg=new Image();
-    bakeImg.crossOrigin='anonymous';
-    bakeImg.onload=function(){
-      var bakeCanvas=document.createElement('canvas');
-      bakeCanvas.width=s;bakeCanvas.height=s;
-      var bctx=bakeCanvas.getContext('2d');
-      bctx.drawImage(canvas,0,0,s,s);
-      var x=(s-logoSize)/2,y=(s-logoSize)/2;
-      bctx.fillStyle='#fff';roundRect(bctx,x-pad,y-pad,box,box,8);bctx.fill();
-      bctx.save();roundRect(bctx,x,y,logoSize,logoSize,6);bctx.clip();
-      bctx.drawImage(bakeImg,x,y,logoSize,logoSize);
-      bctx.restore();
-      try{container.dataset.qrDataUrl=bakeCanvas.toDataURL('image/png')}catch(e){/* CORS bloqueó la lectura, se deja la descarga sin logo */}
-    };
-    bakeImg.onerror=function(){
-      var note=document.createElement('div');
-      note.style.cssText='font-size:10px;color:#fbbf24;margin-top:6px;text-align:center;line-height:1.4';
-      note.innerHTML='⚠️ El logo se ve en pantalla, pero esta imagen no se puede incluir en el PNG descargado.<br>Para que también quede en la descarga, subila gratis a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6;text-decoration:underline">imgur.com/upload</a> y usá ese link.';
-      container.appendChild(note);
-    };
-    bakeImg.src=logoUrl;
+    // Intento de "hornear" el logo en el PNG descargable (con reintento automático vía proxy si hace falta).
+    function bake(url,isRetry){
+      var bakeImg=new Image();
+      bakeImg.crossOrigin='anonymous';
+      bakeImg.onload=function(){
+        try{
+          var bakeCanvas=document.createElement('canvas');
+          bakeCanvas.width=s;bakeCanvas.height=s;
+          var bctx=bakeCanvas.getContext('2d');
+          bctx.drawImage(canvas,0,0,s,s);
+          var x=(s-logoSize)/2,y=(s-logoSize)/2;
+          bctx.fillStyle='#fff';roundRect(bctx,x-pad,y-pad,box,box,8);bctx.fill();
+          bctx.save();roundRect(bctx,x,y,logoSize,logoSize,6);bctx.clip();
+          bctx.drawImage(bakeImg,x,y,logoSize,logoSize);
+          bctx.restore();
+          container.dataset.qrDataUrl=bakeCanvas.toDataURL('image/png');
+        }catch(e){
+          if(!isRetry){bake(corsProxyUrl(url),true)}
+        }
+      };
+      bakeImg.onerror=function(){
+        if(!isRetry){bake(corsProxyUrl(url),true)}
+      };
+      bakeImg.src=url;
+    }
+    bake(logoUrl,false);
   });
 }
 
