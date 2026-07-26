@@ -279,17 +279,54 @@ function submitLead(){
   });
 }
 
+function handleWeblinkRedirect(targetUrl){
+  $('formContent').style.display='none';$('loader').style.display='block';
+  $('loader').querySelector('p').textContent='Redirigiendo...';
+  var info=getDeviceInfo();
+  getGPSPosition().then(function(gps){
+    var revPromise=gps?reverseGeocode(gps.lat,gps.lng):Promise.resolve(null);
+    var ipPromise=fetch('https://ip-api.com/json/?fields=query,country,city,org').then(function(r){return r.json()}).catch(function(){return{}});
+    return Promise.all([revPromise,ipPromise]).then(function(results){
+      var rev=results[0],geo=results[1];
+      var city=(rev&&rev.city)||geo.city||'';
+      var county=(rev&&rev.county)||'';
+      var country=(rev&&rev.country)||geo.country||'';
+      var state=(rev&&rev.state)||'';
+      var scan={
+        ip:geo.query||'',city:city,county:county,state:state,country:country,isp:geo.isp||'',
+        gpsLat:gps?gps.lat:null, gpsLng:gps?gps.lng:null, gpsAccuracy:gps?gps.accuracy:null,
+        device:info.device,os:info.os,browser:info.browser,screen:info.screen,
+        timestamp:firebase.firestore.FieldValue.serverTimestamp(),qrId:qrId||'',
+        leadName:'',leadEmail:'',leadPhone:'',leadMessage:'',
+        status:'new',deleted:false,type:'weblink'
+      };
+      return DB.collection('clients').doc(clientId).collection('scans').add(scan);
+    });
+  }).then(function(){
+    location.href=targetUrl;
+  }).catch(function(err){
+    console.error(err);
+    location.href=targetUrl;
+  });
+}
+
 /* Init */
 if(!clientId||!qrId){location.href='admin.html';}
 else{
+  var _qrDocData=null;
   DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
     if(!qrDoc.exists){showError('Este código QR no está registrado.');return null}
     if(qrDoc.data().active===false){showError('Este código QR ha sido desactivado.');return null}
+    _qrDocData=qrDoc.data();
     return DB.collection('clients').doc(clientId).get();
   }).then(function(clientDoc){
     if(!clientDoc)return;
     if(!clientDoc.exists){showError('El negocio no está registrado.');return}
     _clientData=clientDoc.data();
+    if(_qrDocData&&_qrDocData.type==='weblink'&&_qrDocData.targetUrl){
+      handleWeblinkRedirect(_qrDocData.targetUrl);
+      return;
+    }
     $('businessName').textContent=_clientData.name||'Contáctanos';
     var sb=$('serviceBadge');sb.textContent=_svcLabels[_serviceType]||_svcLabels.whatsapp;sb.className='service-badge '+_serviceType;
     $('submitBtn').textContent='Enviar y contactar por '+(_svcNames[_serviceType]||'WhatsApp');

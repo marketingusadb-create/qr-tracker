@@ -255,7 +255,9 @@ textarea{min-height:60px;resize:vertical}
           <label><input type="radio" name="qrType" value="telegram" onchange="setQrType('telegram')" /> ✈️ Telegram</label>
           <label><input type="radio" name="qrType" value="sms" onchange="setQrType('sms')" /> 📱 SMS</label>
           <label><input type="radio" name="qrType" value="teams" onchange="setQrType('teams')" /> 💼 Teams</label>
+          <label><input type="radio" name="qrType" value="weblink" onchange="setQrType('weblink')" /> 🔗 Página web</label>
         </div>
+        <input id="qrTargetUrl" placeholder="https://tu-lead-page-o-sitio-web.com" style="display:none;margin-bottom:8px" />
         <div style="display:flex;gap:8px;margin-bottom:14px">
           <input id="newQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" style="flex:1;margin:0" />
           <button class="btn btn-primary btn-sm" onclick="addQrCode()" data-lang="generateQr">Generar QR</button>
@@ -380,6 +382,7 @@ textarea{min-height:60px;resize:vertical}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 var QR_FIREBASE_CONFIG = {
@@ -656,7 +659,7 @@ function switchTab(t,btn){
   if(t==='trash') loadTrash();
 }
 
-function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
+function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)});var u=document.getElementById('qrTargetUrl');if(u)u.style.display=(t==='weblink')?'block':'none'}
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
 
@@ -672,13 +675,75 @@ function previewLogoUrl(urlInputId,previewId){
   }
 }
 
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+// Dibuja un QR en un <div id="containerId"> como canvas, con el logo incrustado al centro si logoUrl viene dado.
+// Nivel de corrección de error ALTO ('H') para que el logo nunca afecte la lectura del código.
+function renderQrCanvas(containerId,qrData,logoUrl,size){
+  var container=document.getElementById(containerId);
+  if(!container)return;
+  var s=size||300;
+  var canvas=document.createElement('canvas');
+  QRCode.toCanvas(canvas,qrData,{width:s,margin:1,errorCorrectionLevel:'H'},function(err){
+    if(err){container.innerHTML='<p style="color:#f87171;font-size:11px">Error generando QR</p>';console.error(err);return}
+    function place(warnNoLogo){
+      container.innerHTML='';
+      canvas.style.width='100%';canvas.style.maxWidth=s+'px';canvas.style.borderRadius='8px';canvas.style.display='block';canvas.style.margin='0 auto';
+      container.appendChild(canvas);
+      try{container.dataset.qrDataUrl=canvas.toDataURL('image/png')}catch(e){container.dataset.qrDataUrl=''}
+      if(warnNoLogo){
+        var w=document.createElement('div');
+        w.style.cssText='font-size:10px;color:#fbbf24;margin-top:4px;text-align:center';
+        w.textContent='⚠️ Ese logo no se pudo incrustar (probá subiéndolo a Imgur). QR generado sin logo.';
+        container.appendChild(w);
+      }
+    }
+    if(!logoUrl){place();return}
+    var img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=function(){
+      var logoSize=Math.round(s*0.20);
+      var x=(s-logoSize)/2,y=(s-logoSize)/2;
+      var ctx=canvas.getContext('2d');
+      var pad=Math.round(logoSize*0.18);
+      ctx.fillStyle='#fff';roundRect(ctx,x-pad,y-pad,logoSize+pad*2,logoSize+pad*2,8);ctx.fill();
+      ctx.save();roundRect(ctx,x,y,logoSize,logoSize,6);ctx.clip();
+      ctx.drawImage(img,x,y,logoSize,logoSize);
+      ctx.restore();
+      try{canvas.toDataURL('image/png');place(false)}
+      catch(e){QRCode.toCanvas(canvas,qrData,{width:s,margin:1,errorCorrectionLevel:'H'},function(){place(true)})}
+    };
+    img.onerror=function(){place()};
+    img.src=logoUrl;
+  });
+}
+
+function downloadQrCanvas(containerId,filename){
+  var container=document.getElementById(containerId);
+  if(!container||!container.dataset.qrDataUrl){toast('⏳ Esperá que el QR termine de generarse');return}
+  var a=document.createElement('a');a.href=container.dataset.qrDataUrl;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
 function getBaseUrl(){return 'https://marketingusadb-create.github.io/qr-tracker/index.html'}
 
 function addQrCode(){
   if(!_clientDocId)return
+  var targetUrl='';
+  if(_qrType==='weblink'){
+    targetUrl=document.getElementById('qrTargetUrl').value.trim();
+    if(!targetUrl){toast('⚠️ Ingresá la URL de destino');return}
+    if(!/^https?:\/\//i.test(targetUrl)) targetUrl='https://'+targetUrl;
+  }
   var qrId=document.getElementById('newQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:_qrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    document.getElementById('newQrId').value='';toast('✅ QR '+_qrType+' generado: '+qrId);loadQrCodes()
+  var data={label:qrId,active:true,type:_qrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+  if(targetUrl)data.targetUrl=targetUrl;
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).set(data).then(function(){
+    document.getElementById('newQrId').value='';document.getElementById('qrTargetUrl').value='';
+    toast('✅ QR '+_qrType+' generado: '+qrId);loadQrCodes()
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
@@ -686,20 +751,23 @@ function loadQrCodes(){
   if(!_clientDocId)return
   QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').get().then(function(snap){
     var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
-    var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+    var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams',weblink:'🔗 Web'};
+    var logoUrl=(_clientData&&_clientData.logoUrl)||'';
+    var items=[];
     snap.forEach(function(doc){var d=doc.data();
       if(d.deleted)return;
       var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?__('qrActive'):__('qrInactive');
       var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
       var qrData=baseUrl+'?c='+_clientDocId+'&q='+doc.id+'&s='+type;
-      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+      var canvasId='qrc_'+doc.id;
+      items.push({id:doc.id,qrData:qrData,canvasId:canvasId});
       html+='<div class="qr-item">'
-        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+        +'<div id="'+canvasId+'" style="min-height:150px;display:flex;align-items:center;justify-content:center;color:#666;font-size:11px">Generando...</div>'
         +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
-        +'<div class="id">'+qrData+'</div>'
+        +(type==='weblink'&&d.targetUrl?'<div class="id" style="word-break:break-all">🔗 '+esc(d.targetUrl)+'</div>':'<div class="id">'+qrData+'</div>')
         +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
         +'<button onclick="toggleQrStatus(\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?__('qrDeactivate'):__('qrActivate'))+'</button>'
-        +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
+        +'<button onclick="downloadQrCanvas(\''+canvasId+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
         +'<button onclick="deleteQrCode(\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑</button>'
         +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
         +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
@@ -707,6 +775,7 @@ function loadQrCodes(){
         +'</div></div>'});
     if(!snap.size) html='<p style="color:#94a3b8;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
     document.getElementById('qrCodeList').innerHTML=html;
+    items.forEach(function(it){renderQrCanvas(it.canvasId,it.qrData,logoUrl,280)});
   });
 }
 
