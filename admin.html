@@ -683,35 +683,13 @@ function loadAdminProfile(){
       adminLoadQrCodes();adminLoadScans();
       return
     }
-    // Fallback: buscar cliente existente por email del admin
-    var email=u.email;
-    if(email){
-      QR_DB.collection('clients').where('email','==',email).limit(1).get().then(function(esnap){
-        if(!esnap.empty){
-          esnap.forEach(function(doc){
-            _profileId=doc.id;
-            _profileData=doc.data();
-            // Adoptar como perfil admin
-            QR_DB.collection('clients').doc(doc.id).update({adminUid:u.uid,isAdminProfile:true}).catch(function(e){console.warn(e)});
-            fillProfileForm(doc.data());
-          });
-          document.getElementById('profileQrCard').style.display='block';
-          document.getElementById('profileScansCard').style.display='block';
-          adminLoadQrCodes();adminLoadScans();
-          return
-        }
-        // No hay perfil, mostrar formulario vacío
-        _profileId=null;
-        document.getElementById('profileQrCard').style.display='none';
-        document.getElementById('profileScansCard').style.display='none';
-        clearProfileForm();
-      });
-    } else {
-      _profileId=null;
-      document.getElementById('profileQrCard').style.display='none';
-      document.getElementById('profileScansCard').style.display='none';
-      clearProfileForm();
-    }
+    // No existe todavía un perfil propio del admin (ligado a su adminUid). IMPORTANTE: nunca se
+    // busca ni se "adopta" un cliente real por coincidencia de email — el perfil de admin y los
+    // clientes son registros completamente independientes, sin excepción.
+    _profileId=null;
+    document.getElementById('profileQrCard').style.display='none';
+    document.getElementById('profileScansCard').style.display='none';
+    clearProfileForm();
   }).catch(function(err){console.warn('Error loading admin profile:',err)});
 }
 
