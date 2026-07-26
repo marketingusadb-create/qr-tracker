@@ -560,8 +560,10 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
-// Dibuja un QR en un <div id="containerId"> como canvas, con el logo incrustado al centro si logoUrl viene dado.
-// Nivel de corrección de error ALTO ('H') para que el logo nunca afecte la lectura del código.
+// Dibuja un QR en un <div id="containerId">. El logo SIEMPRE se muestra en pantalla (como overlay visual,
+// no depende de permisos CORS del servidor de la imagen). Para la descarga, intenta además "hornear" el logo
+// dentro del PNG; si el servidor de la imagen no permite CORS, la descarga sale sin logo (con aviso) pero
+// la vista en pantalla queda igual. Nivel de corrección de error ALTO ('H') para que el logo nunca rompa la lectura.
 function renderQrCanvas(containerId,qrData,logoUrl,size){
   var container=document.getElementById(containerId);
   if(!container)return;
@@ -569,35 +571,48 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
   var canvas=document.createElement('canvas');
   QRCode.toCanvas(canvas,qrData,{width:s,margin:1,errorCorrectionLevel:'H'},function(err){
     if(err){container.innerHTML='<p style="color:#f87171;font-size:11px">Error generando QR</p>';console.error(err);return}
-    function place(warnNoLogo){
-      container.innerHTML='';
-      canvas.style.width='100%';canvas.style.maxWidth=s+'px';canvas.style.borderRadius='8px';canvas.style.display='block';canvas.style.margin='0 auto';
-      container.appendChild(canvas);
-      try{container.dataset.qrDataUrl=canvas.toDataURL('image/png')}catch(e){container.dataset.qrDataUrl=''}
-      if(warnNoLogo){
-        var w=document.createElement('div');
-        w.style.cssText='font-size:10px;color:#fbbf24;margin-top:4px;text-align:center';
-        w.textContent='⚠️ Ese logo no se pudo incrustar (probá subiéndolo a Imgur). QR generado sin logo.';
-        container.appendChild(w);
-      }
-    }
-    if(!logoUrl){place();return}
-    var img=new Image();
-    img.crossOrigin='anonymous';
-    img.onload=function(){
-      var logoSize=Math.round(s*0.20);
+    canvas.style.width='100%';canvas.style.maxWidth=s+'px';canvas.style.borderRadius='8px';canvas.style.display='block';canvas.style.margin='0 auto';
+    container.innerHTML='';
+    var wrap=document.createElement('div');
+    wrap.style.cssText='position:relative;display:block;max-width:'+s+'px;margin:0 auto';
+    wrap.appendChild(canvas);
+    container.appendChild(wrap);
+    try{container.dataset.qrDataUrl=canvas.toDataURL('image/png')}catch(e){container.dataset.qrDataUrl=''}
+    if(!logoUrl)return;
+    var logoSize=Math.round(s*0.20);
+    var pad=Math.round(logoSize*0.18);
+    var box=logoSize+pad*2;
+    // Overlay visual: SIEMPRE se muestra, sin importar CORS.
+    var logoWrap=document.createElement('div');
+    logoWrap.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:'+box+'px;height:'+box+'px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden';
+    var logoImg=document.createElement('img');
+    logoImg.style.cssText='width:'+logoSize+'px;height:'+logoSize+'px;object-fit:contain;border-radius:6px';
+    logoImg.onerror=function(){logoWrap.style.display='none'};
+    logoImg.src=logoUrl;
+    logoWrap.appendChild(logoImg);
+    wrap.appendChild(logoWrap);
+    // Intento de "hornear" el logo en el PNG para que también salga en la descarga (requiere CORS).
+    var bakeImg=new Image();
+    bakeImg.crossOrigin='anonymous';
+    bakeImg.onload=function(){
+      var bakeCanvas=document.createElement('canvas');
+      bakeCanvas.width=s;bakeCanvas.height=s;
+      var bctx=bakeCanvas.getContext('2d');
+      bctx.drawImage(canvas,0,0,s,s);
       var x=(s-logoSize)/2,y=(s-logoSize)/2;
-      var ctx=canvas.getContext('2d');
-      var pad=Math.round(logoSize*0.18);
-      ctx.fillStyle='#fff';roundRect(ctx,x-pad,y-pad,logoSize+pad*2,logoSize+pad*2,8);ctx.fill();
-      ctx.save();roundRect(ctx,x,y,logoSize,logoSize,6);ctx.clip();
-      ctx.drawImage(img,x,y,logoSize,logoSize);
-      ctx.restore();
-      try{canvas.toDataURL('image/png');place(false)}
-      catch(e){QRCode.toCanvas(canvas,qrData,{width:s,margin:1,errorCorrectionLevel:'H'},function(){place(true)})}
+      bctx.fillStyle='#fff';roundRect(bctx,x-pad,y-pad,box,box,8);bctx.fill();
+      bctx.save();roundRect(bctx,x,y,logoSize,logoSize,6);bctx.clip();
+      bctx.drawImage(bakeImg,x,y,logoSize,logoSize);
+      bctx.restore();
+      try{container.dataset.qrDataUrl=bakeCanvas.toDataURL('image/png')}catch(e){/* CORS bloqueó la lectura, se deja la descarga sin logo */}
     };
-    img.onerror=function(){place()};
-    img.src=logoUrl;
+    bakeImg.onerror=function(){
+      var note=document.createElement('div');
+      note.style.cssText='font-size:10px;color:#fbbf24;margin-top:4px;text-align:center';
+      note.textContent='⚠️ El logo se ve en pantalla, pero para que también quede en el PNG descargado, subilo a Imgur (este link no lo permite).';
+      container.appendChild(note);
+    };
+    bakeImg.src=logoUrl;
   });
 }
 
@@ -778,6 +793,7 @@ function adminLoadQrCodes(){
     var logoUrl=(_profileData&&_profileData.logoUrl)||'';
     var items=[];
     snap.forEach(function(doc){var d=doc.data();
+      if(d.deleted)return;
       var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?__('qrActive'):__('qrInactive');
       var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
       var qrData=baseUrl+'?c='+_profileId+'&q='+doc.id+'&s='+type;
