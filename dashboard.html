@@ -267,30 +267,10 @@ textarea{min-height:60px;resize:vertical}
     </div>
 
     <div id="tab-flyer" class="tab-content">
-      <div class="flyer-wrap">
-        <div class="flyer-controls no-print">
-          <h3>🎨 <span data-lang="flyerTitle">Creador de Flyer</span></h3>
-          <p style="font-size:13px;color:#94a3b8;margin-bottom:12px">Elegí tu QR, un color, y listo — la vista previa se actualiza sola.</p>
-          <div class="form-group"><label style="font-size:12px;color:#888">1. Elegí tu código QR</label><select id="flyerQrSelect" onchange="onFlyerQrChange()"></select></div>
-          <div style="font-size:12px;color:#888;margin-bottom:6px">2. Elegí un color</div>
-          <div class="flyer-theme" id="flyerTheme">
-            <button style="background:#1a1a2e;color:#fff;border:2px solid rgba(255,255,255,.1)" data-theme="dark" onclick="setFlyerTheme('dark')">🌙 Oscuro</button>
-            <button style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:2px solid rgba(255,255,255,.2)" data-theme="blue" onclick="setFlyerTheme('blue')" class="active">💙 Azul</button>
-            <button style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:2px solid rgba(255,255,255,.2)" data-theme="red" onclick="setFlyerTheme('red')">❤️ Rojo</button>
-            <button style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:2px solid rgba(255,255,255,.2)" data-theme="green" onclick="setFlyerTheme('green')">💚 Verde</button>
-            <button style="background:#222;color:#fff;border:2px solid rgba(255,255,255,.1)" data-theme="black" onclick="setFlyerTheme('black')">🖤 Negro</button>
-            <button style="background:#fff;color:#222;border:2px solid #ddd" data-theme="light" onclick="setFlyerTheme('light')">⬜ Claro</button>
-          </div>
-          <div style="font-size:12px;color:#888;margin:12px 0 6px">3. (Opcional) Ajustá el texto</div>
-          <div class="form-group"><label>Título</label><input id="flyerTitleInput" placeholder="Título" oninput="renderFlyerPro()" /></div>
-          <div class="form-group"><label>Texto</label><textarea id="flyerTextInput" rows="2" placeholder="Texto descriptivo" oninput="renderFlyerPro()"></textarea></div>
-          <div class="form-group"><label>Teléfono</label><input id="flyerPhoneInput" placeholder="Teléfono" oninput="renderFlyerPro()" /></div>
-          <div class="flyer-actions">
-            <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ <span data-lang="downloadFlyer">Descargar Imagen</span></button>
-            <button class="btn btn-outline" onclick="printFlyer()">🖨 <span data-lang="printFlyer">Imprimir</span></button>
-          </div>
-        </div>
-        <div id="flyerResult"></div>
+      <div style="text-align:center;padding:60px 20px">
+        <h2 style="font-size:24px;margin-bottom:12px">🎨 <span data-lang="flyerTitle">Editor de Flyer</span></h2>
+        <p style="font-size:14px;color:#94a3b8;margin-bottom:24px" data-lang="flyerDesc">Usá el editor completo de flyer con todas las herramientas profesionales.</p>
+        <a href="flyer-master-baez.html" target="_blank" class="btn btn-primary" style="font-size:18px;padding:16px 40px">🚀 <span data-lang="openFlyerBtn">Abrir Editor de Flyer</span></a>
       </div>
     </div>
 
@@ -422,7 +402,7 @@ var _TRANS={
     qrDeactivate:'🔴 Desactivar',qrActivate:'🟢 Activar',
     noQrCodes:'Sin códigos QR aún. Genera uno.',
     qrActivated:'✅ QR activado',qrDeactivated:'🔴 QR desactivado',
-    flyerTitle:'Creador Profesional de Flyer',flyerDesc:'Generá un flyer profesional con tu código QR para imprimir o descargar.',
+    flyerTitle:'Editor de Flyer',flyerDesc:'Usá el editor completo de flyer con todas las herramientas profesionales.',openFlyerBtn:'Abrir Editor de Flyer',
     flyerDescPro:'Flyer tamaño carta (8.5×11) en 4 tarjetas. Seleccioná tus códigos QR, personalizá y descargá o imprimí.',
     chooseTheme:'Tema de color:',flyerGenerateFirst:'Hacé click en "Generar Flyer" para empezar',
     generateFlyerBtn:'Generar Flyer',downloadFlyer:'Descargar Imagen',printFlyer:'Imprimir',designerPro:'Diseñador Pro',
@@ -463,7 +443,7 @@ var _TRANS={
     qrDeactivate:'🔴 Deactivate',qrActivate:'🟢 Activate',
     noQrCodes:'No QR codes yet. Generate one.',
     qrActivated:'✅ QR activated',qrDeactivated:'🔴 QR deactivated',
-    flyerTitle:'Professional Flyer Creator',flyerDesc:'Create a professional flyer with your QR code to print or download.',
+    flyerTitle:'Flyer Editor',flyerDesc:'Use the full flyer editor with all professional tools.',openFlyerBtn:'Open Flyer Editor',
     flyerDescPro:'Letter size (8.5×11) with 4 cards. Select your QR codes, customize and download or print.',
     chooseTheme:'Color theme:',flyerGenerateFirst:'Click "Generate Flyer" to start',
     generateFlyerBtn:'Generate Flyer',downloadFlyer:'Download Image',printFlyer:'Print',designerPro:'Designer Pro',
@@ -843,22 +823,7 @@ function setFlyerTheme(theme){
   renderFlyerPro();
 }
 
-function populateFlyerQrList(){
-  if(!_clientDocId)return
-  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').get().then(function(snap){
-    _flyerQrCodes=[];var html='';
-    var typeEmojis={whatsapp:'💬',telegram:'✈️',sms:'📱',teams:'💼',weblink:'🔗'};
-    snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;
-      _flyerQrCodes.push({id:doc.id,data:d});
-      var label=d.label||doc.id;var em=typeEmojis[d.type]||'💬';
-      html+='<option value="'+doc.id+'">'+em+' '+esc(label)+'</option>';
-    });
-    var sel=document.getElementById('flyerQrSelect');
-    if(!html){sel.innerHTML='<option value="">'+__('noQrCodes')+'</option>';document.getElementById('flyerResult').innerHTML='';return}
-    sel.innerHTML=html;
-    onFlyerQrChange();
-  });
-}
+function populateFlyerQrList(){}
 
 function onFlyerQrChange(){
   var qrId=document.getElementById('flyerQrSelect').value;
