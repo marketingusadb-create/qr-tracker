@@ -1130,9 +1130,15 @@ function syncAllAuth(){
   });
 }
 function loadClients(){
-  QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
+  QR_DB.collection('clients').onSnapshot(function(snap){
     _clients=[];var html='';
-    snap.forEach(function(doc){var d=doc.data();if(d.deleted||d.isAdminProfile)return;d._id=doc.id;_clients.push(d);
+    var docs=[];snap.forEach(function(doc){docs.push(doc)});
+    docs.sort(function(a,b){
+      var ta=a.data().createdAt&&a.data().createdAt.seconds||0;
+      var tb=b.data().createdAt&&b.data().createdAt.seconds||0;
+      return tb-ta;
+    });
+    docs.forEach(function(doc){var d=doc.data();if(d.deleted||d.isAdminProfile)return;d._id=doc.id;_clients.push(d);
       var _active=d.licenciaActiva===true;
       html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+' <span class="badge '+(_active?'badge-active':'badge-inactive')+'">'+(_active?'✅ Activo':'❌ Inactivo')+'</span></h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | ⏳ '+(d.licenciaVence||'Sin vencimiento')+'</div><div style="font-size:11px;color:#64748b">🆔 '+doc.id+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="event.stopPropagation();toggleClientActive(\''+doc.id+'\','+(!_active)+')" class="btn btn-sm '+(_active?'btn-warning':'btn-success')+'">'+(_active?'🔴 Desactivar':'🟢 Activar')+'</button><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" title="Enviar a papelera">🗑</button></div></div></div>'});
     if(!html) html='<p style="color:#888;text-align:center;padding:40px" data-lang="noClients">No hay clientes aún.</p>';
