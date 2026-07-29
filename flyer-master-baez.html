@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Master Baez Martial Arts — Flyer Editable</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E0E10;
+    --charcoal:#1C1C21;
+    --crimson:#D62839;
+    --gold:#C9A227;
+    --bone:#F3EFE6;
+    --graphite:#8C8C93;
+    --stitch: repeating-linear-gradient(90deg, rgba(243,239,230,.55) 0 10px, transparent 10px 20px);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#3a3a40;
+    font-family:'Inter',sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 12px 60px;
+    color:var(--bone);
+  }
+  .toolbar{
+    width:100%;
+    max-width:850px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+    justify-content:center;
+  }
+  .toolbar button{
+    background:var(--charcoal);
+    color:var(--bone);
+    border:1px solid #3a3a42;
+    border-radius:8px;
+    padding:10px 16px;
+    font:600 13px/1 'Inter',sans-serif;
+    cursor:pointer;
+    letter-spacing:.02em;
+    transition:background .15s, transform .15s;
+  }
+  .toolbar button:hover{background:var(--crimson); transform:translateY(-1px);}
+  .toolbar button#langBtn{background:var(--gold); color:#141412; font-weight:800;}
+  .toolbar select#exportFormat{
+    background:var(--charcoal);
+    color:var(--bone);
+    border:1px solid #3a3a42;
+    border-radius:8px;
+    padding:10px 10px;
+    font:600 13px/1 'Inter',sans-serif;
+    cursor:pointer;
+  }
+  .toolbar .hint{
+    width:100%;
+    text-align:center;
+    font-size:12px;
+    color:#c9c9ce;
+    margin-top:2px;
+  }
+
+  #flyer{
+    width:850px;
+    min-height:1100px;
+    background:var(--ink);
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 30px 60px rgba(0,0,0,.5);
+  }
+
+  /* ---------- HEADER ---------- */
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:28px 40px 20px;
+    border-bottom:1px solid #26262c;
+  }
+  .brand{display:flex; align-items:center; gap:16px;}
+  .logo-slot{
+    width:72px; height:72px;
+    border-radius:10px;
+    border:2px dashed #4a4a52;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:var(--graphite);
+    text-align:center; line-height:1.3;
+    cursor:pointer;
+    background:var(--ink,#161619);
+    flex-shrink:0;
+    overflow:hidden;
+    position:relative;
+  }
+  .logo-slot img{width:100%; height:100%; object-fit:contain;}
+  .school-name{
+    font-family:'Anton',sans-serif;
+    font-size:26px;
+    letter-spacing:.02em;
+    line-height:1;
+    text-transform:uppercase;
+    outline:none;
+  }
+  .school-tag{
+    font-size:12px;
+    color:var(--gold);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin-top:4px;
+    font-weight:600;
+    outline:none;
+  }
+  .header-contact{
+    text-align:right;
+    font-size:12px;
+    color:var(--gray,#c9c9ce);
+    line-height:1.7;
+  }
+  .header-contact div{outline:none;}
+  .header-contact b{color:var(--bone);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    height:380px;
+    background:var(--ink,#161619);
+    overflow:hidden;
+  }
+  .hero-photo-wrap{
+    position:absolute;
+    inset:16px 16px 0 16px;
+    border-radius:6px;
+    overflow:hidden;
+    border:2px dashed #35353c;
+    background:var(--ink,#161619);
+    touch-action:none;
+  }
+  .hero-photo-wrap.has-image{border:none;}
+  .hero-empty{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--graphite);
+    font-size:13px;
+    text-align:center;
+    padding:0 30px;
+    cursor:pointer;
+  }
+  #heroImg{
+    position:absolute;
+    top:50%; left:50%;
+    max-width:none;
+    display:none;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+  #heroImg.dragging{cursor:grabbing;}
+  .hero-controls{
+    position:absolute;
+    bottom:10px; right:10px;
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:rgba(14,14,16,.75);
+    padding:8px 10px;
+    border-radius:999px;
+    z-index:5;
+  }
+  .hero-controls input[type=range]{width:100px;}
+  .hero-controls button{
+    background:none; border:none; color:var(--bone);
+    font-size:14px; cursor:pointer;
+  }
+  .belt-stripe{
+    position:absolute;
+    left:-60px; right:-60px;
+    top:60%;
+    height:92px;
+    background:var(--crimson);
+    transform:rotate(-4deg);
+    display:flex;
+    align-items:center;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+    z-index:3;
+    pointer-events:none;
+  }
+  .belt-stripe::before, .belt-stripe::after{
+    content:"";
+    position:absolute; left:0; right:0;
+    height:2px;
+    background:var(--stitch);
+  }
+  .belt-stripe::before{top:10px;}
+  .belt-stripe::after{bottom:10px;}
+  .belt-text{
+    width:100%;
+    text-align:center;
+    font-family:'Anton',sans-serif;
+    font-size:34px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--bone);
+    outline:none;
+    padding:0 80px;
+    pointer-events:auto;
+  }
+  .belt-stripe.belt-static{
+    position:relative;
+    left:auto; right:auto; top:auto;
+    margin-top:40px;
+    margin-bottom:50px;
+  }
+  .belt-controls{
+    position:absolute;
+    top:10px; right:10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(14,14,16,.75);
+    padding:6px 8px;
+    border-radius:999px;
+    z-index:6;
+  }
+  .belt-controls button{
+    background:none; border:none; color:var(--bone);
+    font-size:13px; cursor:pointer; line-height:1;
+    width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .belt-controls button:hover{color:var(--gold);}
+  .belt-controls input[type=range]{width:80px;}
+  .belt-controls .belt-divider{width:1px; height:16px; background:#3a3a42;}
+
+  /* ---------- PROMO SUB ---------- */
+  .promo-wrap{
+    position:relative;
+    padding:34px 60px 8px;
+  }
+  .promo-wrap.promo-split{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:24px 40px 12px;
+  }
+  .promo-wrap.promo-split-reverse{flex-direction:row-reverse;}
+  .promo-sub{
+    font-size:15px;
+    color:var(--gray,#d8d8dc);
+    outline:none;
+    line-height:1.55;
+    text-align:center;
+  }
+  .promo-wrap.promo-split .promo-sub{flex:1;}
+  .promo-photo-slot{
+    display:none;
+    position:relative;
+    width:230px; height:180px;
+    flex-shrink:0;
+    border:2px dashed #35353c;
+    border-radius:6px;
+    overflow:hidden;
+    background:var(--ink,#161619);
+  }
+  .promo-photo-slot.has-image{border:none;}
+  .promo-photo-empty{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--graphite); font-size:11px; text-align:center;
+    cursor:pointer; padding:8px;
+  }
+  #promoPhotoImg{
+    position:absolute;
+    top:50%; left:50%;
+    max-width:none;
+    display:none;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+  #promoPhotoImg.dragging{cursor:grabbing;}
+  .promo-photo-controls{
+    position:absolute;
+    bottom:6px; right:6px;
+    display:none;
+    align-items:center;
+    gap:6px;
+    background:rgba(14,14,16,.75);
+    padding:5px 8px;
+    border-radius:999px;
+    z-index:5;
+  }
+  .promo-photo-controls input[type=range]{width:60px;}
+  .promo-photo-controls button{background:none; border:none; color:var(--bone); font-size:12px; cursor:pointer; line-height:1;}
+  .promo-photo-controls button:hover{color:var(--gold);}
+  .promo-photo-controls button.danger:hover{color:var(--crimson);}
+  .promo-align-controls{
+    position:absolute;
+    top:-2px; right:36px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    background:rgba(14,14,16,.75);
+    padding:5px 7px;
+    border-radius:999px;
+    z-index:4;
+  }
+  .promo-align-controls button{
+    background:none; border:none; color:var(--bone);
+    font-size:12px; cursor:pointer; line-height:1;
+    width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .promo-align-controls button:hover{color:var(--gold);}
+  .promo-align-controls button.active{color:var(--gold);}
+  .promo-align-controls .belt-divider{width:1px; height:14px; background:#3a3a42;}
+
+  /* ---------- BUTTONS ---------- */
+  .cta-row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    padding:18px 40px 30px;
+    flex-wrap:wrap;
+  }
+  .cta-group{display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .cta-btn-controls{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    background:var(--charcoal);
+    border:1px solid #3a3a42;
+    border-radius:999px;
+    padding:2px 4px;
+  }
+  .cta-btn-controls .row-btn{padding:2px 6px; font-size:12px;}
+  .cta{
+    padding:13px 26px;
+    border-radius:999px;
+    font:800 13px/1 'Inter',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    outline:none;
+    cursor:text;
+    border:2px solid transparent;
+    text-decoration:none;
+    display:inline-block;
+  }
+  .cta.primary{background:var(--crimson); color:var(--bone);}
+  .cta.secondary{background:transparent; color:var(--gold); border-color:var(--gold);}
+  .link-btn{
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--charcoal);
+    border:1px solid #3a3a42;
+    color:var(--bone);
+    font-size:12px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .link-btn:hover{background:var(--gold); color:#141412;}
+
+  /* ---------- SCHEDULE ---------- */
+  .section{
+    padding:6px 40px 26px;
+  }
+  .section-title{
+    font-family:'Anton',sans-serif;
+    font-size:20px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    color:var(--bone);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+    outline:none;
+  }
+  .section-title::after{
+    content:"";
+    flex:1;
+    height:2px;
+    background:linear-gradient(90deg, var(--gold), transparent);
+  }
+  table.schedule{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  table.schedule th{
+    text-align:left;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--gold);
+    text-transform:uppercase;
+    padding:8px 10px;
+    border-bottom:1px solid #2a2a30;
+  }
+  table.schedule th.actions-col{text-align:center; width:70px;}
+  table.schedule td{
+    padding:10px 10px;
+    border-bottom:1px solid #201f24;
+    color:var(--gray,#d8d8dc);
+    outline:none;
+  }
+  table.schedule td.actions-cell{
+    text-align:center;
+    white-space:nowrap;
+  }
+  table.schedule tr:last-child td{border-bottom:none;}
+  .row-btn{
+    background:none;
+    border:none;
+    color:var(--graphite);
+    font-size:14px;
+    cursor:pointer;
+    padding:2px 5px;
+  }
+  .row-btn:hover{color:var(--gold);}
+  .row-btn.danger:hover{color:var(--crimson);}
+  .add-row{
+    margin-top:10px;
+    background:none;
+    border:1px dashed #3a3a42;
+    color:var(--graphite);
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .add-row:hover{color:var(--bone); border-color:var(--gold);}
+
+  /* ---------- GALLERY ---------- */
+  .gallery-count-control{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--graphite);
+    margin-bottom:10px;
+  }
+  .gallery-count-control button{
+    width:22px; height:22px;
+    border-radius:5px;
+    border:1px solid #3a3a42;
+    background:var(--charcoal);
+    color:var(--bone);
+    font-size:11px;
+    cursor:pointer;
+  }
+  .gallery-count-control button:hover{background:var(--gold); color:#141412;}
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+  .gallery-slot{
+    position:relative;
+    height:110px;
+    border:2px dashed #35353c;
+    border-radius:6px;
+    overflow:hidden;
+    background:var(--ink,#161619);
+  }
+  .gallery-slot.has-image{border:none;}
+  .gallery-empty{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--graphite);
+    cursor:pointer;
+    text-align:center;
+    padding:6px;
+  }
+  .gallery-slot img{
+    position:absolute;
+    top:50%; left:50%;
+    max-width:none;
+    display:none;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+  .gallery-slot img.dragging{cursor:grabbing;}
+  .gallery-controls{
+    position:absolute;
+    bottom:4px; right:4px;
+    display:none;
+    align-items:center;
+    gap:4px;
+    background:rgba(14,14,16,.75);
+    padding:3px 6px;
+    border-radius:999px;
+    z-index:5;
+  }
+  .gallery-controls input[type=range]{width:46px;}
+  .gallery-controls button{background:none; border:none; color:var(--bone); font-size:11px; cursor:pointer; line-height:1;}
+
+  /* ---------- FOOTER ---------- */
+  .footer{
+    background:var(--charcoal);
+    padding:30px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:24px;
+  }
+  .footer.footer-stacked{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .footer.footer-stacked #footerInfo{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+  }
+  .footer.footer-stacked .info-row{text-align:center;}
+  .footer.footer-stacked #qrSlot{margin:6px 0;}
+  .qr-slot{
+    width:110px; height:110px;
+    background:#fff;
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:#888;
+    cursor:pointer;
+    flex-shrink:0;
+    overflow:hidden;
+    text-align:center;
+    padding:4px;
+  }
+  .qr-slot img{width:100%; height:100%; object-fit:contain;}
+  .footer-info{flex:1; font-size:12px; color:var(--gray,#c9c9ce);}
+  .footer-info .brand-line{
+    font-family:'Anton',sans-serif;
+    color:var(--bone);
+    font-size:15px;
+    letter-spacing:.02em;
+    margin-bottom:8px;
+    outline:none;
+  }
+  .info-row{margin-bottom:4px; line-height:1.5;}
+  .info-row .label{color:var(--gold); font-weight:700; margin-right:5px;}
+  .info-row span[contenteditable]{outline:none;}
+  .footer-desc{
+    margin-top:6px;
+    line-height:1.6;
+    outline:none;
+  }
+
+  input[type=file]{display:none;}
+
+  [contenteditable="true"]:hover{
+    background:rgba(201,162,39,.08);
+    border-radius:4px;
+  }
+  [contenteditable="true"]:focus{
+    background:rgba(201,162,39,.14);
+    border-radius:4px;
+  }
+
+  .ui-only{}
+
+  /* ---------- MODO CUADRADO (Facebook/Instagram) ---------- */
+  /* Esto NO es el póster encogido: se agranda texto, QR y botones,
+     y se ocultan horario/galería para que se lea bien en el feed. */
+  #flyer.square-mode{
+    width:1080px;
+    height:1080px;
+    min-height:1080px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  #flyer.square-mode .header{padding:20px 55px 14px;}
+  #flyer.square-mode .logo-slot{width:70px; height:70px;}
+  #flyer.square-mode .school-name{font-size:28px;}
+  #flyer.square-mode .school-tag{display:none;}
+  #flyer.square-mode .header-contact{display:none;}
+  #flyer.square-mode .hero{height:430px;}
+  #flyer.square-mode .belt-stripe{height:126px;}
+  #flyer.square-mode .belt-text{font-size:50px; padding:0 70px;}
+  #flyer.square-mode .promo-wrap{padding:18px 70px 6px;}
+  #flyer.square-mode .promo-sub{font-size:22px; line-height:1.45;}
+  #flyer.square-mode .cta-row{padding:12px 40px 22px;}
+  #flyer.square-mode .cta{font-size:17px; padding:16px 34px;}
+  #flyer.square-mode .section{display:none !important;}
+  #flyer.square-mode .footer{padding:20px 55px;}
+  #flyer.square-mode .qr-slot{width:200px; height:200px;}
+  #flyer.square-mode .footer-info .brand-line{font-size:24px; margin-bottom:9px;}
+  #flyer.square-mode .info-row{font-size:15px; margin-bottom:5px;}
+  #flyer.square-mode .footer-desc{font-size:17px; margin-top:10px;}
+  #flyer.square-mode #footerMessage{font-size:15px;}
+  #flyer.square-mode #headerMessage{font-size:15px;}
+
+  @media print{
+    body{background:#fff; padding:0;}
+    .toolbar{display:none;}
+    .ui-only{display:none !important;}
+    #flyer{box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="langBtn" onclick="toggleLang()" style="background:var(--gold);color:#141412;font-weight:800">EN</button>
+  <button onclick="document.execCommand('bold')" style="font-weight:700">B</button>
+  <button onclick="changeFontSize(-2)" title="Reducir letra del texto seleccionado">A-</button>
+  <button onclick="changeFontSize(2)" title="Agrandar letra del texto seleccionado">A+</button>
+  <button id="toggleSchedule" onclick="toggleSection('scheduleSection', this, 'Horario')">🗓 Horario: ON</button>
+  <button id="toggleGallery" onclick="toggleSection('gallerySection', this, 'Galería')">🖼 Galería: ON</button>
+  <button id="viewModeBtn" onclick="toggleViewMode()">📐 Vista: Póster</button>
+  <select id="exportFormat" onchange="syncViewToFormat()" style="background:var(--charcoal);color:var(--bone);border:1px solid #3a3a42;border-radius:8px;padding:10px 10px;font:600 13px/1 'Inter',sans-serif;cursor:pointer">
+    <option value="flyer">📄 Flyer completo (850×1100)</option>
+    <option value="square">◻ Cuadrado — Instagram/Facebook/GMB (1080×1080)</option>
+    <option value="story">📱 Historia — Instagram/Facebook (1080×1920)</option>
+    <option value="landscape">🖼 Horizontal — Facebook/Nextdoor/GMB (1200×900)</option>
+  </select>
+  <button onclick="downloadFormatted()">⬇ Descargar imagen (PNG)</button>
+  <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+  <button onclick="genQR()">📱 Generar QR desde URL</button>
+  <button onclick="restoreCtaButtons()">↺ Restaurar botones</button>
+  <button id="footerLayoutBtn" onclick="toggleFooterLayout()">🔀 Pie de página: Clásico</button>
+  <button onclick="setFooterAlign('left')" title="Alinear a la izquierda">⬅</button>
+  <button onclick="setFooterAlign('center')" title="Centrar">⬌</button>
+  <button onclick="setFooterAlign('right')" title="Alinear a la derecha">➡</button>
+  <button id="footerMsgBtn" onclick="toggleFooterMessage()">💬 Mensaje: ON</button>
+  <button id="footerDescBtn" onclick="toggleFooterDesc()">📝 Footer: Visible</button>
+  <button onclick="setHeaderAlign('left')" title="Alinear header a la izquierda">⬅</button>
+  <button onclick="setHeaderAlign('center')" title="Centrar header">⬌</button>
+  <button onclick="setHeaderAlign('right')" title="Alinear header a la derecha">➡</button>
+  <button id="headerMsgBtn" onclick="toggleHeaderMessage()">💬 H-Mensaje: ON</button>
+  <button id="promoDescBtn" onclick="togglePromoDesc()">📝 Promo: Visible</button>
+  <button id="footerContactBtn" onclick="toggleFooterContact()">📞 Contacto: Visible</button>
+  <button id="promoCtrlsBtn" onclick="togglePromoControls()">⚙ Alineación Promo: Visible</button>
+  <button id="beltVisBtn" onclick="toggleBeltVisibility(this)">🎗 Banner: ON</button>
+  <button id="beltPlaceBtn" onclick="toggleBeltPlacement()">🔀 Banner: Mover debajo de la foto</button>
+  <button onclick="toggleFlyerColorPanel()" style="background:var(--charcoal,#1C1C21);color:var(--bone,#F3EFE6);border:1px solid #3a3a42;border-radius:8px;padding:10px 16px;font:600 13px/1 'Inter',sans-serif;cursor:pointer">🎨 Colores</button>
+  <a href="https://chatgpt.com" target="_blank" title="ChatGPT" style="background:var(--charcoal,#1C1C21);color:var(--bone,#F3EFE6);border:1px solid #3a3a42;border-radius:8px;padding:10px 14px;font:600 13px/1 'Inter',sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px">🤖 ChatGPT</a>
+  <a href="https://www.bing.com/images/create" target="_blank" title="Creador de imágenes con IA" style="background:var(--charcoal,#1C1C21);color:var(--bone,#F3EFE6);border:1px solid #3a3a42;border-radius:8px;padding:10px 14px;font:600 13px/1 'Inter',sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px">🖼️ Imagen IA</a>
+  <div id="flyerColorPanel" style="display:none;width:100%;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #3a3a42;margin-top:4px">
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">🎨 Fondo <input type="color" id="flyerColorInk" value="#0E0E10" onchange="setFlyerColor('--ink',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">🎗 Banda <input type="color" id="flyerColorCrimson" value="#D62839" onchange="setFlyerColor('--crimson',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">📝 Texto principal <input type="color" id="flyerColorBone" value="#F3EFE6" onchange="setFlyerColor('--bone',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">✨ Texto acento <input type="color" id="flyerColorGold" value="#C9A227" onchange="setFlyerColor('--gold',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">🌑 Fondo del pie <input type="color" id="flyerColorCharcoal" value="#1C1C21" onchange="setFlyerColor('--charcoal',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <label style="font-size:12px;color:var(--bone,#F3EFE6);display:flex;align-items:center;gap:6px;cursor:pointer">🔘 Texto secundario <input type="color" id="flyerColorGray" value="#b0b0b6" onchange="setFlyerColor('--gray',this.value)" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0"></label>
+    <button onclick="resetFlyerColors()" title="Restaurar colores originales" style="background:var(--charcoal,#1C1C21);color:var(--bone,#F3EFE6);border:1px solid #3a3a42;border-radius:8px;padding:6px 12px;font:600 11px/1 'Inter',sans-serif;cursor:pointer">⟲ Restaurar</button>
+  </div>
+  <div class="hint">Clic en cualquier texto para editarlo. Con el texto seleccionado, usa A- / A+ para cambiar su tamaño. Arrastra las fotos para acomodarlas y usa el control de zoom. Clic en los recuadros punteados para subir imágenes. Si escribes tu propio texto: escríbelo en español, cambia a EN y escribe la traducción — desde ahí el botón ES/EN alternará entre tus dos versiones.</div>
+</div>
+
+<div id="flyer">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">
+      <label class="logo-slot" id="logoSlot">
+        <span data-i18n="logoText">Sube tu<br>LOGO</span>
+        <input type="file" accept="image/*" onchange="loadImage(event,'logoSlot')">
+      </label>
+      <div>
+        <div class="school-name" contenteditable="true">Master Baez Martial Arts</div>
+        <div class="school-tag" contenteditable="true" data-i18n="schoolTag">Hapkido · Disciplina · Familia</div>
+        <div id="headerMessage" contenteditable="true" style="font-size:12px;color:var(--gray,#b0b0b6);margin-top:4px;line-height:1.5;outline:none"></div>
+      </div>
+    </div>
+    <div class="header-contact">
+      <div contenteditable="true"><b>Cooper City, FL</b></div>
+      <div contenteditable="true">(954) 380-1340</div>
+      <div contenteditable="true">masterbaez.com</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-photo-wrap" id="heroWrap">
+      <label class="hero-empty" id="heroEmpty">
+        <span data-i18n="heroEmptyText">Clic para subir foto principal (clase, alumnos, evento)</span>
+        <input type="file" accept="image/*" onchange="loadHeroImage(event)">
+      </label>
+      <img id="heroImg" alt="Foto principal">
+      <div class="hero-controls ui-only" id="heroControls">
+        <button onclick="resetHero()" title="Reiniciar posición">⟲</button>
+        <input type="range" min="40" max="250" value="100" oninput="zoomHero(this.value)">
+        <button onclick="document.getElementById('heroFileInput').click()" title="Cambiar foto">🔁</button>
+        <input type="file" id="heroFileInput" accept="image/*" onchange="loadHeroImage(event)">
+      </div>
+    </div>
+    <div class="belt-stripe" id="beltStripe">
+      <div class="belt-text" contenteditable="true" data-i18n="heroHeadline">2 Clases Gratis + 3 Meses por $149</div>
+    </div>
+    <div class="belt-controls ui-only" id="beltControls">
+      <button onclick="moveBeltStripe(-6)" title="Subir banner">▲</button>
+      <button onclick="moveBeltStripe(6)" title="Bajar banner">▼</button>
+      <span class="belt-divider"></span>
+      <input type="range" id="beltWidthRange" min="50" max="150" value="100" step="1" oninput="scaleBeltStripe(this.value)" title="Ancho horizontal" style="width:80px">
+      <span class="belt-divider"></span>
+      <input type="range" id="beltHeightRange" min="30" max="180" value="92" step="1" oninput="setBeltHeight(this.value)" title="Alto vertical" style="width:80px">
+      <span class="belt-divider"></span>
+      <input type="range" id="beltRotateRange" min="-20" max="20" value="-4" step="1" oninput="rotateBeltStripe(this.value)" title="Ángulo" style="width:80px">
+      <button onclick="straightenBeltStripe()" title="Poner derecho (0°)">▭</button>
+      <button onclick="resetBeltStripe()" title="Restaurar posición original">⟲</button>
+    </div>
+  </div>
+
+  <div class="promo-wrap" id="promoWrap">
+    <div class="promo-sub" contenteditable="true" data-i18n="promoSub" id="promoSub">
+      Incluye uniforme, evaluación y garantía de reembolso 100%.
+    </div>
+    <div class="promo-photo-slot" id="promoPhotoSlot">
+      <label class="promo-photo-empty" id="promoPhotoEmpty">
+        <span data-i18n="promoPhotoText">Sube una foto</span>
+        <input type="file" accept="image/*" onchange="loadPromoPhoto(event)">
+      </label>
+      <img id="promoPhotoImg" alt="Foto promocional">
+      <div class="promo-photo-controls ui-only" id="promoPhotoControls">
+        <button onclick="resetPromoPhoto()" title="Reiniciar posición">⟲</button>
+        <input type="range" min="40" max="250" value="100" oninput="zoomPromoPhoto(this.value)">
+        <button onclick="document.getElementById('promoPhotoFileInput').click()" title="Cambiar foto">🔁</button>
+        <input type="file" id="promoPhotoFileInput" accept="image/*" onchange="loadPromoPhoto(event)">
+        <button class="danger" onclick="deletePromoPhoto()" title="Eliminar foto">🗑</button>
+      </div>
+    </div>
+    <div class="promo-align-controls ui-only" id="promoAlignControls">
+      <button id="alignLeftBtn" onclick="alignPromo('left')" title="Alinear texto a la izquierda">⬅</button>
+      <button id="alignCenterBtn" onclick="alignPromo('center')" title="Centrar texto" class="active">⬌</button>
+      <button id="alignRightBtn" onclick="alignPromo('right')" title="Alinear texto a la derecha">➡</button>
+      <span class="belt-divider"></span>
+      <button onclick="togglePromoPhoto()" title="Agregar/quitar foto en el espacio libre">🖼</button>
+    </div>
+  </div>
+
+  <div class="cta-row" id="ctaRow">
+    <div class="cta-group">
+      <div class="cta primary" id="ctaPrimary" contenteditable="true" data-i18n="ctaPrimary">Inscríbete Ahora</div>
+      <div class="cta-btn-controls ui-only">
+        <button class="row-btn" onclick="moveCta(this,-1)" title="Mover a la izquierda">◄</button>
+        <button class="row-btn" onclick="moveCta(this,1)" title="Mover a la derecha">►</button>
+        <button class="row-btn danger" onclick="deleteCta(this)" title="Eliminar este botón">🗑</button>
+      </div>
+    </div>
+    <div class="cta-group">
+      <div class="cta secondary" id="ctaSecondary" contenteditable="true" data-i18n="ctaSecondary">Agenda tu Clase de Prueba</div>
+      <div class="cta-btn-controls ui-only">
+        <button class="row-btn" onclick="moveCta(this,-1)" title="Mover a la izquierda">◄</button>
+        <button class="row-btn" onclick="moveCta(this,1)" title="Mover a la derecha">►</button>
+        <button class="row-btn danger" onclick="deleteCta(this)" title="Eliminar este botón">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HORARIO -->
+  <div class="section" id="scheduleSection">
+    <div class="section-title" contenteditable="true" data-i18n="sectionHorario">Horario de Clases</div>
+    <table class="schedule" id="scheduleTable">
+      <tr>
+        <th data-i18n="thPrograma">Programa</th>
+        <th data-i18n="thDias">Días</th>
+        <th data-i18n="thHorario">Horario</th>
+        <th class="actions-col ui-only" data-i18n="thAcciones">Acciones</th>
+      </tr>
+      <tr>
+        <td contenteditable="true" data-i18n="row1c1">Niños (5–12 años)</td>
+        <td contenteditable="true" data-i18n="row1c2">Lun / Mié</td>
+        <td contenteditable="true">5:00 – 6:00 PM</td>
+        <td class="actions-cell ui-only">
+          <button class="row-btn" onclick="moveRowUp(this)" title="Subir">▲</button>
+          <button class="row-btn" onclick="moveRowDown(this)" title="Bajar">▼</button>
+          <button class="row-btn" onclick="editRow(this)" title="Editar">✎</button>
+          <button class="row-btn danger" onclick="deleteRow(this)" title="Eliminar">🗑</button>
+        </td>
+      </tr>
+      <tr>
+        <td contenteditable="true" data-i18n="row2c1">Jóvenes / Adultos</td>
+        <td contenteditable="true" data-i18n="row2c2">Mar / Jue</td>
+        <td contenteditable="true">6:30 – 8:00 PM</td>
+        <td class="actions-cell ui-only">
+          <button class="row-btn" onclick="moveRowUp(this)" title="Subir">▲</button>
+          <button class="row-btn" onclick="moveRowDown(this)" title="Bajar">▼</button>
+          <button class="row-btn" onclick="editRow(this)" title="Editar">✎</button>
+          <button class="row-btn danger" onclick="deleteRow(this)" title="Eliminar">🗑</button>
+        </td>
+      </tr>
+      <tr>
+        <td contenteditable="true" data-i18n="row3c1">Sábados Familiares</td>
+        <td contenteditable="true" data-i18n="row3c2">Sábado</td>
+        <td contenteditable="true">10:00 – 11:30 AM</td>
+        <td class="actions-cell ui-only">
+          <button class="row-btn" onclick="moveRowUp(this)" title="Subir">▲</button>
+          <button class="row-btn" onclick="moveRowDown(this)" title="Bajar">▼</button>
+          <button class="row-btn" onclick="editRow(this)" title="Editar">✎</button>
+          <button class="row-btn danger" onclick="deleteRow(this)" title="Eliminar">🗑</button>
+        </td>
+      </tr>
+    </table>
+    <button class="add-row ui-only" onclick="addRow()" data-i18n="addRowBtn">+ Agregar fila</button>
+  </div>
+
+  <!-- GALERÍA -->
+  <div class="section" id="gallerySection">
+    <div class="section-title" contenteditable="true" data-i18n="sectionGaleria">Galería</div>
+    <div class="gallery-count-control ui-only">
+      <span>Fotos a mostrar:</span>
+      <button onclick="setGalleryCount(1)">1</button>
+      <button onclick="setGalleryCount(2)">2</button>
+      <button onclick="setGalleryCount(3)">3</button>
+    </div>
+    <div class="gallery">
+      <div class="gallery-slot" id="galleryWrap1">
+        <label class="gallery-empty" id="galleryEmpty1"><span data-i18n="gallery1">Foto 1</span><input type="file" accept="image/*" onchange="handleGalleryUpload(event,1)"></label>
+        <img id="galleryImg1" alt="Foto galería 1">
+        <div class="gallery-controls ui-only" id="galleryControls1">
+          <button onclick="resetGallery(1)" title="Reiniciar">⟲</button>
+          <input type="range" min="40" max="250" value="100" oninput="zoomGallery(1,this.value)">
+        </div>
+      </div>
+      <div class="gallery-slot" id="galleryWrap2">
+        <label class="gallery-empty" id="galleryEmpty2"><span data-i18n="gallery2">Foto 2</span><input type="file" accept="image/*" onchange="handleGalleryUpload(event,2)"></label>
+        <img id="galleryImg2" alt="Foto galería 2">
+        <div class="gallery-controls ui-only" id="galleryControls2">
+          <button onclick="resetGallery(2)" title="Reiniciar">⟲</button>
+          <input type="range" min="40" max="250" value="100" oninput="zoomGallery(2,this.value)">
+        </div>
+      </div>
+      <div class="gallery-slot" id="galleryWrap3">
+        <label class="gallery-empty" id="galleryEmpty3"><span data-i18n="gallery3">Foto 3</span><input type="file" accept="image/*" onchange="handleGalleryUpload(event,3)"></label>
+        <img id="galleryImg3" alt="Foto galería 3">
+        <div class="gallery-controls ui-only" id="galleryControls3">
+          <button onclick="resetGallery(3)" title="Reiniciar">⟲</button>
+          <input type="range" min="40" max="250" value="100" oninput="zoomGallery(3,this.value)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer" id="footerBlock" style="background:var(--charcoal);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:10px 40px">
+    <div id="qrBlock" style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+      <div class="qr-slot" id="qrSlot" style="width:110px;height:110px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;flex-shrink:0;overflow:hidden;text-align:center;padding:4px;box-shadow:0 0 0 2px var(--gold);position:relative">
+        <span data-i18n="qrText">Sube o genera<br>tu código QR</span>
+      </div>
+      <div class="ui-only" style="display:flex;gap:4px;margin-top:8px;align-items:center">
+        <button onclick="setQrPosition('left')" title="QR a la izquierda, texto a la derecha" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:28px;height:26px;font-size:13px;cursor:pointer">⬅</button>
+        <button onclick="setQrPosition('center')" title="QR al centro, texto debajo" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:28px;height:26px;font-size:13px;cursor:pointer">⬌</button>
+        <button onclick="setQrPosition('right')" title="QR a la derecha, texto a la izquierda" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:28px;height:26px;font-size:13px;cursor:pointer">➡</button>
+        <span style="color:#3a3a42;font-size:14px">|</span>
+        <button onclick="moveQr(-5,0)" title="Ajuste fino: mover QR a la izquierda" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:24px;height:24px;font-size:10px;cursor:pointer">◀</button>
+        <button onclick="moveQr(5,0)" title="Ajuste fino: mover QR a la derecha" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:24px;height:24px;font-size:10px;cursor:pointer">▶</button>
+        <button onclick="moveQr(0,-5)" title="Ajuste fino: mover QR arriba" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:24px;height:24px;font-size:10px;cursor:pointer">▲</button>
+        <button onclick="moveQr(0,5)" title="Ajuste fino: mover QR abajo" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:24px;height:24px;font-size:10px;cursor:pointer">▼</button>
+        <span style="color:#3a3a42;font-size:14px">|</span>
+        <button onclick="setQrSize(-10)" title="Reducir QR" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:26px;height:26px;font-size:12px;cursor:pointer">−</button>
+        <span id="qrSizeLabel" style="font-size:11px;color:#888;min-width:28px;text-align:center">110</span>
+        <button onclick="setQrSize(10)" title="Agrandar QR" style="background:none;border:1px solid #3a3a42;color:var(--bone);border-radius:5px;width:26px;height:26px;font-size:12px;cursor:pointer">+</button>
+      </div>
+    </div>
+    <div class="footer-info" id="footerInfo" style="flex:1;font-size:12px;color:var(--gray,#c9c9ce)">
+      <div class="brand-line" id="footerBrand" contenteditable="true" style="margin-bottom:6px">MASTER BAEZ MARTIAL ARTS</div>
+      <div id="footerMessage" contenteditable="true" style="font-size:12px;color:var(--gray,#b0b0b6);margin-bottom:6px;line-height:1.5;outline:none"></div>
+      <div class="footer-contact-rows" id="footerContactRows">
+        <div class="info-row"><span class="label" data-i18n="footerAddressLabel">Dirección:</span><span contenteditable="true">Cooper City, FL</span></div>
+        <div class="info-row"><span class="label" data-i18n="footerPhoneLabel">Teléfono:</span><span contenteditable="true">(954) 380-1340</span></div>
+        <div class="info-row"><span class="label" data-i18n="footerEmailLabel">Correo:</span><span contenteditable="true">info@masterbaez.com</span></div>
+        <div class="info-row"><span class="label" data-i18n="footerWebLabel">Sitio web:</span><span contenteditable="true">masterbaez.com</span></div>
+      </div>
+      <div class="footer-desc" id="footerDescMain" contenteditable="true" data-i18n="footerDesc">Escanea el QR para inscribirte o síguenos en redes sociales para más información sobre clases, promociones y eventos.</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+function toggleSection(id, btn, label){
+  const el = document.getElementById(id);
+  const willHide = el.style.display !== 'none';
+  el.style.display = willHide ? 'none' : '';
+  const icon = btn.textContent.trim().split(' ')[0];
+  btn.textContent = icon + ' ' + label + ': ' + (willHide ? 'OFF' : 'ON');
+}
+
+function toggleBeltVisibility(btn){
+  const belt = document.getElementById('beltStripe');
+  const willHide = belt.style.display !== 'none';
+  if(willHide && beltPlacement === 'promo'){
+    toggleBeltPlacement();
+  }
+  belt.style.display = willHide ? 'none' : '';
+  btn.textContent = '🎗 Banner: ' + (willHide ? 'OFF' : 'ON');
+}
+
+function recalcPromoSpacing(){
+  const wrap = document.getElementById('promoWrap');
+  if(!wrap) return;
+  const sub = document.getElementById('promoSub');
+  const ctrls = document.getElementById('promoAlignControls');
+  const subHidden = sub && sub.classList.contains('flyer-hidden');
+  const ctrlsHidden = !ctrls || ctrls.style.display === 'none';
+  const collapsed = subHidden && ctrlsHidden;
+  wrap.style.display = collapsed ? 'none' : '';
+  const belt = document.getElementById('beltStripe');
+  if(belt && beltPlacement === 'promo'){
+    belt.style.marginBottom = collapsed ? '0' : '';
+  }
+  const cta = document.getElementById('ctaRow');
+  if(cta) cta.style.display = cta.querySelector('.cta-group') ? '' : 'none';
+}
+
+/* ---------------- VISTA: Póster vs Cuadrado (redes) ---------------- */
+let squareModeOn = false;
+let preSquareState = null;
+var _preSquareStyles = {};
+function syncViewToFormat(){
+  const key = document.getElementById('exportFormat').value;
+  if(key === 'square' && !squareModeOn){
+    toggleViewMode();
+  } else if(key !== 'square' && squareModeOn){
+    toggleViewMode();
+  }
+  if(key === 'story' || key === 'landscape'){
+    alert(currentLang === 'es'
+      ? 'Nota: la vista en pantalla para Historia y Horizontal todavía no está optimizada — la descarga funciona, pero se ve mejor si armas el contenido en modo Póster o Cuadrado primero.'
+      : "Note: the on-screen preview for Story and Landscape isn't optimized yet — the download works, but it looks better if you arrange content in Poster or Square mode first.");
+  }
+}
+function toggleViewMode(){
+  const flyer = document.getElementById('flyer');
+  const btn = document.getElementById('viewModeBtn');
+  const scheduleBtn = document.getElementById('toggleSchedule');
+  const galleryBtn = document.getElementById('toggleGallery');
+  const scheduleEl = document.getElementById('scheduleSection');
+  const galleryEl = document.getElementById('gallerySection');
+  const els = {ctaPrimary:'ctaPrimary',ctaSecondary:'ctaSecondary',brandLine:'footerBrand',footerDesc:'footerDescMain',footerMessage:'footerMessage',headerMessage:'headerMessage'};
+  function saveEl(id){
+    var el = document.getElementById(id);
+    if(!el) return {};
+    var o = {};
+    for(var k in el.style){ if(el.style.hasOwnProperty(k) && el.style[k] !== '') o[k] = el.style[k]; }
+    return o;
+  }
+  function setStyles(id, styles){
+    var el = document.getElementById(id);
+    if(!el) return;
+    for(var k in styles) el.style[k] = styles[k];
+  }
+
+  if(!squareModeOn){
+    _preSquareStyles = {};
+    for(var key in els) _preSquareStyles[key] = saveEl(els[key]);
+    preSquareState = {
+      scheduleDisplay: scheduleEl.style.display,
+      galleryDisplay: galleryEl.style.display,
+      footerLayout: currentFooterLayout
+    };
+    scheduleEl.style.display = 'none';
+    galleryEl.style.display = 'none';
+    scheduleBtn.textContent = '🗓 Horario: OFF';
+    galleryBtn.textContent = '🖼 Galería: OFF';
+    if(currentFooterLayout !== 'stacked') setFooterLayout('stacked');
+    flyer.classList.add('square-mode');
+    setStyles('ctaPrimary',{fontSize:'17px',padding:'16px 34px'});
+    setStyles('ctaSecondary',{fontSize:'17px',padding:'16px 34px'});
+    setStyles('footerBrand',{fontSize:'24px',marginBottom:'9px'});
+    setStyles('footerDescMain',{fontSize:'17px',marginTop:'10px'});
+    squareModeOn = true;
+    btn.textContent = '📐 Vista: Cuadrado';
+    document.getElementById('exportFormat').value = 'square';
+  } else {
+    flyer.classList.remove('square-mode');
+    for(var key in _preSquareStyles) setStyles(els[key], _preSquareStyles[key]);
+    if(preSquareState){
+      scheduleEl.style.display = preSquareState.scheduleDisplay;
+      galleryEl.style.display = preSquareState.galleryDisplay;
+      scheduleBtn.textContent = '🗓 Horario: ' + (scheduleEl.style.display === 'none' ? 'OFF' : 'ON');
+      galleryBtn.textContent = '🖼 Galería: ' + (galleryEl.style.display === 'none' ? 'OFF' : 'ON');
+      if(preSquareState.footerLayout !== currentFooterLayout) setFooterLayout(preSquareState.footerLayout);
+    }
+    squareModeOn = false;
+    btn.textContent = '📐 Vista: Póster';
+    document.getElementById('exportFormat').value = 'flyer';
+  }
+}
+
+function setGalleryCount(n){
+  for(let i=1;i<=3;i++){
+    document.getElementById('galleryWrap'+i).style.display = i<=n ? '' : 'none';
+  }
+  document.querySelector('.gallery').style.gridTemplateColumns = 'repeat(' + n + ',1fr)';
+}
+
+/* ---------------- FONT SIZE CONTROL ---------------- */
+let activeEditable = null;
+document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+  el.addEventListener('focus', function(){ activeEditable = el; });
+});
+function changeFontSize(delta){
+  let el = activeEditable;
+  if(!el){
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount){
+      let node = sel.anchorNode;
+      while(node && node.nodeType===3) node = node.parentNode;
+      if(node && node.closest) el = node.closest('[contenteditable]');
+    }
+  }
+  if(!el){
+    alert(currentLang === 'es' ? 'Primero haz clic dentro del texto que quieres agrandar o achicar.' : 'First click inside the text you want to resize.');
+    return;
+  }
+  const current = parseFloat(getComputedStyle(el).fontSize);
+  const next = Math.max(8, current + delta);
+  el.style.fontSize = next + 'px';
+  const row = el.closest('.info-row');
+  if(row){
+    const label = row.querySelector('.label');
+    if(label) label.style.fontSize = next + 'px';
+  }
+}
+
+/* ---------------- IMAGE UPLOADS ---------------- */
+function loadImage(e, slotId){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const slot = document.getElementById(slotId);
+    slot.style.backgroundImage = 'url(' + ev.target.result + ')';
+    slot.style.backgroundSize = 'contain';
+    slot.style.backgroundRepeat = 'no-repeat';
+    slot.style.backgroundPosition = 'center';
+    slot.style.border = 'none';
+    Array.from(slot.childNodes).forEach(n=>{ if(n.nodeType===1 && n.tagName!=='INPUT') n.style.display='none'; });
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleGalleryUpload(e, idx){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = document.getElementById('galleryImg'+idx);
+    img.onload = function(){
+      fitGalleryImage(idx);
+      img.style.display = 'block';
+      document.getElementById('galleryEmpty'+idx).style.display = 'none';
+      document.getElementById('galleryControls'+idx).style.display = 'flex';
+      document.getElementById('galleryWrap'+idx).classList.add('has-image');
+      document.querySelector('#galleryControls'+idx+' input[type=range]').value = 100;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+const galleryState = {1:{x:0,y:0,baseScale:1,zoom:1,dragging:false,startX:0,startY:0},
+                       2:{x:0,y:0,baseScale:1,zoom:1,dragging:false,startX:0,startY:0},
+                       3:{x:0,y:0,baseScale:1,zoom:1,dragging:false,startX:0,startY:0}};
+
+function fitGalleryImage(idx){
+  const wrap = document.getElementById('galleryWrap'+idx);
+  const img = document.getElementById('galleryImg'+idx);
+  const r = wrap.getBoundingClientRect();
+  const s = galleryState[idx];
+  s.baseScale = Math.max(r.width/img.naturalWidth, r.height/img.naturalHeight);
+  s.zoom = 1; s.x = 0; s.y = 0;
+  updateGalleryTransform(idx);
+}
+function updateGalleryTransform(idx){
+  const s = galleryState[idx];
+  const img = document.getElementById('galleryImg'+idx);
+  const scale = s.baseScale * s.zoom;
+  img.style.transform = 'translate(-50%,-50%) translate(' + s.x + 'px,' + s.y + 'px) scale(' + scale + ')';
+}
+function zoomGallery(idx, val){
+  galleryState[idx].zoom = val/100;
+  updateGalleryTransform(idx);
+}
+function resetGallery(idx){
+  const s = galleryState[idx];
+  s.x = 0; s.y = 0; s.zoom = 1;
+  updateGalleryTransform(idx);
+  document.querySelector('#galleryControls'+idx+' input[type=range]').value = 100;
+}
+[1,2,3].forEach(function(idx){
+  const img = document.getElementById('galleryImg'+idx);
+  img.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    const s = galleryState[idx];
+    s.dragging = true;
+    s.startX = e.clientX - s.x;
+    s.startY = e.clientY - s.y;
+    img.classList.add('dragging');
+  });
+  img.addEventListener('touchstart', function(e){
+    const t = e.touches[0];
+    const s = galleryState[idx];
+    s.dragging = true;
+    s.startX = t.clientX - s.x;
+    s.startY = t.clientY - s.y;
+  }, {passive:true});
+});
+window.addEventListener('mousemove', function(e){
+  [1,2,3].forEach(function(idx){
+    const s = galleryState[idx];
+    if(!s.dragging) return;
+    s.x = e.clientX - s.startX;
+    s.y = e.clientY - s.startY;
+    updateGalleryTransform(idx);
+  });
+});
+window.addEventListener('touchmove', function(e){
+  [1,2,3].forEach(function(idx){
+    const s = galleryState[idx];
+    if(!s.dragging) return;
+    const t = e.touches[0];
+    s.x = t.clientX - s.startX;
+    s.y = t.clientY - s.startY;
+    updateGalleryTransform(idx);
+  });
+}, {passive:true});
+window.addEventListener('mouseup', function(){
+  [1,2,3].forEach(function(idx){
+    galleryState[idx].dragging = false;
+    document.getElementById('galleryImg'+idx).classList.remove('dragging');
+  });
+});
+window.addEventListener('touchend', function(){
+  [1,2,3].forEach(function(idx){ galleryState[idx].dragging = false; });
+});
+
+/* ---------------- HERO: drag + zoom ---------------- */
+const heroState = {x:0, y:0, baseScale:1, zoom:1, dragging:false, startX:0, startY:0};
+const heroImg = document.getElementById('heroImg');
+const heroWrap = document.getElementById('heroWrap');
+const heroEmpty = document.getElementById('heroEmpty');
+const heroControls = document.getElementById('heroControls');
+
+function loadHeroImage(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    heroImg.src = ev.target.result;
+    heroImg.onload = function(){
+      const wrapRect = heroWrap.getBoundingClientRect();
+      const iw = heroImg.naturalWidth, ih = heroImg.naturalHeight;
+      heroState.baseScale = Math.max(wrapRect.width/iw, wrapRect.height/ih);
+      heroState.zoom = 1;
+      heroState.x = 0; heroState.y = 0;
+      updateHeroTransform();
+      heroImg.style.display = 'block';
+      heroEmpty.style.display = 'none';
+      heroControls.style.display = 'flex';
+      heroWrap.classList.add('has-image');
+      document.querySelector('#heroControls input[type=range]').value = 100;
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateHeroTransform(){
+  const scale = heroState.baseScale * heroState.zoom;
+  heroImg.style.transform = 'translate(-50%,-50%) translate(' + heroState.x + 'px,' + heroState.y + 'px) scale(' + scale + ')';
+}
+
+heroImg.addEventListener('mousedown', function(e){
+  e.preventDefault();
+  heroState.dragging = true;
+  heroState.startX = e.clientX - heroState.x;
+  heroState.startY = e.clientY - heroState.y;
+  heroImg.classList.add('dragging');
+});
+window.addEventListener('mousemove', function(e){
+  if(!heroState.dragging) return;
+  heroState.x = e.clientX - heroState.startX;
+  heroState.y = e.clientY - heroState.startY;
+  updateHeroTransform();
+});
+window.addEventListener('mouseup', function(){
+  heroState.dragging = false;
+  heroImg.classList.remove('dragging');
+});
+heroImg.addEventListener('touchstart', function(e){
+  const t = e.touches[0];
+  heroState.dragging = true;
+  heroState.startX = t.clientX - heroState.x;
+  heroState.startY = t.clientY - heroState.y;
+}, {passive:true});
+window.addEventListener('touchmove', function(e){
+  if(!heroState.dragging) return;
+  const t = e.touches[0];
+  heroState.x = t.clientX - heroState.startX;
+  heroState.y = t.clientY - heroState.startY;
+  updateHeroTransform();
+}, {passive:true});
+window.addEventListener('touchend', function(){
+  heroState.dragging = false;
+  heroImg.classList.remove('dragging');
+});
+
+function zoomHero(val){
+  heroState.zoom = val/100;
+  updateHeroTransform();
+}
+function resetHero(){
+  heroState.x = 0; heroState.y = 0; heroState.zoom = 1;
+  updateHeroTransform();
+  document.querySelector('#heroControls input[type=range]').value = 100;
+}
+
+/* ---------------- BELT STRIPE: move + rotate ---------------- */
+const beltStripe = document.getElementById('beltStripe');
+const beltState = { top: 60, rotate: -4, staticOffset: 0, width: 120, height: 92 };
+let beltPlacement = 'hero';
+function applyBeltTransform(){
+  const w = beltState.width;
+  if(beltPlacement === 'hero'){
+    beltStripe.style.width = '';
+    beltStripe.style.marginLeft = '';
+    beltStripe.style.marginRight = '';
+    beltStripe.style.marginTop = '';
+    beltStripe.style.top = beltState.top + '%';
+    beltStripe.style.left = (-w/2) + 'px';
+    beltStripe.style.right = (-w/2) + 'px';
+    beltStripe.style.transform = 'rotate(' + beltState.rotate + 'deg)';
+  } else {
+    beltStripe.style.top = '';
+    beltStripe.style.left = '';
+    beltStripe.style.right = '';
+    beltStripe.style.marginTop = (40 + beltState.staticOffset) + 'px';
+    beltStripe.style.marginLeft = 'calc(-' + (w/2) + 'px)';
+    beltStripe.style.marginRight = 'calc(-' + (w/2) + 'px)';
+    beltStripe.style.width = 'calc(100% + ' + w + 'px)';
+    beltStripe.style.transform = 'rotate(' + beltState.rotate + 'deg)';
+  }
+  beltStripe.style.height = beltState.height + 'px';
+}
+function moveBeltStripe(deltaPercent){
+  if(beltPlacement === 'hero'){
+    beltState.top = Math.min(88, Math.max(5, beltState.top + deltaPercent));
+  } else {
+    beltState.staticOffset = Math.min(120, Math.max(-20, beltState.staticOffset + deltaPercent * 2));
+  }
+  applyBeltTransform();
+}
+function scaleBeltStripe(val){
+  beltState.width = Math.max(40, Math.min(240, val * 1.2));
+  document.getElementById('beltWidthRange').value = val;
+  applyBeltTransform();
+}
+function setBeltHeight(val){
+  beltState.height = Math.max(30, Math.min(240, parseFloat(val)));
+  document.getElementById('beltHeightRange').value = val;
+  applyBeltTransform();
+}
+function rotateBeltStripe(val){
+  beltState.rotate = parseFloat(val);
+  applyBeltTransform();
+}
+function straightenBeltStripe(){
+  beltState.rotate = 0;
+  document.getElementById('beltRotateRange').value = 0;
+  applyBeltTransform();
+}
+function resetBeltStripe(){
+  beltState.top = 60;
+  beltState.rotate = -4;
+  beltState.staticOffset = 0;
+  beltState.width = 120;
+  beltState.height = 92;
+  document.getElementById('beltRotateRange').value = -4;
+  document.getElementById('beltWidthRange').value = 100;
+  document.getElementById('beltHeightRange').value = 92;
+  applyBeltTransform();
+}
+applyBeltTransform();
+
+/* ---------------- CTA BUTTONS: move + delete + restore ---------------- */
+let defaultCtaRowHTML = document.getElementById('ctaRow').innerHTML;
+function moveCta(btn, direction){
+  const group = btn.closest('.cta-group');
+  if(direction < 0){
+    const prev = group.previousElementSibling;
+    if(prev) group.parentNode.insertBefore(group, prev);
+  } else {
+    const next = group.nextElementSibling;
+    if(next) group.parentNode.insertBefore(next, group);
+  }
+}
+function deleteCta(btn){
+  const msg = currentLang === 'es' ? '¿Eliminar este botón?' : 'Delete this button?';
+  if(confirm(msg)){ btn.closest('.cta-group').remove(); recalcPromoSpacing(); }
+}
+function restoreCtaButtons(){
+  document.getElementById('ctaRow').innerHTML = defaultCtaRowHTML;
+  recalcPromoSpacing();
+}
+
+/* ---------------- PROMO SUB: alineación + foto opcional ---------------- */
+function alignPromo(direction){
+  const promoSub = document.getElementById('promoSub');
+  const wrap = document.getElementById('promoWrap');
+  promoSub.style.textAlign = direction;
+  wrap.classList.toggle('promo-split', direction !== 'center');
+  wrap.classList.toggle('promo-split-reverse', direction === 'right');
+  if(direction === 'center'){
+    document.getElementById('promoPhotoSlot').style.display = 'none';
+  }
+  ['alignLeftBtn','alignCenterBtn','alignRightBtn'].forEach(id=>{
+    document.getElementById(id).classList.remove('active');
+  });
+  const activeMap = {left:'alignLeftBtn', center:'alignCenterBtn', right:'alignRightBtn'};
+  document.getElementById(activeMap[direction]).classList.add('active');
+}
+function togglePromoPhoto(){
+  const wrap = document.getElementById('promoWrap');
+  const slot = document.getElementById('promoPhotoSlot');
+  const showing = slot.style.display === 'flex';
+  if(showing){
+    slot.style.display = 'none';
+  } else {
+    if(!wrap.classList.contains('promo-split')) alignPromo('left');
+    slot.style.display = 'flex';
+  }
+}
+
+/* ---------------- PROMO PHOTO: drag + zoom + cambiar + eliminar ---------------- */
+const promoPhotoState = {x:0, y:0, baseScale:1, zoom:1, dragging:false, startX:0, startY:0};
+const promoPhotoImg = document.getElementById('promoPhotoImg');
+const promoPhotoWrap = document.getElementById('promoPhotoSlot');
+const promoPhotoEmptyEl = document.getElementById('promoPhotoEmpty');
+const promoPhotoControlsEl = document.getElementById('promoPhotoControls');
+
+function loadPromoPhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    promoPhotoImg.src = ev.target.result;
+    promoPhotoImg.onload = function(){
+      const rect = promoPhotoWrap.getBoundingClientRect();
+      const iw = promoPhotoImg.naturalWidth, ih = promoPhotoImg.naturalHeight;
+      promoPhotoState.baseScale = Math.max(rect.width/iw, rect.height/ih);
+      promoPhotoState.zoom = 1;
+      promoPhotoState.x = 0; promoPhotoState.y = 0;
+      updatePromoPhotoTransform();
+      promoPhotoImg.style.display = 'block';
+      promoPhotoEmptyEl.style.display = 'none';
+      promoPhotoControlsEl.style.display = 'flex';
+      promoPhotoWrap.classList.add('has-image');
+      document.querySelector('#promoPhotoControls input[type=range]').value = 100;
+    };
+  };
+  reader.readAsDataURL(file);
+}
+function updatePromoPhotoTransform(){
+  const scale = promoPhotoState.baseScale * promoPhotoState.zoom;
+  promoPhotoImg.style.transform = 'translate(-50%,-50%) translate(' + promoPhotoState.x + 'px,' + promoPhotoState.y + 'px) scale(' + scale + ')';
+}
+promoPhotoImg.addEventListener('mousedown', function(e){
+  e.preventDefault();
+  promoPhotoState.dragging = true;
+  promoPhotoState.startX = e.clientX - promoPhotoState.x;
+  promoPhotoState.startY = e.clientY - promoPhotoState.y;
+  promoPhotoImg.classList.add('dragging');
+});
+window.addEventListener('mousemove', function(e){
+  if(!promoPhotoState.dragging) return;
+  promoPhotoState.x = e.clientX - promoPhotoState.startX;
+  promoPhotoState.y = e.clientY - promoPhotoState.startY;
+  updatePromoPhotoTransform();
+});
+window.addEventListener('mouseup', function(){
+  promoPhotoState.dragging = false;
+  promoPhotoImg.classList.remove('dragging');
+});
+promoPhotoImg.addEventListener('touchstart', function(e){
+  const t = e.touches[0];
+  promoPhotoState.dragging = true;
+  promoPhotoState.startX = t.clientX - promoPhotoState.x;
+  promoPhotoState.startY = t.clientY - promoPhotoState.y;
+}, {passive:true});
+window.addEventListener('touchmove', function(e){
+  if(!promoPhotoState.dragging) return;
+  const t = e.touches[0];
+  promoPhotoState.x = t.clientX - promoPhotoState.startX;
+  promoPhotoState.y = t.clientY - promoPhotoState.startY;
+  updatePromoPhotoTransform();
+}, {passive:true});
+window.addEventListener('touchend', function(){
+  promoPhotoState.dragging = false;
+});
+function zoomPromoPhoto(val){
+  promoPhotoState.zoom = val/100;
+  updatePromoPhotoTransform();
+}
+function resetPromoPhoto(){
+  promoPhotoState.x = 0; promoPhotoState.y = 0; promoPhotoState.zoom = 1;
+  updatePromoPhotoTransform();
+  document.querySelector('#promoPhotoControls input[type=range]').value = 100;
+}
+function deletePromoPhoto(){
+  promoPhotoImg.src = '';
+  promoPhotoImg.style.display = 'none';
+  promoPhotoWrap.classList.remove('has-image');
+  promoPhotoEmptyEl.style.display = 'flex';
+  promoPhotoControlsEl.style.display = 'none';
+}
+
+/* ---------------- FOOTER: diseño clásico vs apilado (QR movido) ---------------- */
+let currentFooterLayout = 'classic';
+function toggleFooterLayout(){
+  setFooterLayout(currentFooterLayout === 'classic' ? 'stacked' : 'classic');
+}
+function setFooterLayout(mode){
+  const footerBlock = document.getElementById('footerBlock');
+  const footerInfo = document.getElementById('footerInfo');
+  const qrBlock = document.getElementById('qrBlock');
+  const brand = document.getElementById('footerBrand');
+  const desc = document.getElementById('footerDescMain');
+  const contact = document.getElementById('footerContactRows');
+  const btn = document.getElementById('footerLayoutBtn');
+
+  if(mode === 'stacked'){
+    footerBlock.classList.add('footer-stacked');
+    footerInfo.appendChild(brand);
+    footerInfo.appendChild(desc);
+    footerInfo.appendChild(qrBlock);
+    footerInfo.appendChild(contact);
+    desc.dataset.i18n = 'footerDescStacked';
+    btn.textContent = currentLang === 'es' ? '🔀 Pie de página: Vertical (con QR)' : '🔀 Footer layout: Stacked (with QR)';
+  } else {
+    footerBlock.classList.remove('footer-stacked');
+    footerBlock.insertBefore(qrBlock, footerInfo);
+    footerInfo.appendChild(brand);
+    footerInfo.appendChild(contact);
+    footerInfo.appendChild(desc);
+    desc.dataset.i18n = 'footerDesc';
+    btn.textContent = currentLang === 'es' ? '🔀 Pie de página: Clásico' : '🔀 Footer layout: Classic';
+  }
+  if(desc.dataset.touched !== '1'){
+    desc.innerHTML = translations[desc.dataset.i18n][currentLang];
+  }
+  currentFooterLayout = mode;
+  applyQrPosition();
+  applyQrMargins();
+  applyFooterAlign();
+}
+
+/* ---------------- BANNER (belt-stripe): mostrar/ocultar ya usa toggleSection; aquí solo lo movemos de sección ---------------- */
+function toggleBeltPlacement(){
+  const belt = document.getElementById('beltStripe');
+  const hero = document.querySelector('.hero');
+  const beltControls = document.getElementById('beltControls');
+  const promoWrap = document.getElementById('promoWrap');
+  const btn = document.getElementById('beltPlaceBtn');
+  if(beltPlacement === 'hero'){
+    belt.classList.add('belt-static');
+    promoWrap.parentNode.insertBefore(belt, promoWrap);
+    beltPlacement = 'promo';
+    btn.textContent = currentLang === 'es' ? '🔀 Banner: Volver a la foto' : '🔀 Banner: Move back to photo';
+  } else {
+    belt.classList.remove('belt-static');
+    hero.insertBefore(belt, beltControls);
+    beltPlacement = 'hero';
+    btn.textContent = currentLang === 'es' ? '🔀 Banner: Mover debajo de la foto' : '🔀 Banner: Move below photo';
+  }
+  applyBeltTransform();
+}
+
+/* ---------------- CTA LINKS ---------------- */
+/* ---------------- SCHEDULE ROWS ---------------- */
+function actionButtonsHTML(){
+  return '<button class="row-btn" onclick="moveRowUp(this)" title="Subir">▲</button>' +
+         '<button class="row-btn" onclick="moveRowDown(this)" title="Bajar">▼</button>' +
+         '<button class="row-btn" onclick="editRow(this)" title="Editar">✎</button>' +
+         '<button class="row-btn danger" onclick="deleteRow(this)" title="Eliminar">🗑</button>';
+}
+function moveRowUp(btn){
+  const row = btn.closest('tr');
+  const prev = row.previousElementSibling;
+  if(prev && prev.rowIndex > 0){
+    row.parentNode.insertBefore(row, prev);
+  }
+}
+function moveRowDown(btn){
+  const row = btn.closest('tr');
+  const next = row.nextElementSibling;
+  if(next){
+    row.parentNode.insertBefore(next, row);
+  }
+}
+function addRow(){
+  const table = document.getElementById('scheduleTable');
+  const row = table.insertRow(-1);
+  const placeholder = currentLang === 'es' ? 'Editar' : 'Edit';
+  for(let i=0;i<3;i++){
+    const cell = row.insertCell(-1);
+    cell.contentEditable = 'true';
+    cell.textContent = placeholder;
+  }
+  const actionCell = row.insertCell(-1);
+  actionCell.className = 'actions-cell ui-only';
+  actionCell.innerHTML = actionButtonsHTML();
+}
+function editRow(btn){
+  const row = btn.closest('tr');
+  row.cells[0].focus();
+}
+function deleteRow(btn){
+  const msg = currentLang === 'es' ? '¿Eliminar esta fila?' : 'Delete this row?';
+  if(confirm(msg)) btn.closest('tr').remove();
+}
+
+/* ---------------- QR ---------------- */
+function genQR(){
+  const label = currentLang === 'es' ? 'Pega la URL para el código QR:' : 'Paste the URL for the QR code:';
+  const url = prompt(label);
+  if(!url) return;
+  const qr = document.getElementById('qrSlot');
+  qr.style.border = 'none';
+  qr.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url) + '">' +
+    '<input type="file" accept="image/*" onchange="loadImage(event,\'qrSlot\')">';
+}
+
+/* ---------------- EXPORT ---------------- */
+/* ---------------- EXPORT: varios formatos según la red social ---------------- */
+const exportPresets = {
+  flyer:     { w: 850,  h: 1100, label: 'flyer-master-baez',            pad: false },
+  square:    { w: 1080, h: 1080, label: 'flyer-master-baez-cuadrado',   pad: false }, // ya no se usa pad: se captura el diseño real square-mode
+  story:     { w: 1080, h: 1920, label: 'flyer-master-baez-historia',   pad: true  },
+  landscape: { w: 1200, h: 900,  label: 'flyer-master-baez-horizontal', pad: true  }
+};
+function triggerDownload(canvas, name){
+  const link = document.createElement('a');
+  link.download = name + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+function downloadFormatted(){
+  const key = document.getElementById('exportFormat').value;
+  const preset = exportPresets[key];
+  const flyer = document.getElementById('flyer');
+  const bg = getComputedStyle(flyer).backgroundColor || '#0E0E10';
+
+  if(key === 'square'){
+    // Diseño real de 1080x1080 (no relleno/letterbox): activamos la vista
+    // cuadrada si no estaba activa, capturamos, y devolvemos todo como estaba.
+    const wasSquare = squareModeOn;
+    if(!wasSquare) toggleViewMode();
+    html2canvas(flyer, {
+      scale:2,
+      backgroundColor: bg,
+      useCORS:true,
+      ignoreElements: function(el){ return el.classList && el.classList.contains('ui-only'); }
+    }).then(canvas=>{
+      triggerDownload(canvas, preset.label);
+      if(!wasSquare) toggleViewMode();
+    });
+    return;
+  }
+
+  html2canvas(flyer, {
+    scale:3,
+    backgroundColor: bg,
+    useCORS:true,
+    ignoreElements: function(el){ return el.classList && el.classList.contains('ui-only'); }
+  }).then(canvas=>{
+    if(!preset.pad){
+      triggerDownload(canvas, preset.label);
+      return;
+    }
+    // El flyer es alto (tipo póster); para que quepa completo y sin recortes
+    // en formatos horizontales/historia, lo centramos sobre un fondo del
+    // mismo color de marca en vez de recortar contenido.
+    const out = document.createElement('canvas');
+    out.width = preset.w;
+    out.height = preset.h;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, preset.w, preset.h);
+    const scale = Math.min(preset.w / canvas.width, preset.h / canvas.height) * 0.96;
+    const dw = canvas.width * scale, dh = canvas.height * scale;
+    const dx = (preset.w - dw) / 2, dy = (preset.h - dh) / 2;
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, dx, dy, dw, dh);
+    triggerDownload(out, preset.label);
+  });
+}
+
+/* ---------------- QR con logo + posición + tamaño ---------------- */
+var _flyerQrSize = 110;
+var _flyerQrRenderSize = 600;
+var _flyerQrUrl = '';
+var _flyerQrPos = 'left';
+var _flyerQrFineX = 0, _flyerQrFineY = 0;
+function genQR(){
+  const label = currentLang === 'es' ? 'Pega la URL para el código QR:' : 'Paste the URL for the QR code:';
+  const url = prompt(label);
+  if(!url) return;
+  _flyerQrUrl = url;
+  flyerRenderQr();
+}
+function flyerRenderQr(){
+  const container = document.getElementById('qrSlot');
+  if(!container) return;
+  const displaySize = _flyerQrSize;
+  container.style.width = displaySize + 'px';
+  container.style.height = displaySize + 'px';
+  const url = _flyerQrUrl;
+  if(!url){
+    container.innerHTML = '<span style="font-size:11px;color:#999" data-i18n="qrText">Sube o genera<br>tu código QR</span>';
+    applyQrMargins();
+    return;
+  }
+  container.innerHTML = '<span style="font-size:11px;color:#666">Generando QR…</span>';
+  container.style.border = 'none';
+  const renderSize = Math.max(300, displaySize, _flyerQrRenderSize);
+  const canvas = document.createElement('canvas');
+  QRCode.toCanvas(canvas, url, { width: renderSize, margin: 0, errorCorrectionLevel: 'H' }, function(err){
+    if(err){ container.innerHTML = '<span style="color:#f87171;font-size:11px">Error QR</span>'; return; }
+    const img = document.createElement('img');
+    img.style.cssText = 'display:block;width:100%;height:100%;border-radius:8px';
+    img.src = canvas.toDataURL('image/png');
+    container.innerHTML = '';
+    container.appendChild(img);
+    applyQrMargins();
+  });
+}
+function setQrPosition(pos){
+  _flyerQrPos = pos;
+  _flyerQrFineX = 0; _flyerQrFineY = 0;
+  applyQrPosition();
+  applyQrMargins();
+}
+function applyQrPosition(){
+  const block = document.getElementById('qrBlock');
+  const info = document.getElementById('footerInfo');
+  const footer = document.getElementById('footerBlock');
+  if(!block || !info || !footer) return;
+  if(currentFooterLayout === 'stacked'){
+    footer.style.flexDirection = '';
+    footer.style.justifyContent = '';
+    footer.style.alignItems = '';
+    if(_flyerQrPos === 'left') info.style.alignItems = 'flex-start';
+    else if(_flyerQrPos === 'center') info.style.alignItems = 'center';
+    else if(_flyerQrPos === 'right') info.style.alignItems = 'flex-end';
+    block.style.margin = '';
+    return;
+  }
+  if(_flyerQrPos === 'left'){
+    footer.style.flexDirection = 'row';
+    footer.style.justifyContent = 'space-between';
+    footer.style.alignItems = 'flex-start';
+    block.style.order = '0';
+    info.style.order = '1';
+    block.style.marginLeft = '';
+    block.style.marginRight = '';
+  } else if(_flyerQrPos === 'right'){
+    footer.style.flexDirection = 'row-reverse';
+    footer.style.justifyContent = 'space-between';
+    footer.style.alignItems = 'flex-start';
+    block.style.order = '0';
+    info.style.order = '1';
+    block.style.marginLeft = '';
+    block.style.marginRight = '';
+  } else if(_flyerQrPos === 'center'){
+    footer.style.flexDirection = 'column';
+    footer.style.alignItems = 'center';
+    footer.style.justifyContent = 'center';
+    block.style.order = '0';
+    info.style.order = '1';
+    block.style.marginLeft = 'auto';
+    block.style.marginRight = 'auto';
+  }
+}
+function applyQrMargins(){
+  const block = document.getElementById('qrBlock');
+  const info = document.getElementById('footerInfo');
+  if(!block) return;
+  if(_flyerQrPos === 'center' && currentFooterLayout !== 'stacked'){
+    block.style.marginTop = _flyerQrFineY + 'px';
+    block.style.marginLeft = 'auto';
+    block.style.marginRight = 'auto';
+  } else {
+    block.style.marginLeft = _flyerQrFineX + 'px';
+    block.style.marginTop = _flyerQrFineY + 'px';
+  }
+  if(info && currentFooterLayout !== 'stacked'){
+    info.style.marginTop = _flyerQrFineY + 'px';
+  }
+}
+function moveQr(dx, dy){
+  _flyerQrFineX += dx; _flyerQrFineY += dy;
+  applyQrMargins();
+}
+function setQrSize(delta){
+  _flyerQrSize = Math.max(80, Math.min(300, _flyerQrSize + delta));
+  document.getElementById('qrSizeLabel').textContent = _flyerQrSize;
+  flyerRenderQr();
+}
+
+function toggleFlyerColorPanel(){
+  const panel = document.getElementById('flyerColorPanel');
+  panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'flex' : 'none';
+}
+function setFlyerColor(prop, value){
+  document.getElementById('flyer').style.setProperty(prop, value);
+}
+function resetFlyerColors(){
+  const flyer = document.getElementById('flyer');
+  flyer.style.removeProperty('--ink');
+  flyer.style.removeProperty('--crimson');
+  flyer.style.removeProperty('--bone');
+  flyer.style.removeProperty('--gold');
+  flyer.style.removeProperty('--charcoal');
+  flyer.style.removeProperty('--gray');
+  document.getElementById('flyerColorInk').value = '#0E0E10';
+  document.getElementById('flyerColorCrimson').value = '#D62839';
+  document.getElementById('flyerColorBone').value = '#F3EFE6';
+  document.getElementById('flyerColorGold').value = '#C9A227';
+  document.getElementById('flyerColorCharcoal').value = '#1C1C21';
+  document.getElementById('flyerColorGray').value = '#b0b0b6';
+}
+
+/* ---------------- FOOTER toggles: desc, promo, contactos, alineación ---------------- */
+var currentFooterDescVisible = true;
+var currentPromoDescVisible = true;
+var currentFooterContactVisible = true;
+var currentPromoCtrlsVisible = true;
+var currentFooterAlign = 'left';
+function toggleFooterDesc(){
+  currentFooterDescVisible = !currentFooterDescVisible;
+  const el = document.getElementById('footerDescMain');
+  if(el) el.classList.toggle('flyer-hidden', !currentFooterDescVisible);
+  const btn = document.getElementById('footerDescBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentFooterDescVisible ? '📝 Footer: Visible' : '📝 Footer: Oculta')
+    : (currentFooterDescVisible ? '📝 Footer: Visible' : '📝 Footer: Hidden');
+}
+function togglePromoDesc(){
+  currentPromoDescVisible = !currentPromoDescVisible;
+  const el = document.getElementById('promoSub');
+  if(el) el.classList.toggle('flyer-hidden', !currentPromoDescVisible);
+  recalcPromoSpacing();
+  const btn = document.getElementById('promoDescBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentPromoDescVisible ? '📝 Promo: Visible' : '📝 Promo: Oculta')
+    : (currentPromoDescVisible ? '📝 Promo: Visible' : '📝 Promo: Hidden');
+}
+function toggleFooterContact(){
+  currentFooterContactVisible = !currentFooterContactVisible;
+  const el = document.getElementById('footerContactRows');
+  if(el) el.classList.toggle('flyer-hidden', !currentFooterContactVisible);
+  const btn = document.getElementById('footerContactBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentFooterContactVisible ? '📞 Contacto: Visible' : '📞 Contacto: Oculta')
+    : (currentFooterContactVisible ? '📞 Contacto: Visible' : '📞 Contacto: Hidden');
+}
+function togglePromoControls(){
+  currentPromoCtrlsVisible = !currentPromoCtrlsVisible;
+  const el = document.getElementById('promoAlignControls');
+  if(el) el.style.display = currentPromoCtrlsVisible ? '' : 'none';
+  recalcPromoSpacing();
+  const btn = document.getElementById('promoCtrlsBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentPromoCtrlsVisible ? '⚙ Alineación Promo: Visible' : '⚙ Alineación Promo: Oculta')
+    : (currentPromoCtrlsVisible ? '⚙ Promo Align: Visible' : '⚙ Promo Align: Hidden');
+}
+function setFooterAlign(pos){
+  currentFooterAlign = pos;
+  applyFooterAlign();
+}
+var currentFooterMsgVisible = true;
+function toggleFooterMessage(){
+  currentFooterMsgVisible = !currentFooterMsgVisible;
+  const el = document.getElementById('footerMessage');
+  if(el) el.style.display = currentFooterMsgVisible ? '' : 'none';
+  const btn = document.getElementById('footerMsgBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentFooterMsgVisible ? '💬 Mensaje: Visible' : '💬 Mensaje: Oculta')
+    : (currentFooterMsgVisible ? '💬 Message: Visible' : '💬 Message: Hidden');
+}
+var currentHeaderAlign = 'left';
+function setHeaderAlign(pos){
+  currentHeaderAlign = pos;
+  applyHeaderAlign();
+}
+function applyHeaderAlign(){
+  const name = document.querySelector('.school-name');
+  const tag = document.querySelector('.school-tag');
+  const msg = document.getElementById('headerMessage');
+  const align = currentHeaderAlign || 'left';
+  if(name) name.style.textAlign = align;
+  if(tag) tag.style.textAlign = align;
+  if(msg) msg.style.textAlign = align;
+}
+var currentHeaderMsgVisible = true;
+function toggleHeaderMessage(){
+  currentHeaderMsgVisible = !currentHeaderMsgVisible;
+  const el = document.getElementById('headerMessage');
+  if(el) el.style.display = currentHeaderMsgVisible ? '' : 'none';
+  const btn = document.getElementById('headerMsgBtn');
+  btn.textContent = currentLang === 'es'
+    ? (currentHeaderMsgVisible ? '💬 H-Mensaje: Visible' : '💬 H-Mensaje: Oculta')
+    : (currentHeaderMsgVisible ? '💬 H-Message: Visible' : '💬 H-Message: Hidden');
+}
+function applyFooterAlign(){
+  const info = document.getElementById('footerInfo');
+  const brand = document.getElementById('footerBrand');
+  const msg = document.getElementById('footerMessage');
+  if(info){
+    if(currentFooterLayout === 'stacked'){
+      const map = {left:'flex-start', center:'center', right:'flex-end'};
+      info.style.alignItems = map[currentFooterAlign] || 'flex-start';
+      info.style.textAlign = '';
+    } else {
+      info.style.textAlign = currentFooterAlign || 'left';
+      info.style.alignItems = '';
+    }
+  }
+  if(brand) brand.style.textAlign = currentFooterAlign || 'left';
+  if(msg) msg.style.textAlign = currentFooterAlign || 'left';
+}
+
+/* ---------------- Flyer-hidden CSS class ---------------- */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = '.flyer-hidden{display:none!important}';
+  document.head.appendChild(style);
+})();
+
+/* ---------------- BILINGUAL (ES/EN) ---------------- */
+let currentLang = 'es';
+const translations = {
+  logoText:{es:'Sube tu<br>LOGO', en:'Upload your<br>LOGO'},
+  heroEmptyText:{es:'Clic para subir foto principal (clase, alumnos, evento)', en:'Click to upload main photo (class, students, event)'},
+  schoolTag:{es:'Hapkido · Disciplina · Familia', en:'Hapkido · Discipline · Family'},
+  heroHeadline:{es:'2 Clases Gratis + 3 Meses por $149', en:'2 Free Classes + 3 Months for $149'},
+  promoSub:{es:'Incluye uniforme, evaluación y garantía de reembolso 100%.', en:'Includes uniform, evaluation & 100% money-back guarantee.'},
+  promoPhotoText:{es:'Sube una foto', en:'Upload a photo'},
+  ctaPrimary:{es:'Inscríbete Ahora', en:'Enroll Now'},
+  ctaSecondary:{es:'Agenda tu Clase de Prueba', en:'Book a Trial Class'},
+  sectionHorario:{es:'Horario de Clases', en:'Class Schedule'},
+  thPrograma:{es:'Programa', en:'Program'},
+  thDias:{es:'Días', en:'Days'},
+  thHorario:{es:'Horario', en:'Time'},
+  thAcciones:{es:'Acciones', en:'Actions'},
+  row1c1:{es:'Niños (5–12 años)', en:'Kids (5–12 yrs)'},
+  row1c2:{es:'Lun / Mié', en:'Mon / Wed'},
+  row2c1:{es:'Jóvenes / Adultos', en:'Teens / Adults'},
+  row2c2:{es:'Mar / Jue', en:'Tue / Thu'},
+  row3c1:{es:'Sábados Familiares', en:'Family Saturdays'},
+  row3c2:{es:'Sábado', en:'Saturday'},
+  addRowBtn:{es:'+ Agregar fila', en:'+ Add row'},
+  sectionGaleria:{es:'Galería', en:'Gallery'},
+  gallery1:{es:'Foto 1', en:'Photo 1'},
+  gallery2:{es:'Foto 2', en:'Photo 2'},
+  gallery3:{es:'Foto 3', en:'Photo 3'},
+  qrText:{es:'Sube o genera<br>tu código QR', en:'Upload or generate<br>your QR code'},
+  footerAddressLabel:{es:'Dirección:', en:'Address:'},
+  footerPhoneLabel:{es:'Teléfono:', en:'Phone:'},
+  footerEmailLabel:{es:'Correo:', en:'Email:'},
+  footerWebLabel:{es:'Sitio web:', en:'Website:'},
+  footerDesc:{es:'Escanea el QR para inscribirte o síguenos en redes sociales para más información sobre clases, promociones y eventos.', en:'Scan the QR code to enroll or follow us on social media for more info on classes, promotions and events.'},
+  footerDescStacked:{es:'📲 ¡Escanea el código QR para agendar tu Clase de Prueba GRATIS!<br>Da el primer paso hacia la confianza, la disciplina y el éxito.', en:'📲 Scan the QR Code to Schedule Your FREE Trial Class!<br>Take the first step toward building confidence, discipline, and success.'}
+};
+
+// Cuando el usuario edita un texto propio, lo guardamos POR IDIOMA (esText/enText)
+// en vez de simplemente "congelarlo". Así, el botón ES/EN sigue funcionando:
+// escribe tu texto en español, cambia a inglés, escribe la traducción, y desde
+// ahí el botón alternará entre las dos versiones que tú mismo escribiste.
+document.querySelectorAll('[data-i18n]').forEach(el=>{
+  if(el.getAttribute('contenteditable') === 'true'){
+    el.addEventListener('blur', ()=>{
+      el.dataset.touched = '1';
+      el.dataset[currentLang + 'Text'] = el.innerHTML;
+    });
+  }
+});
+
+function applyLang(lang){
+  currentLang = lang;
+  document.getElementById('flyer').setAttribute('lang', lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    if(el.dataset.touched === '1'){
+      const custom = el.dataset[lang + 'Text'];
+      if(custom !== undefined) el.innerHTML = custom;
+      // si aún no existe una versión guardada en este idioma, se deja el texto
+      // tal cual para que el usuario la escriba (se guardará al salir del campo)
+      return;
+    }
+    const key = el.dataset.i18n;
+    const entry = translations[key];
+    if(!entry) return;
+    if(el.tagName === 'SPAN' || el.tagName === 'DIV' || el.tagName === 'A' || el.tagName === 'TH' || el.tagName === 'TD' || el.tagName === 'BUTTON' || el.tagName === 'LABEL'){
+      el.innerHTML = entry[lang];
+    }
+  });
+  document.getElementById('langBtn').textContent = lang === 'es' ? 'EN' : 'ES';
+}
+
+function toggleLang(){
+  applyLang(currentLang === 'es' ? 'en' : 'es');
+}
+
+applyLang('es');
+applyFooterAlign();
+applyHeaderAlign();
+applyQrPosition();
+applyQrMargins();
+recalcPromoSpacing();
+flyerRenderQr();
+</script>
+
+</body>
+</html>
