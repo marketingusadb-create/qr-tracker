@@ -724,7 +724,6 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
     // Intento de "hornear" el logo en el PNG descargable (con reintento automático vía proxy si hace falta).
     function bake(url,isRetry){
       var bakeImg=new Image();
-      bakeImg.crossOrigin='anonymous';
       bakeImg.onload=function(){
         try{
           var bakeCanvas=document.createElement('canvas');
@@ -904,7 +903,7 @@ function downloadFlyerImg(){
   var s=document.createElement('script');
   s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
   s.onload=function(){
-    html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
+    html2canvas(sheet,{scale:2,useCORS:false,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
       var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='flyer-qr-tracker.png';
       document.body.appendChild(a);a.click();document.body.removeChild(a);
       toast(__('imageDownloaded'));
