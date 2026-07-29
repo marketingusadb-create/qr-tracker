@@ -859,7 +859,6 @@ function renderQrCanvas(containerId,qrData,logoUrl,size){
     // Intento de "hornear" el logo en el PNG descargable (con reintento automático vía proxy si hace falta).
     function bake(url,isRetry){
       var bakeImg=new Image();
-      bakeImg.crossOrigin='anonymous';
       bakeImg.onload=function(){
         try{
           var bakeCanvas=document.createElement('canvas');
