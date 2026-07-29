@@ -1147,7 +1147,7 @@ function clientTrashItem(id,d){
 function qrTrashItem(cid,cname,qid,qd){
   var baseUrl=getBaseUrl();var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
   var qrData=baseUrl+'?c='+cid+'&q='+qid+'&s='+(qd.type||'whatsapp');
-  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button></div></div></div>';
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
 }
 function loadDeletedClients(){
   var html='';
@@ -1421,6 +1421,12 @@ function deleteQrCode(clientId,qrId){
 function restoreQrCode(clientId,qrId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
     toast(__('qrRestored'));loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+function permDeleteQrCode(clientId,qrId){
+  if(!confirm('¿Eliminar permanentemente este QR? No se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).delete().then(function(){
+    toast('✅ QR eliminado permanentemente');loadDeletedClients();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
