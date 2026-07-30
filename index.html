@@ -203,16 +203,22 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 function getLang(){return navigator.language||navigator.userLanguage||'es'}
 
-var BREVO_WORKER='https://long-breeze-7e8a.dbkoryo.workers.dev/';
-
 function sendBrevo(toArray,subject,htmlContent){
-  if(!toArray||!toArray.length)return Promise.resolve();
-  return fetch(BREVO_WORKER,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({to:toArray,subject,htmlContent})
+  var d=_clientData;
+  if(!d||!d.brevoApiKey||!toArray||!toArray.length)return Promise.resolve();
+  return fetch('https://api.brevo.com/v3/smtp/email',{
+    method:'POST',
+    headers:{'api-key':d.brevoApiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({
+      sender:{name:d.name||'Contacto',email:d.brevoSenderEmail||'noreply@contacto.com'},
+      to:toArray,
+      subject:subject,
+      htmlContent:htmlContent
+    })
   }).then(function(r){
-    if(!r.ok)console.warn('BrevoWorker status:',r.status);else console.log('BrevoWorker OK:',toArray[0].email);
-  }).catch(function(err){console.error('BrevoWorker:',err)});
+    if(!r.ok){r.text().then(function(t){console.warn('Brevo status:',r.status,t)})}
+    else console.log('Brevo OK:',toArray[0].email);
+  }).catch(function(err){console.error('Brevo:',err)});
 }
 
 function sendAutoReply(lead){
