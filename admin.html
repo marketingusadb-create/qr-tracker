@@ -998,6 +998,8 @@ function saveAdminProfile(){
   };
   if(_profileId){
     QR_DB.collection('clients').doc(_profileId).update(data).then(function(){
+      return syncPublicData(_profileId,data);
+    }).then(function(){
       document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
       toast(__('profileSaved'));
       _profileData=data;
@@ -1007,6 +1009,8 @@ function saveAdminProfile(){
     var newId='admin_'+u.uid.slice(0,12);
     _profileId=newId;
     QR_DB.collection('clients').doc(newId).set(data).then(function(){
+      return syncPublicData(newId,data);
+    }).then(function(){
       document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
       toast(__('profileSaved'));
       _profileData=data;
