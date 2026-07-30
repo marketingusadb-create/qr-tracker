@@ -355,7 +355,7 @@ else{
     if(!qrDoc.exists){showError(__('errNotRegistered'));return null}
     if(qrDoc.data().active===false){showError(__('errDisabled'));return null}
     _qrDocData=qrDoc.data();
-    return DB.collection('clients').doc(clientId).get();
+    return DB.collection('clients').doc(clientId).collection('public').doc('info').get();
   }).then(function(clientDoc){
     if(!clientDoc)return;
     if(!clientDoc.exists){showError(__('errBusinessNotRegistered'));return}

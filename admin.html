@@ -207,6 +207,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <button class="btn btn-sm btn-outline no-print" onclick="toggleLang()" id="langBtn">🇺🇸 EN</button>
       <a href="https://marketingusadb-create.github.io/qr-tracker/dashboard.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">👤 Panel Cliente</a>
       <a href="pago-autorizacion.html" target="_blank" class="btn btn-sm btn-outline no-print" style="font-size:11px;text-decoration:none">💳 Pago</a>
+      <button class="btn btn-sm btn-outline no-print" onclick="syncAllPublicData()" title="Arregla los QR de clientes creados antes de este cambio">🔄 Sincronizar QR</button>
       <button class="btn btn-sm btn-outline no-print" onclick="logout()"><span data-lang="logout">Cerrar sesión</span></button>
     </div>
   </div>
@@ -1475,6 +1476,23 @@ function generateManualQr(){
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
+// Escribe/actualiza la copia pública (sin datos sensibles) que puede leer
+// cualquiera que escanee un QR, sin necesitar sesión iniciada.
+function syncPublicData(clientId,d){
+  return QR_DB.collection('clients').doc(clientId).collection('public').doc('info').set({
+    name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||''
+  });
+}
+
+// Recorre todos los clientes ya cargados y crea/actualiza su copia pública.
+// Útil una sola vez para "poner al día" clientes creados antes de este cambio.
+function syncAllPublicData(){
+  if(!_clients||!_clients.length){toast('Primero esperá a que cargue la lista de clientes');return}
+  var proms=_clients.map(function(d){return syncPublicData(d._id,d)});
+  Promise.all(proms).then(function(){toast('✅ '+proms.length+' clientes sincronizados')})
+    .catch(function(err){toast('Error: '+err.message)});
+}
+
 function createClient(){
   var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim().replace(/\D/g,'');
   var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
@@ -1495,6 +1513,8 @@ function createClient(){
   CLIENT_AUTH.createUserWithEmailAndPassword(email,pass).then(function(userCred){
     // Luego guardar en Firestore
     return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  }).then(function(){
+    return syncPublicData(newId,{name:name,whatsapp:wa,waMessage:waMsg,logoUrl:logoUrl,email:email});
   }).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
     ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncBrevoKey','ncBrevoSender','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
@@ -1551,6 +1571,14 @@ function saveClient(){
         logoUrl:document.getElementById('editLogoUrl').value.trim(),
         licenciaActiva:document.getElementById('editLicenciaActiva').checked,
         licenciaVence:document.getElementById('editLicenciaVence').value
+      });
+    }).then(function(){
+      return syncPublicData(_currentClientId,{
+        name:document.getElementById('editName').value.trim(),
+        whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
+        waMessage:document.getElementById('editWaMsg').value.trim(),
+        logoUrl:document.getElementById('editLogoUrl').value.trim(),
+        email:newEmail
       });
     });
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
