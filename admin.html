@@ -1485,7 +1485,10 @@ function generateManualQr(){
 function syncPublicData(clientId,d){
   return QR_DB.collection('clients').doc(clientId).collection('public').doc('info').set({
     name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||'',
-    telegramUser:d.telegramUser||'',telegramToken:d.telegramToken||'',telegramChatId:d.telegramChatId||''
+    telegramUser:d.telegramUser||'',telegramToken:d.telegramToken||'',telegramChatId:d.telegramChatId||'',
+    whatsappPhoneId:d.whatsappPhoneId||'',whatsappToken:d.whatsappToken||'',
+    teamsWebhook:d.teamsWebhook||'',
+    brevoApiKey:d.brevoApiKey||'',brevoSenderEmail:d.brevoSenderEmail||'',autoReplyPhone:d.autoReplyPhone||''
   });
 }
 
@@ -1519,7 +1522,7 @@ function createClient(){
     // Luego guardar en Firestore
     return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
   }).then(function(){
-    return syncPublicData(newId,{name:name,whatsapp:wa,waMessage:waMsg,logoUrl:logoUrl,email:email,telegramUser:tgUser,telegramToken:tgToken,telegramChatId:tgChat});
+    return syncPublicData(newId,{name:name,whatsapp:wa,waMessage:waMsg,logoUrl:logoUrl,email:email,telegramUser:tgUser,telegramToken:tgToken,telegramChatId:tgChat,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone});
   }).then(function(){
     document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
     ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncBrevoKey','ncBrevoSender','ncAutoReplyPhone','ncGoogleVoice','ncWhatsAppPhoneId','ncWhatsAppToken','ncTeamsWebhook','ncLogoUrl','ncLogoFile','ncLicenciaActiva','ncLicenciaVence'].forEach(function(id){var el=document.getElementById(id);if(el.type==='checkbox')el.checked=false;else el.value=''});
@@ -1586,7 +1589,13 @@ function saveClient(){
         email:newEmail,
         telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
         telegramToken:document.getElementById('editTelegramToken').value.trim(),
-        telegramChatId:document.getElementById('editTelegramChat').value.trim()
+        telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+        whatsappPhoneId:document.getElementById('editWhatsAppPhoneId').value.trim(),
+        whatsappToken:document.getElementById('editWhatsAppToken').value.trim(),
+        teamsWebhook:document.getElementById('editTeamsWebhook').value.trim(),
+        brevoApiKey:document.getElementById('editBrevoKey').value.trim(),
+        brevoSenderEmail:document.getElementById('editBrevoSender').value.trim(),
+        autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim()
       });
     });
   }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})

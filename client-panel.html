@@ -414,7 +414,13 @@ function saveMyProfile(){
       waMessage:(_clientData&&_clientData.waMessage)||'',
       telegramUser:(_clientData&&_clientData.telegramUser)||'',
       telegramToken:(_clientData&&_clientData.telegramToken)||'',
-      telegramChatId:(_clientData&&_clientData.telegramChatId)||''
+      telegramChatId:(_clientData&&_clientData.telegramChatId)||'',
+      whatsappPhoneId:(_clientData&&_clientData.whatsappPhoneId)||'',
+      whatsappToken:(_clientData&&_clientData.whatsappToken)||'',
+      teamsWebhook:(_clientData&&_clientData.teamsWebhook)||'',
+      brevoApiKey:(_clientData&&_clientData.brevoApiKey)||'',
+      brevoSenderEmail:(_clientData&&_clientData.brevoSenderEmail)||'',
+      autoReplyPhone:(_clientData&&_clientData.autoReplyPhone)||''
     });
   }).then(function(){
     _clientData.name=data.name;_clientData.whatsapp=data.whatsapp;_clientData.logoUrl=data.logoUrl;

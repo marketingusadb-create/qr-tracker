@@ -912,7 +912,13 @@ function saveProfile(){
       email:(_clientData&&_clientData.email)||'',
       telegramUser:data.telegramUser||'',
       telegramToken:(_clientData&&_clientData.telegramToken)||'',
-      telegramChatId:(_clientData&&_clientData.telegramChatId)||''
+      telegramChatId:(_clientData&&_clientData.telegramChatId)||'',
+      whatsappPhoneId:(_clientData&&_clientData.whatsappPhoneId)||'',
+      whatsappToken:(_clientData&&_clientData.whatsappToken)||'',
+      teamsWebhook:(_clientData&&_clientData.teamsWebhook)||'',
+      brevoApiKey:data.brevoApiKey||'',
+      brevoSenderEmail:data.brevoSenderEmail||'',
+      autoReplyPhone:data.autoReplyPhone||''
     });
   }).then(function(){
     document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
