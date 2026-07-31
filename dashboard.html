@@ -907,6 +907,14 @@ function saveProfile(){
     logoUrl:document.getElementById('profLogoUrl').value.trim()
   };
   QR_DB.collection('clients').doc(_clientDocId).update(data).then(function(){
+    return QR_DB.collection('clients').doc(_clientDocId).collection('public').doc('info').set({
+      name:data.name,whatsapp:data.whatsapp,waMessage:data.waMessage,logoUrl:data.logoUrl,
+      email:(_clientData&&_clientData.email)||'',
+      telegramUser:data.telegramUser||'',
+      telegramToken:(_clientData&&_clientData.telegramToken)||'',
+      telegramChatId:(_clientData&&_clientData.telegramChatId)||''
+    });
+  }).then(function(){
     document.getElementById('profResult').innerHTML='<span style="color:#16a34a">'+__('profileSaved')+'</span>';
     toast(__('profileSaved'));
     _clientData=data;

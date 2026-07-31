@@ -408,6 +408,15 @@ function saveMyProfile(){
     logoUrl:$('clientLogoUrl').value.trim()
   };
   DB.collection('clients').doc(_clientId).update(data).then(function(){
+    return DB.collection('clients').doc(_clientId).collection('public').doc('info').set({
+      name:data.name,whatsapp:data.whatsapp,logoUrl:data.logoUrl,
+      email:(_clientData&&_clientData.email)||'',
+      waMessage:(_clientData&&_clientData.waMessage)||'',
+      telegramUser:(_clientData&&_clientData.telegramUser)||'',
+      telegramToken:(_clientData&&_clientData.telegramToken)||'',
+      telegramChatId:(_clientData&&_clientData.telegramChatId)||''
+    });
+  }).then(function(){
     _clientData.name=data.name;_clientData.whatsapp=data.whatsapp;_clientData.logoUrl=data.logoUrl;
     $('panelTitle').textContent='📊 '+(data.name||'Mi Panel');
     $('profileResult').innerHTML='<span style="color:#16a34a">✅ Perfil actualizado</span>';

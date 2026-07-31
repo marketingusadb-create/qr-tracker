@@ -259,6 +259,24 @@ function reverseGeocode(lat,lng){
     }).catch(function(){return null});
 }
 
+function buildContactUrl(msg){
+  var url='';
+  if(_serviceType==='telegram'){
+    var tu=_clientData.telegramUser||'';
+    if(tu) url='https://t.me/'+tu+'?text='+msg;
+    else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+  }else if(_serviceType==='sms'){
+    url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
+  }else if(_serviceType==='teams'){
+    var em=encodeURIComponent(_clientData.email||'');
+    if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
+    else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
+  }else{
+    url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
+  }
+  return url;
+}
+
 function submitLead(){
   var name=$('leadName').value.trim();
   if(!name){$('leadName').style.borderColor='#e74c3c';return}
@@ -297,26 +315,14 @@ function submitLead(){
       sendAutoReply(lead)
     ]).then(function(){
       var msg=encodeURIComponent((lead.message||_clientData.waMessage||'Hola')+' - '+lead.name);
-      var url='';
-      if(_serviceType==='telegram'){
-        var tu=_clientData.telegramUser||'';
-        if(tu) url='https://t.me/'+tu+'?text='+msg;
-        else url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }else if(_serviceType==='sms'){
-        url='sms:'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?body='+msg;
-      }else if(_serviceType==='teams'){
-        var em=encodeURIComponent(_clientData.email||'');
-        if(em) url='https://teams.microsoft.com/l/chat/0/0?users='+em;
-        else url='mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg;
-      }else{
-        url='https://wa.me/'+(_clientData.whatsapp||'').replace(/\D/g,'')+'?text='+msg;
-      }
+      var url=buildContactUrl(msg);
       if(url) location.href=url;
       else showError(__('errServiceNotConfigured'));
     });
   }).catch(function(){
-    var wa=(_clientData.whatsapp||_clientData.phone||'').replace(/\D/g,'');
-    if(wa) location.href='https://wa.me/'+wa;
+    var msg=encodeURIComponent((lead.message||(_clientData&&_clientData.waMessage)||'Hola')+' - '+lead.name);
+    var url=_clientData?buildContactUrl(msg):'';
+    if(url) location.href=url;
     else showError(__('errSendFailed'));
     $('loader').style.display='none';$('error').style.display='block';
   });
