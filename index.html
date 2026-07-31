@@ -252,10 +252,11 @@ function getGPSPosition(){
 }
 
 function reverseGeocode(lat,lng){
-  return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&zoom=16&addressdetails=1',{headers:{'User-Agent':'QR-Tracker-CRM/1.0'}})
+  return fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&zoom=18&addressdetails=1',{headers:{'User-Agent':'QR-Tracker-CRM/1.0'}})
     .then(function(r){return r.json()}).then(function(data){
       var a=data.address||{};
-      return {city:a.city||a.town||a.village||a.municipality||a.county||'', county:a.county||'', state:a.state||'', country:a.country||''};
+      var c=a.city||a.town||a.village||a.hamlet||a.municipality||'';
+      return {city:c, county:a.county||'', state:a.state||'', country:a.country||''};
     }).catch(function(){return null});
 }
 
