@@ -1243,25 +1243,21 @@ function qrTrashItem(cid,cname,qid,qd){
 }
 function loadDeletedClients(){
   var html='';
-  // Cargar QRs eliminados (puede fallar si falta índice)
+  // Clientes eliminados (siempre se cargan, aunque fallen otras consultas)
+  var clientPromise = QR_DB.collection('clients').where('deleted','==',true).get().then(function(deletedSnap){
+    deletedSnap.forEach(function(doc){html+=clientTrashItem(doc.id,doc.data())});
+  }).catch(function(e){ console.warn('Error cargando clientes eliminados:',e); });
+  // QRs eliminados (puede fallar si falta índice — se agregan solo si la consulta funciona)
   var qrPromise = QR_DB.collectionGroup('qrCodes').where('deleted','==',true).get().then(function(qrSnap){
     var deletedQrs={}; var qrHtml='';
     qrSnap.forEach(function(doc){var p=doc.ref.path;var cid=p.split('/')[1];if(!deletedQrs[cid])deletedQrs[cid]=[];deletedQrs[cid].push({id:doc.id,data:doc.data()})});
-    // QRs de clientes activos
-    return QR_DB.collection('clients').where('deleted','!=',true).get().then(function(activeSnap){
-      activeSnap.forEach(function(doc){
+    return QR_DB.collection('clients').get().then(function(allSnap){
+      allSnap.forEach(function(doc){
         var cid=doc.id;var qrs=deletedQrs[cid]||[];
         qrs.forEach(function(q){qrHtml+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
       });
-      // QRs de clientes eliminados
-      return QR_DB.collection('clients').where('deleted','==',true).get().then(function(deletedSnap){
-        deletedSnap.forEach(function(doc){
-          html+=clientTrashItem(doc.id,doc.data()); // clientes eliminados
-          var cid=doc.id;var qrs=deletedQrs[cid]||[];
-          qrs.forEach(function(q){qrHtml+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
-        });
-        html+=qrHtml; // agregar QRs al html
-      });
+    }).then(function(){
+      if(qrHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📱 QRs eliminados</h3>'+qrHtml;
     });
   }).catch(function(e){ console.warn('Error cargando QRs eliminados:',e); });
   // Cargar scans eliminados
@@ -1287,7 +1283,7 @@ function loadDeletedClients(){
     });
   }).catch(function(e){ console.warn('Error cargando scans eliminados:',e); });
   // Cuando todo termine, mostrar
-  Promise.all([qrPromise, scanPromise]).then(function(){
+  Promise.all([clientPromise, qrPromise, scanPromise]).then(function(){
     document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
   });
 }
