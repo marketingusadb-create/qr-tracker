@@ -1471,8 +1471,10 @@ function loadQrCodes(clientId){
     var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
     var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams',weblink:'🔗 Web'};
     var logoUrl=_currentClientLogoUrl||'';
-    var items=[];
+    var items=[];var shown=0;
     snap.forEach(function(doc){var d=doc.data();
+      if(d.deleted)return;
+      shown++;
       var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?__('qrActive'):__('qrInactive');
       var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
       var qrData=baseUrl+'?c='+clientId+'&q='+doc.id+'&s='+type;
@@ -1497,7 +1499,7 @@ function loadQrCodes(clientId){
         +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
         +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱</a>'
         +'</div></div>'});
-    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
+    if(!shown) html='<p style="color:#888;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
     document.getElementById('modalQrList').innerHTML=html;
     items.forEach(function(it){renderQrCanvas(it.canvasId,it.qrData,logoUrl,280)});
   });
