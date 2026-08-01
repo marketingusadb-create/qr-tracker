@@ -216,9 +216,9 @@ function sendBrevo(toArray,subject,htmlContent){
       htmlContent:htmlContent
     })
   }).then(function(r){
-    if(!r.ok){r.text().then(function(t){console.warn('Brevo status:',r.status,t)})}
-    else console.log('Brevo OK:',toArray[0].email);
-  }).catch(function(err){console.error('Brevo:',err)});
+    if(!r.ok){r.text().then(function(t){console.error('[Brevo] Error '+r.status+' al enviar a '+toArray[0].email+': '+t)})}
+    else console.log('[Brevo] Email OK a '+toArray[0].email+' | asunto: '+subject);
+  }).catch(function(err){console.error('[Brevo] Error de conexión:',err)});
 }
 
 function sendAutoReply(lead){

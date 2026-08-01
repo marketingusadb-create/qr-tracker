@@ -507,13 +507,14 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
       <div id="profileForm">
         <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="profName" placeholder="Ej: Mi Empresa" /></div>
         <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="profWhatsapp" placeholder="573001234567" /></div>
+        <div class="form-group"><label>Email para notificaciones <small>(a este email te llegan los avisos de cada lead)</small></label><input id="profEmail" placeholder="tucorreo@gmail.com" /></div>
         <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="profTelegramToken" placeholder="123456789:ABC..." /></div>
         <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="profTelegramChat" placeholder="-1001234567890" /></div>
         <div class="form-group"><label>Usuario de Telegram <small>(@usuario)</small></label><input id="profTelegramUser" placeholder="usuario_sin_@" /></div>
         <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="profWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
         <hr style="margin:16px 0;border:none;border-top:1px solid rgba(255,255,255,.08)">
         <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9" data-lang="emailAutoReply">📧 Email con Brevo</h3>
-        <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px">300 emails/día gratis. <a href="https://brevo.com" target="_blank" style="color:#8b5cf6">Brevo.com</a> → API Key v3</p>
+        <p style="font-size:12px;color:#e2e8f0;margin-bottom:10px">300 emails/día gratis. <a href="https://brevo.com" target="_blank" style="color:#8b5cf6">Brevo.com</a> → API Key v3. <strong>Verificá el remitente:</strong> Brevo → Settings → Senders & IP (el "Email del remitente" debe estar en verde).</p>
         <div class="form-group"><label>Brevo API Key v3</label><input id="profBrevoKey" placeholder="xsksm...abc123" /></div>
         <div class="form-group"><label>Email del remitente</label><input id="profBrevoSender" placeholder="tucorreo@gmail.com" /></div>
         <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</label><input id="profAutoReplyPhone" placeholder="953801340" /></div>
@@ -953,6 +954,7 @@ function loadAdminProfile(){
 function fillProfileForm(d){
   document.getElementById('profName').value=d.name||'';
   document.getElementById('profWhatsapp').value=d.whatsapp||'';
+  document.getElementById('profEmail').value=d.email||'';
   document.getElementById('profTelegramToken').value=d.telegramToken||'';
   document.getElementById('profTelegramChat').value=d.telegramChatId||'';
   document.getElementById('profTelegramUser').value=d.telegramUser||'';
@@ -970,7 +972,7 @@ function fillProfileForm(d){
 }
 
 function clearProfileForm(){
-  ['profName','profWhatsapp','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
+  ['profName','profWhatsapp','profEmail','profTelegramToken','profTelegramChat','profTelegramUser','profWaMsg',
    'profBrevoKey','profBrevoSender','profAutoReplyPhone','profGoogleVoice',
    'profWhatsAppPhoneId','profWhatsAppToken','profTeamsWebhook','profLogoUrl'].forEach(function(id){document.getElementById(id).value=''});
 }
@@ -980,6 +982,7 @@ function saveAdminProfile(){
   var data={
     name:document.getElementById('profName').value.trim(),
     whatsapp:document.getElementById('profWhatsapp').value.trim().replace(/\D/g,''),
+    email:document.getElementById('profEmail').value.trim(),
     telegramToken:document.getElementById('profTelegramToken').value.trim(),
     telegramChatId:document.getElementById('profTelegramChat').value.trim(),
     telegramUser:document.getElementById('profTelegramUser').value.trim().replace(/^@/,''),
