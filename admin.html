@@ -1251,47 +1251,40 @@ function qrTrashItem(cid,cname,qid,qd){
 }
 function loadDeletedClients(){
   var html='';
-  // Clientes eliminados (siempre se cargan, aunque fallen otras consultas)
+  var deletedClientsHtml='',deletedQrsHtml='',deletedScansHtml='';
+  // Clientes eliminados
   var clientPromise = QR_DB.collection('clients').where('deleted','==',true).get().then(function(deletedSnap){
-    deletedSnap.forEach(function(doc){html+=clientTrashItem(doc.id,doc.data())});
-  }).catch(function(e){ console.warn('Error cargando clientes eliminados:',e); });
-  // QRs eliminados (puede fallar si falta índice — se agregan solo si la consulta funciona)
-  var qrPromise = QR_DB.collectionGroup('qrCodes').where('deleted','==',true).get().then(function(qrSnap){
-    var deletedQrs={}; var qrHtml='';
-    qrSnap.forEach(function(doc){var p=doc.ref.path;var cid=p.split('/')[1];if(!deletedQrs[cid])deletedQrs[cid]=[];deletedQrs[cid].push({id:doc.id,data:doc.data()})});
-    return QR_DB.collection('clients').get().then(function(allSnap){
-      allSnap.forEach(function(doc){
-        var cid=doc.id;var qrs=deletedQrs[cid]||[];
-        qrs.forEach(function(q){qrHtml+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
-      });
-    }).then(function(){
-      if(qrHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📱 QRs eliminados</h3>'+qrHtml;
-    });
-  }).catch(function(e){ console.warn('Error cargando QRs eliminados:',e); });
-  // Cargar scans eliminados
-  var scanPromise = QR_DB.collection('clients').get().then(function(allClients){
-    var scanPromises=[]; var sc=0; var scanHtml='';
+    deletedSnap.forEach(function(doc){deletedClientsHtml+=clientTrashItem(doc.id,doc.data())});
+  }).catch(function(e){console.warn('Error cargando clientes eliminados:',e)});
+  // QRs y scans eliminados recorriendo cada cliente (sin collectionGroup: evita depender de índices compuestos)
+  var subPromise = QR_DB.collection('clients').get().then(function(allClients){
+    var subProms=[];
     allClients.forEach(function(cdoc){
-      scanPromises.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
-        ssnap.forEach(function(sdoc){
-          var d=sdoc.data();sc++;
-          scanHtml+='<div class="client-card" style="opacity:.6"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.leadName||'—')+'</h3>'
-            +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cdoc.data().name||'—')+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
-            +'<div><button onclick="restoreScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
-            +'<button onclick="permDeleteScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
-        });
-      }));
+      var cid=cdoc.id;var cname=cdoc.data().name||'—';
+      subProms.push(
+        QR_DB.collection('clients').doc(cid).collection('qrCodes').where('deleted','==',true).get().then(function(qsnap){
+          qsnap.forEach(function(qdoc){deletedQrsHtml+=qrTrashItem(cid,cname,qdoc.id,qdoc.data())});
+        }).catch(function(e){console.warn('Error cargando QRs eliminados de '+cid+':',e)})
+      );
+      subProms.push(
+        QR_DB.collection('clients').doc(cid).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
+          ssnap.forEach(function(sdoc){
+            var d=sdoc.data();
+            deletedScansHtml+='<div class="client-card" style="opacity:.6"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.leadName||'—')+'</h3>'
+              +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cname)+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
+              +'<div><button onclick="restoreScan(\''+cid+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
+              +'<button onclick="permDeleteScan(\''+cid+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
+          });
+        }).catch(function(e){console.warn('Error cargando scans eliminados de '+cid+':',e)})
+      );
     });
-    return Promise.all(scanPromises).then(function(){
-      if(scanHtml){
-        html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+scanHtml;
-      } else {
-        html+='<p style="color:#888;padding:10px" data-lang="noDeletedScans">No hay scans eliminados.</p>';
-      }
-    });
-  }).catch(function(e){ console.warn('Error cargando scans eliminados:',e); });
-  // Cuando todo termine, mostrar
-  Promise.all([clientPromise, qrPromise, scanPromise]).then(function(){
+    return Promise.all(subProms);
+  }).catch(function(e){console.warn('Error cargando clientes para la papelera:',e)});
+  // Cuando todo termine, mostrar (mensaje vacío solo si realmente no hay nada)
+  Promise.all([clientPromise,subPromise]).then(function(){
+    if(deletedClientsHtml) html+=deletedClientsHtml;
+    if(deletedQrsHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📱 QRs eliminados</h3>'+deletedQrsHtml;
+    if(deletedScansHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+deletedScansHtml;
     document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
   });
 }
