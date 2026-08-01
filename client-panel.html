@@ -78,6 +78,10 @@ details summary{outline:none}
   <input id="loginPass" type="password" placeholder="Contraseña" />
   <button class="btn btn-primary" onclick="login()">Ingresar</button>
   <div id="loginError" style="color:#f87171;font-size:13px;margin-top:10px;display:none"></div>
+  <div id="businessPick" style="display:none;margin-top:16px;text-align:left">
+    <p style="font-size:13px;color:#94a3b8;margin-bottom:8px">Este email tiene varios negocios. Elegí a cuál entrar:</p>
+    <div id="businessList"></div>
+  </div>
 </div>
 
 <div id="app">
@@ -200,19 +204,41 @@ function login(){
   var pass=$('loginPass').value;
   if(!email||!pass){$('loginError').textContent='Ingresa email y contraseña';$('loginError').style.display='block';return}
   $('loginError').style.display='none';
+  $('businessPick').style.display='none';
   DB.collection('clients').where('email','==',email).where('dashboardPass','==',pass).get().then(function(snap){
     if(snap.empty){$('loginError').textContent='Email o contraseña incorrectos';$('loginError').style.display='block';return}
-    var doc=snap.docs[0];
-    _clientId=doc.id;
-    _clientData=doc.data();
-    $('loginBox').style.display='none';
-    $('app').style.display='block';
-    $('panelTitle').textContent='📊 '+_clientData.name||'Mi Panel';
-    checkLicense();
-    loadScans();
-    loadQrs();
-    fillMyProfileForm();
+    var matches=snap.docs.filter(function(d){return !d.data().isAdminProfile});
+    if(!matches.length){$('loginError').textContent='Email o contraseña incorrectos';$('loginError').style.display='block';return}
+    if(matches.length>1){openBusinessPicker(matches);return}
+    enterDashboard(matches[0].id,matches[0].data());
   }).catch(function(err){$('loginError').textContent='Error de conexión';$('loginError').style.display='block';console.error(err)});
+}
+
+function openBusinessPicker(matches){
+  var list=$('businessList');
+  list.innerHTML='';
+  matches.forEach(function(d){
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='btn btn-outline';
+    b.style.cssText='display:block;width:100%;margin:6px 0;text-align:left';
+    b.textContent='🏪 '+(d.data().name||'Negocio');
+    b.onclick=function(){enterDashboard(d.id,d.data())};
+    list.appendChild(b);
+  });
+  $('businessPick').style.display='block';
+}
+
+function enterDashboard(id,data){
+  _clientId=id;
+  _clientData=data;
+  $('loginBox').style.display='none';
+  $('app').style.display='block';
+  $('panelTitle').textContent='📊 '+(_clientData.name||'Mi Panel');
+  checkLicense();
+  loadScans();
+  loadQrs();
+  fillMyProfileForm();
 }
 
 function checkLicense(){

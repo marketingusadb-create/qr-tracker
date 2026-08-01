@@ -504,6 +504,11 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <div class="card">
       <h2>👤 <span data-lang="myProfileTitle">Mi Perfil de Negocio</span></h2>
       <p style="font-size:13px;color:#e2e8f0;margin-bottom:16px" data-lang="myProfileDesc">Configurá tu propio negocio para generar tus QR personales y recibir tus leads.</p>
+      <button class="btn btn-outline" onclick="showAdminBusinessList()" style="margin-bottom:14px;width:auto;padding:6px 14px;font-size:12px">🔄 Cambiar / Nuevo negocio</button>
+      <div id="adminBusinessPick" style="display:none;margin-bottom:16px">
+        <p style="font-size:13px;color:#e2e8f0;margin-bottom:8px">Tenés varios negocios. Elegí cuál administrar:</p>
+        <div id="adminBusinessList"></div>
+      </div>
       <div id="profileForm">
         <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="profName" placeholder="Ej: Mi Empresa" /></div>
         <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="profWhatsapp" placeholder="573001234567" /></div>
@@ -524,6 +529,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         <div class="form-group"><label>Teams Webhook URL</label><input id="profTeamsWebhook" placeholder="https://...webhook..." /></div>
         <div class="form-group"><label>Logo</label><input id="profLogoUrl" placeholder="Pegá acá el link de la imagen (ej: de Imgur)" oninput="previewLogoUrl('profLogoUrl','profLogoUrlPreview')" /><div style="font-size:11px;color:#94a3b8;margin-top:2px">💡 ¿No tenés un link de imagen? Andá a <a href="https://imgur.com/upload" target="_blank" style="color:#8b5cf6">imgur.com/upload</a> (página gratis para subir fotos, no hace falta crear cuenta), arrastrá tu logo ahí, esperá a que suba y copiá el link que te da (empieza con https://i.imgur.com/...). Pegalo acá abajo.</div><img id="profLogoUrlPreview" src="" style="display:none;max-width:140px;max-height:70px;border-radius:8px;margin-top:8px;border:1px solid rgba(255,255,255,.15);background:#fff;padding:4px" /><div style="font-size:11px;color:#fbbf24;margin-top:4px">⚠️ Después de pegar el link, hacé clic en "Guardar Mi Perfil" más abajo para que se guarde.</div></div>
         <button class="btn btn-primary" onclick="saveAdminProfile()" style="margin-top:16px">💾 <span data-lang="saveProfile">Guardar Mi Perfil</span></button>
+        <button class="btn btn-outline" onclick="newAdminBusiness()" style="margin-top:16px;margin-left:8px">➕ Nuevo negocio</button>
         <div id="profResult" style="margin-top:10px;font-size:13px"></div>
       </div>
     </div>
@@ -932,23 +938,78 @@ function setProfileQrType(t){_profileQrType=t;document.querySelectorAll('#tab-pr
 
 function loadAdminProfile(){
   var u=QR_AUTH.currentUser;if(!u)return
-  var q=QR_DB.collection('clients').where('adminUid','==',u.uid).limit(1);
+  var q=QR_DB.collection('clients').where('adminUid','==',u.uid);
   q.get().then(function(snap){
-    if(!snap.empty){
-      snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();_profileData=d;_profileEmail=d.email||'';fillProfileForm(d)});
-      document.getElementById('profileQrCard').style.display='block';
-      document.getElementById('profileScansCard').style.display='block';
-      adminLoadQrCodes();adminLoadScans();
+    var docs=[];snap.forEach(function(doc){docs.push(doc)});
+    docs.sort(function(a,b){return ((a.data().name||'').toLowerCase()).localeCompare((b.data().name||'').toLowerCase())});
+    if(docs.length===0){
+      // No existe todavía un perfil propio del admin (ligado a su adminUid). IMPORTANTE: nunca se
+      // busca ni se "adopta" un cliente real por coincidencia de email — el perfil de admin y los
+      // clientes son registros completamente independientes, sin excepción.
+      _profileId=null;_profileData={};_profileEmail='';
+      document.getElementById('profileQrCard').style.display='none';
+      document.getElementById('profileScansCard').style.display='none';
+      clearProfileForm();
       return
     }
-    // No existe todavía un perfil propio del admin (ligado a su adminUid). IMPORTANTE: nunca se
-    // busca ni se "adopta" un cliente real por coincidencia de email — el perfil de admin y los
-    // clientes son registros completamente independientes, sin excepción.
-    _profileId=null;
-    document.getElementById('profileQrCard').style.display='none';
-    document.getElementById('profileScansCard').style.display='none';
-    clearProfileForm();
+    var hasCurrent=_profileId&&docs.some(function(d){return d.id===_profileId});
+    if(docs.length>1&&!hasCurrent){
+      showAdminBusinessPicker(docs);
+      return;
+    }
+    var doc=docs.find(function(d){return d.id===_profileId})||docs[0];
+    _profileId=doc.id;_profileData=doc.data();_profileEmail=_profileData.email||'';
+    fillProfileForm(_profileData);
+    document.getElementById('profileQrCard').style.display='block';
+    document.getElementById('profileScansCard').style.display='block';
+    adminLoadQrCodes();adminLoadScans();
   }).catch(function(err){console.warn('Error loading admin profile:',err)});
+}
+
+function showAdminBusinessList(){
+  var u=QR_AUTH.currentUser;if(!u)return;
+  QR_DB.collection('clients').where('adminUid','==',u.uid).get().then(function(snap){
+    var docs=[];snap.forEach(function(doc){docs.push(doc)});
+    docs.sort(function(a,b){return ((a.data().name||'').toLowerCase()).localeCompare((b.data().name||'').toLowerCase())});
+    if(!docs.length){toast('Aún no tenés negocio propio. Llená el formulario y guardá.');return}
+    showAdminBusinessPicker(docs);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function showAdminBusinessPicker(docs){
+  var list=document.getElementById('adminBusinessList');
+  list.innerHTML='';
+  docs.forEach(function(d){
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='btn btn-outline';
+    b.style.cssText='display:block;width:100%;margin:6px 0;text-align:left';
+    b.textContent='🏪 '+(d.data().name||'Negocio');
+    b.onclick=function(){selectAdminBusiness(d.id)};
+    list.appendChild(b);
+  });
+  document.getElementById('adminBusinessPick').style.display='block';
+  document.getElementById('profileForm').style.display='none';
+}
+
+function selectAdminBusiness(id){
+  _profileId=id;
+  document.getElementById('adminBusinessPick').style.display='none';
+  document.getElementById('profileForm').style.display='block';
+  loadAdminProfile();
+}
+
+function newAdminBusiness(){
+  var u=QR_AUTH.currentUser;if(!u)return;
+  var newId='admin_'+u.uid.slice(0,12)+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(newId).set({name:'',adminUid:u.uid,isAdminProfile:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    _profileId=newId;_profileData={};_profileEmail='';
+    document.getElementById('adminBusinessPick').style.display='none';
+    document.getElementById('profileForm').style.display='block';
+    clearProfileForm();
+    fillProfileForm({});
+    toast('Nuevo negocio creado. Llená sus datos y guardá.');
+  }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function fillProfileForm(d){
@@ -1489,13 +1550,15 @@ function generateManualQr(){
 // Escribe/actualiza la copia pública (sin datos sensibles) que puede leer
 // cualquiera que escanee un QR, sin necesitar sesión iniciada.
 function syncPublicData(clientId,d){
-  return QR_DB.collection('clients').doc(clientId).collection('public').doc('info').set({
-    name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||'',notifyEmail:_profileEmail||'',
+  var pubData={
+    name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||'',
     telegramUser:d.telegramUser||'',telegramToken:d.telegramToken||'',telegramChatId:d.telegramChatId||'',
     whatsappPhoneId:d.whatsappPhoneId||'',whatsappToken:d.whatsappToken||'',
     teamsWebhook:d.teamsWebhook||'',
     brevoApiKey:d.brevoApiKey||'',brevoSenderEmail:d.brevoSenderEmail||'',autoReplyPhone:d.autoReplyPhone||''
-  });
+  };
+  if(_profileEmail) pubData.notifyEmail=_profileEmail;
+  return QR_DB.collection('clients').doc(clientId).collection('public').doc('info').set(pubData);
 }
 
 // Recorre todos los clientes ya cargados y crea/actualiza su copia pública.
@@ -1523,9 +1586,14 @@ function createClient(){
   var logoUrl=document.getElementById('ncLogoUrl').value.trim();
   var la=document.getElementById('ncLicenciaActiva').checked;
   var lv=document.getElementById('ncLicenciaVence').value;
-  // Primero crear cuenta Firebase Auth para el cliente (usando instancia separada para no cerrar sesión admin)
-  CLIENT_AUTH.createUserWithEmailAndPassword(email,pass).then(function(userCred){
-    // Luego guardar en Firestore
+  // La cuenta de Firebase Auth es opcional: el panel del cliente valida email+contraseña contra
+  // Firestore, así que un mismo email puede tener varios negocios. Solo se crea la cuenta de Auth
+  // si el email aún no existe; si ya existe, igual se crea el negocio.
+  CLIENT_AUTH.signOut().catch(function(){});
+  var authP=CLIENT_AUTH.createUserWithEmailAndPassword(email,pass)
+    .then(function(){return CLIENT_AUTH.signOut()})
+    .catch(function(err){if(err.code!=='auth/email-already-in-use')console.warn('Auth skip:',err.code);return CLIENT_AUTH.signOut().catch(function(){})});
+  authP.then(function(){
     return QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone,googleVoice:gv,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,logoUrl:logoUrl,licenciaActiva:la,licenciaVence:lv,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
   }).then(function(){
     return syncPublicData(newId,{name:name,whatsapp:wa,waMessage:waMsg,logoUrl:logoUrl,email:email,telegramUser:tgUser,telegramToken:tgToken,telegramChatId:tgChat,whatsappPhoneId:waPhoneId,whatsappToken:waToken,teamsWebhook:teamsHook,brevoApiKey:brKey,brevoSenderEmail:brSender,autoReplyPhone:arPhone});
@@ -1535,9 +1603,7 @@ function createClient(){
     toast('Cliente creado exitosamente');
     setTimeout(function(){var tabs=document.querySelectorAll('.tab');if(tabs[0])tabs[0].click()},1500);
   }).catch(function(err){
-    var msg=err.message;
-    if(err.code==='auth/email-already-in-use') msg='El email ya está registrado. Usá otro o editá el cliente existente.';
-    document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+msg+'</span>';
+    document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>';
   });
 }
 
