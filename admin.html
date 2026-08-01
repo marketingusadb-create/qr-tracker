@@ -668,8 +668,13 @@ var QR_FIREBASE_CONFIG = {
 firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
 var QR_DB = firebase.firestore(firebase.app("qrTracker"));
 var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
-// Segunda instancia de Firebase para crear cuentas de clientes sin afectar la sesión del admin
-firebase.initializeApp(QR_FIREBASE_CONFIG, "clientAuth");
+// Segunda instancia de Firebase para crear cuentas de clientes sin afectar la sesión del admin.
+// IMPORTANTE: se usa un authDomain distinto para que la sesión del admin (app "qrTracker") NO
+// comparta el almacenamiento de autenticación con la de los clientes (app "clientAuth"). Si ambas
+// comparten apiKey+authDomain, signOut()/delete() de una borra la sesión de la otra en el navegador,
+// dejando el panel del admin "muerto" con errores de permisos en cada escritura/lectura.
+var _clientAuthCfg={};for(var _ck in QR_FIREBASE_CONFIG)_clientAuthCfg[_ck]=QR_FIREBASE_CONFIG[_ck];_clientAuthCfg.authDomain='clientauth-local.firebaseapp.com';
+firebase.initializeApp(_clientAuthCfg, "clientAuth");
 var CLIENT_AUTH = firebase.auth(firebase.app("clientAuth"));
 </script>
 <script>
@@ -922,6 +927,9 @@ QR_AUTH.onAuthStateChanged(function(u){if(u){
   loadClients();applyLang();loadDashboard();
   var h=location.hash.replace('#tab-','');
   if(h){var btn=document.querySelector('.tab[onclick*="'+h+'"]');if(btn)btn.click()}
+}else{
+  document.getElementById('loginBox').style.display='block';
+  document.getElementById('app').style.display='none';
 }})
 
 var _profileId=null,_profileQrType='whatsapp',_profileData={},_profileEmail='';
@@ -1534,6 +1542,8 @@ function addQrCode(){
     toast('✅ QR '+_qrType+' generado: '+qrId);loadQrCodes(_currentClientId)
   }).catch(function(err){toast('Error: '+err.message)});
 }
+
+function genId(){return 'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)}
 
 function generateManualQr(){
   var clientId=document.getElementById('manualClient').value;
