@@ -233,11 +233,12 @@ function sendAutoReply(lead){
 
 function notifyAdminEmail(lead,scanData){
   var d=_clientData;if(!d)return Promise.resolve();
-  if(!d.email)return Promise.resolve();
+  var toEmail=d.notifyEmail||d.email;
+  if(!toEmail)return Promise.resolve();
   var loc=[scanData.city,scanData.county,scanData.state,scanData.country].filter(Boolean).join(', ')||scanData.ip||'—';
   var mapLink=scanData.gpsLat?'<br><a href="https://www.google.com/maps?q='+scanData.gpsLat+','+scanData.gpsLng+'" style="color:#8b5cf6">🗺 View on map</a>':'';
   var html='<div style="max-width:560px;margin:0 auto;font-family:Arial,sans-serif;padding:20px"><div style="background:linear-gradient(145deg,#1e293b,#334155);border-radius:16px;padding:24px;color:#fff;border:1px solid rgba(255,255,255,.06)"><h2 style="margin:0 0 16px;font-size:18px;color:#f1f5f9">📩 Nuevo lead / New lead</h2><table style="width:100%;font-size:13px;border-collapse:collapse"><tr><td style="padding:6px 8px;color:#94a3b8;width:80px">Nombre/Name</td><td style="padding:6px 8px;color:#e2e8f0"><strong>'+esc(lead.name)+'</strong></td></tr>'+(lead.email?'<tr><td style="padding:6px 8px;color:#94a3b8">Email</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.email)+'</td></tr>':'')+(lead.phone?'<tr><td style="padding:6px 8px;color:#94a3b8">Teléfono/Phone</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.phone)+'</td></tr>':'')+(lead.message?'<tr><td style="padding:6px 8px;color:#94a3b8">Mensaje/Message</td><td style="padding:6px 8px;color:#e2e8f0">'+esc(lead.message)+'</td></tr>':'')+'</table><hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,.08)"><p style="font-size:12px;color:#94a3b8;margin:4px 0">📍 Ubicación/Location: '+loc+mapLink+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">📱 Dispositivo/Device: '+scanData.device+' | '+scanData.os+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">🆔 QR: '+esc(scanData.qrId||'—')+'</p><p style="font-size:12px;color:#94a3b8;margin:4px 0">⏰ '+new Date().toLocaleString('es-CO')+'</p></div></div>';
-  return sendBrevo([{email:d.email,name:d.name||'Admin'}],'📩 Nuevo lead / New lead - '+(d.name||''),html);
+  return sendBrevo([{email:toEmail,name:d.name||'Admin'}],'📩 Nuevo lead / New lead - '+(d.name||''),html);
 }
 
 function getGPSPosition(){

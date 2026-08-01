@@ -917,7 +917,7 @@ QR_AUTH.onAuthStateChanged(function(u){if(u){
   if(h){var btn=document.querySelector('.tab[onclick*="'+h+'"]');if(btn)btn.click()}
 }})
 
-var _profileId=null,_profileQrType='whatsapp',_profileData={};
+var _profileId=null,_profileQrType='whatsapp',_profileData={},_profileEmail='';
 
 function switchTab(t,btn){
   document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
@@ -935,7 +935,7 @@ function loadAdminProfile(){
   var q=QR_DB.collection('clients').where('adminUid','==',u.uid).limit(1);
   q.get().then(function(snap){
     if(!snap.empty){
-      snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();_profileData=d;fillProfileForm(d)});
+      snap.forEach(function(doc){_profileId=doc.id;var d=doc.data();_profileData=d;_profileEmail=d.email||'';fillProfileForm(d)});
       document.getElementById('profileQrCard').style.display='block';
       document.getElementById('profileScansCard').style.display='block';
       adminLoadQrCodes();adminLoadScans();
@@ -999,6 +999,7 @@ function saveAdminProfile(){
     isAdminProfile:true,
     createdAt:firebase.firestore.FieldValue.serverTimestamp()
   };
+  _profileEmail=data.email;
   if(_profileId){
     QR_DB.collection('clients').doc(_profileId).update(data).then(function(){
       return syncPublicData(_profileId,data);
@@ -1007,6 +1008,7 @@ function saveAdminProfile(){
       toast(__('profileSaved'));
       _profileData=data;
       adminLoadQrCodes();
+      syncAllPublicData();
     }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
   } else {
     var newId='admin_'+u.uid.slice(0,12);
@@ -1019,6 +1021,7 @@ function saveAdminProfile(){
       _profileData=data;
       document.getElementById('profileQrCard').style.display='block';
       document.getElementById('profileScansCard').style.display='block';
+      syncAllPublicData();
     }).catch(function(err){document.getElementById('profResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
   }
 }
@@ -1487,7 +1490,7 @@ function generateManualQr(){
 // cualquiera que escanee un QR, sin necesitar sesión iniciada.
 function syncPublicData(clientId,d){
   return QR_DB.collection('clients').doc(clientId).collection('public').doc('info').set({
-    name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||'',
+    name:d.name||'',whatsapp:d.whatsapp||'',waMessage:d.waMessage||'',logoUrl:d.logoUrl||'',email:d.email||'',notifyEmail:_profileEmail||'',
     telegramUser:d.telegramUser||'',telegramToken:d.telegramToken||'',telegramChatId:d.telegramChatId||'',
     whatsappPhoneId:d.whatsappPhoneId||'',whatsappToken:d.whatsappToken||'',
     teamsWebhook:d.teamsWebhook||'',
