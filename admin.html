@@ -509,6 +509,7 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
         <p style="font-size:13px;color:#e2e8f0;margin-bottom:8px">Tenés varios negocios. Elegí cuál administrar:</p>
         <div id="adminBusinessList"></div>
       </div>
+      <div id="currentBizName" style="display:none;font-size:13px;color:#8b5cf6;margin-bottom:10px"></div>
       <div id="profileForm">
         <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="profName" placeholder="Ej: Mi Empresa" /></div>
         <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="profWhatsapp" placeholder="573001234567" /></div>
@@ -960,6 +961,8 @@ function loadAdminProfile(){
     var doc=docs.find(function(d){return d.id===_profileId})||docs[0];
     _profileId=doc.id;_profileData=doc.data();_profileEmail=_profileData.email||'';
     fillProfileForm(_profileData);
+    document.getElementById('currentBizName').textContent='🏪 Administrando: '+(doc.data().name||'Negocio');
+    document.getElementById('currentBizName').style.display='block';
     document.getElementById('profileQrCard').style.display='block';
     document.getElementById('profileScansCard').style.display='block';
     adminLoadQrCodes();adminLoadScans();
@@ -990,6 +993,9 @@ function showAdminBusinessPicker(docs){
   });
   document.getElementById('adminBusinessPick').style.display='block';
   document.getElementById('profileForm').style.display='none';
+  document.getElementById('profileQrCard').style.display='none';
+  document.getElementById('profileScansCard').style.display='none';
+  document.getElementById('currentBizName').style.display='none';
 }
 
 function selectAdminBusiness(id){
@@ -1006,6 +1012,10 @@ function newAdminBusiness(){
     _profileId=newId;_profileData={};_profileEmail='';
     document.getElementById('adminBusinessPick').style.display='none';
     document.getElementById('profileForm').style.display='block';
+    document.getElementById('profileQrCard').style.display='none';
+    document.getElementById('profileScansCard').style.display='none';
+    document.getElementById('currentBizName').textContent='🏪 Negocio nuevo (sin guardar)';
+    document.getElementById('currentBizName').style.display='block';
     clearProfileForm();
     fillProfileForm({});
     toast('Nuevo negocio creado. Llená sus datos y guardá.');
