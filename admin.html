@@ -504,10 +504,10 @@ textarea{min-height:60px;resize:vertical;font-family:inherit}
     <div class="card">
       <h2>👤 <span data-lang="myProfileTitle">Mi Perfil de Negocio</span></h2>
       <p style="font-size:13px;color:#e2e8f0;margin-bottom:16px" data-lang="myProfileDesc">Configurá tu propio negocio para generar tus QR personales y recibir tus leads.</p>
-      <button class="btn btn-outline" onclick="showAdminBusinessList()" style="margin-bottom:14px;width:auto;padding:6px 14px;font-size:12px">🔄 Cambiar / Nuevo negocio</button>
-      <div id="adminBusinessPick" style="display:none;margin-bottom:16px">
-        <p style="font-size:13px;color:#e2e8f0;margin-bottom:8px">Tenés varios negocios. Elegí cuál administrar:</p>
-        <div id="adminBusinessList"></div>
+      <div id="myBizSection" style="margin-bottom:16px;padding:14px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.08)">
+        <h3 style="font-size:14px;margin-bottom:10px;color:#f1f5f9">🏪 Mis negocios</h3>
+        <div id="myBizList"></div>
+        <button class="btn btn-outline" onclick="newAdminBusiness()" style="margin-top:8px">➕ Nuevo negocio</button>
       </div>
       <div id="currentBizName" style="display:none;font-size:13px;color:#8b5cf6;margin-bottom:10px"></div>
       <div id="profileForm">
@@ -939,27 +939,25 @@ function setProfileQrType(t){_profileQrType=t;document.querySelectorAll('#tab-pr
 
 function loadAdminProfile(){
   var u=QR_AUTH.currentUser;if(!u)return
-  var q=QR_DB.collection('clients').where('adminUid','==',u.uid);
-  q.get().then(function(snap){
-    var docs=[];snap.forEach(function(doc){docs.push(doc)});
+  QR_DB.collection('clients').where('adminUid','==',u.uid).get().then(function(snap){
+    var docs=[];snap.forEach(function(doc){if(!doc.data().deleted)docs.push(doc)});
     docs.sort(function(a,b){return ((a.data().name||'').toLowerCase()).localeCompare((b.data().name||'').toLowerCase())});
+    renderMyBusinesses(docs);
     if(docs.length===0){
       // No existe todavía un perfil propio del admin (ligado a su adminUid). IMPORTANTE: nunca se
       // busca ni se "adopta" un cliente real por coincidencia de email — el perfil de admin y los
       // clientes son registros completamente independientes, sin excepción.
       _profileId=null;_profileData={};_profileEmail='';
+      document.getElementById('currentBizName').style.display='none';
       document.getElementById('profileQrCard').style.display='none';
       document.getElementById('profileScansCard').style.display='none';
       clearProfileForm();
       return
     }
     var hasCurrent=_profileId&&docs.some(function(d){return d.id===_profileId});
-    if(docs.length>1&&!hasCurrent){
-      showAdminBusinessPicker(docs);
-      return;
-    }
-    var doc=docs.find(function(d){return d.id===_profileId})||docs[0];
-    _profileId=doc.id;_profileData=doc.data();_profileEmail=_profileData.email||'';
+    var doc=hasCurrent?docs.find(function(d){return d.id===_profileId}):docs[0];
+    if(!hasCurrent)_profileId=doc.id;
+    _profileData=doc.data();_profileEmail=_profileData.email||'';
     fillProfileForm(_profileData);
     document.getElementById('currentBizName').textContent='🏪 Administrando: '+(doc.data().name||'Negocio');
     document.getElementById('currentBizName').style.display='block';
@@ -969,39 +967,38 @@ function loadAdminProfile(){
   }).catch(function(err){console.warn('Error loading admin profile:',err)});
 }
 
-function showAdminBusinessList(){
-  var u=QR_AUTH.currentUser;if(!u)return;
-  QR_DB.collection('clients').where('adminUid','==',u.uid).get().then(function(snap){
-    var docs=[];snap.forEach(function(doc){docs.push(doc)});
-    docs.sort(function(a,b){return ((a.data().name||'').toLowerCase()).localeCompare((b.data().name||'').toLowerCase())});
-    if(!docs.length){toast('Aún no tenés negocio propio. Llená el formulario y guardá.');return}
-    showAdminBusinessPicker(docs);
-  }).catch(function(err){toast('Error: '+err.message)});
-}
-
-function showAdminBusinessPicker(docs){
-  var list=document.getElementById('adminBusinessList');
+function renderMyBusinesses(docs){
+  var list=document.getElementById('myBizList');
   list.innerHTML='';
+  if(!docs.length){
+    list.innerHTML='<p style="font-size:13px;color:#94a3b8;margin:0">Aún no tenés negocio propio. Usá "➕ Nuevo negocio" o llená el formulario de abajo y guardá.</p>';
+    return;
+  }
   docs.forEach(function(d){
+    var isCurrent=_profileId===d.id;
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:6px 0;background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;'+(isCurrent?'border:1px solid #8b5cf6':'border:1px solid transparent');
     var b=document.createElement('button');
     b.type='button';
     b.className='btn btn-outline';
-    b.style.cssText='display:block;width:100%;margin:6px 0;text-align:left';
-    b.textContent='🏪 '+(d.data().name||'Negocio');
+    b.style.cssText='flex:1;text-align:left;margin:0';
+    b.textContent='🏪 '+(d.data().name||'Negocio sin nombre')+(isCurrent?'  ✓':'');
     b.onclick=function(){selectAdminBusiness(d.id)};
-    list.appendChild(b);
+    var del=document.createElement('button');
+    del.type='button';
+    del.className='btn btn-outline';
+    del.style.cssText='margin-left:8px;color:#f87171';
+    del.textContent='🗑';
+    del.title='Eliminar este negocio';
+    del.onclick=function(){deleteAdminBusiness(d.id,d.data().name)};
+    row.appendChild(b);
+    row.appendChild(del);
+    list.appendChild(row);
   });
-  document.getElementById('adminBusinessPick').style.display='block';
-  document.getElementById('profileForm').style.display='none';
-  document.getElementById('profileQrCard').style.display='none';
-  document.getElementById('profileScansCard').style.display='none';
-  document.getElementById('currentBizName').style.display='none';
 }
 
 function selectAdminBusiness(id){
   _profileId=id;
-  document.getElementById('adminBusinessPick').style.display='none';
-  document.getElementById('profileForm').style.display='block';
   loadAdminProfile();
 }
 
@@ -1009,16 +1006,20 @@ function newAdminBusiness(){
   var u=QR_AUTH.currentUser;if(!u)return;
   var newId='admin_'+u.uid.slice(0,12)+'_'+Math.random().toString(36).slice(2,6);
   QR_DB.collection('clients').doc(newId).set({name:'',adminUid:u.uid,isAdminProfile:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    _profileId=newId;_profileData={};_profileEmail='';
-    document.getElementById('adminBusinessPick').style.display='none';
-    document.getElementById('profileForm').style.display='block';
-    document.getElementById('profileQrCard').style.display='none';
-    document.getElementById('profileScansCard').style.display='none';
-    document.getElementById('currentBizName').textContent='🏪 Negocio nuevo (sin guardar)';
-    document.getElementById('currentBizName').style.display='block';
-    clearProfileForm();
-    fillProfileForm({});
+    _profileId=newId;
     toast('Nuevo negocio creado. Llená sus datos y guardá.');
+    loadAdminProfile();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function deleteAdminBusiness(id,name){
+  if(!confirm('¿Eliminar el negocio "'+(name||'Negocio')+'"?\nSus QRs dejarán de funcionar. Esta acción no se puede deshacer.'))return;
+  QR_DB.collection('clients').doc(id).update({deleted:true}).then(function(){
+    return QR_DB.collection('clients').doc(id).collection('public').doc('info').delete().catch(function(){});
+  }).then(function(){
+    if(_profileId===id){_profileId=null;_profileData={};_profileEmail='';}
+    toast('Negocio eliminado');
+    loadAdminProfile();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
