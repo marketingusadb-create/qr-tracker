@@ -1013,9 +1013,13 @@ function newAdminBusiness(){
 }
 
 function deleteAdminBusiness(id,name){
-  if(!confirm('¿Eliminar el negocio "'+(name||'Negocio')+'"?\nSus QRs dejarán de funcionar. Esta acción no se puede deshacer.'))return;
-  QR_DB.collection('clients').doc(id).update({deleted:true}).then(function(){
-    return QR_DB.collection('clients').doc(id).collection('public').doc('info').delete().catch(function(){});
+  if(!confirm('¿Eliminar el negocio "'+(name||'Negocio')+'"?\nSe borrarán sus QRs, escaneos y datos. Esta acción no se puede deshacer.'))return;
+  deleteCollection(QR_DB.collection('clients').doc(id).collection('public')).then(function(){
+    return deleteCollection(QR_DB.collection('clients').doc(id).collection('qrCodes'));
+  }).then(function(){
+    return deleteCollection(QR_DB.collection('clients').doc(id).collection('scans'));
+  }).then(function(){
+    return QR_DB.collection('clients').doc(id).delete();
   }).then(function(){
     if(_profileId===id){_profileId=null;_profileData={};_profileEmail='';}
     toast('Negocio eliminado');
@@ -1691,22 +1695,52 @@ function toggleClientActive(id,newState){
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
+function deleteCollection(coll){
+  return coll.get().then(function(snap){
+    var proms=[];
+    snap.forEach(function(d){proms.push(coll.doc(d.id).delete())});
+    return Promise.all(proms);
+  });
+}
+
 function deleteClient(id){
   if(!id) id=_currentClientId;
   if(!id) return;
   QR_DB.collection('clients').doc(id).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    toast('Cliente enviado a la papelera');
+    return QR_DB.collection('clients').doc(id).collection('public').doc('info').delete().catch(function(){});
+  }).then(function(){
+    toast('Cliente enviado a la papelera. Sus QRs ya no funcionan.');
     if(_currentClientId===id) closeClientModal();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
 function restoreClient(id){
-  QR_DB.collection('clients').doc(id).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast('Cliente restaurado');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+  QR_DB.collection('clients').doc(id).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    return QR_DB.collection('clients').doc(id).get();
+  }).then(function(doc){
+    if(doc.exists) return syncPublicData(id,doc.data());
+    return Promise.resolve();
+  }).then(function(){toast('Cliente restaurado. Sus QRs vuelven a funcionar.');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
 }
 
 function permanentDeleteClient(id){
-  if(!confirm('¿Eliminar PERMANENTEMENTE este cliente? No se puede deshacer.')) return;
-  QR_DB.collection('clients').doc(id).delete().then(function(){toast('Cliente eliminado permanentemente');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+  if(!confirm('¿Eliminar PERMANENTEMENTE este cliente?\nSe borrarán sus QRs, escaneos, datos y cuenta de login.\nEsta acción NO se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(id).get().then(function(doc){
+    var d=doc.exists?doc.data():null;
+    var authP=Promise.resolve();
+    if(d&&d.email&&d.dashboardPass){
+      authP=CLIENT_AUTH.signInWithEmailAndPassword(d.email,d.dashboardPass).then(function(cred){return cred.user.delete()}).catch(function(err){if(err.code==='auth/user-not-found')return Promise.resolve();console.warn('Auth delete skip:',err.code);return Promise.resolve()});
+    }
+    return authP;
+  }).then(function(){
+    return deleteCollection(QR_DB.collection('clients').doc(id).collection('public'));
+  }).then(function(){
+    return deleteCollection(QR_DB.collection('clients').doc(id).collection('qrCodes'));
+  }).then(function(){
+    return deleteCollection(QR_DB.collection('clients').doc(id).collection('scans'));
+  }).then(function(){
+    return QR_DB.collection('clients').doc(id).delete();
+  }).then(function(){toast('Cliente eliminado permanentemente');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
 }
 
 /* Flyer Master Baez */

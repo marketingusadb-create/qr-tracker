@@ -207,7 +207,7 @@ function login(){
   $('businessPick').style.display='none';
   DB.collection('clients').where('email','==',email).where('dashboardPass','==',pass).get().then(function(snap){
     if(snap.empty){$('loginError').textContent='Email o contraseña incorrectos';$('loginError').style.display='block';return}
-    var matches=snap.docs.filter(function(d){return !d.data().isAdminProfile});
+    var matches=snap.docs.filter(function(d){var dd=d.data();return !dd.isAdminProfile&&!dd.deleted});
     if(!matches.length){$('loginError').textContent='Email o contraseña incorrectos';$('loginError').style.display='block';return}
     if(matches.length>1){openBusinessPicker(matches);return}
     enterDashboard(matches[0].id,matches[0].data());
