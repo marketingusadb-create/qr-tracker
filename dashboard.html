@@ -973,9 +973,11 @@ function deleteScanFromLead(scanId){
 
 function loadTrash(){
   if(!_clientDocId){document.getElementById('trashBody').innerHTML='';document.getElementById('trashQrList').innerHTML='';return}
-  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').where('deleted','==',true).orderBy('deletedAt','desc').limit(30).get().then(function(qrSnap){
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').where('deleted','==',true).limit(50).get().then(function(qrSnap){
+    var qrs=[];qrSnap.forEach(function(q){qrs.push(q)});
+    qrs.sort(function(a,b){return ((b.data().deletedAt&&b.data().deletedAt.seconds)||0)-((a.data().deletedAt&&a.data().deletedAt.seconds)||0)});
     var html='';var c=0;
-    qrSnap.forEach(function(qrDoc){
+    qrs.forEach(function(qrDoc){
       c++;var qd=qrDoc.data();
       var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
       html+='<div class="client-card" style="opacity:.75"><div style="display:flex;justify-content:space-between;align-items:center"><div style="flex:1"><b>📱 '+esc(qd.label||qrDoc.id)+'</b> <small style="color:#94a3b8">'+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</small><div style="font-size:11px;color:#94a3b8">🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreQrCode(\''+qrDoc.id+'\')" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+qrDoc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px">🗑 '+__('deletePerm')+'</button></div></div></div>';
@@ -985,9 +987,11 @@ function loadTrash(){
   }).catch(function(){
     document.getElementById('trashQrList').innerHTML='<p style="color:#888;text-align:center;padding:12px">'+__('errorConnection')+'</p>';
   });
-  QR_DB.collection('clients').doc(_clientDocId).collection('scans').where('deleted','==',true).orderBy('timestamp','desc').limit(50).get().then(function(snap){
+  QR_DB.collection('clients').doc(_clientDocId).collection('scans').where('deleted','==',true).limit(50).get().then(function(snap){
+    var scans=[];snap.forEach(function(doc){scans.push(doc)});
+    scans.sort(function(a,b){return ((b.data().timestamp&&b.data().timestamp.seconds)||0)-((a.data().timestamp&&a.data().timestamp.seconds)||0)});
     var html='';var c=0;
-    snap.forEach(function(doc){
+    scans.forEach(function(doc){
       c++;var d=doc.data();
       var dt=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—';
       var loc=[d.city,d.country].filter(Boolean).join(', ')||'—';
