@@ -1250,12 +1250,23 @@ function qrTrashItem(cid,cname,qid,qd){
   return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
 }
 function loadDeletedClients(){
-  var html='';
-  var deletedClientsHtml='',deletedQrsHtml='',deletedScansHtml='';
+  var deletedClientsHtml='',deletedQrsHtml='',deletedScansHtml='',errList=[];
+  // Guard anti-render obsoleto: si esta llamada queda "atrasada", no pisa una más reciente
+  var seq=(loadDeletedClients._seq=(loadDeletedClients._seq||0)+1);
+  function done(){
+    if(seq!==loadDeletedClients._seq) return;
+    var html='';
+    if(deletedClientsHtml) html+=deletedClientsHtml;
+    if(deletedQrsHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📱 QRs eliminados</h3>'+deletedQrsHtml;
+    if(deletedScansHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+deletedScansHtml;
+    // Si falló alguna lectura, NO mostrar "vacío": mostrar el error para poder diagnosticarlo
+    if(!html&&errList.length) html='<p style="color:#fbbf24;text-align:center;padding:40px">⚠️ No se pudo cargar la papelera (error de lectura). Abrí la consola (F12) y revisá los mensajes [Papelera].</p>';
+    document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
+  }
   // Clientes eliminados
   var clientPromise = QR_DB.collection('clients').where('deleted','==',true).get().then(function(deletedSnap){
     deletedSnap.forEach(function(doc){deletedClientsHtml+=clientTrashItem(doc.id,doc.data())});
-  }).catch(function(e){console.warn('Error cargando clientes eliminados:',e)});
+  }).catch(function(e){errList.push(e);console.warn('[Papelera] clientes eliminados:',e)});
   // QRs y scans eliminados recorriendo cada cliente (sin collectionGroup: evita depender de índices compuestos)
   var subPromise = QR_DB.collection('clients').get().then(function(allClients){
     var subProms=[];
@@ -1264,7 +1275,7 @@ function loadDeletedClients(){
       subProms.push(
         QR_DB.collection('clients').doc(cid).collection('qrCodes').where('deleted','==',true).get().then(function(qsnap){
           qsnap.forEach(function(qdoc){deletedQrsHtml+=qrTrashItem(cid,cname,qdoc.id,qdoc.data())});
-        }).catch(function(e){console.warn('Error cargando QRs eliminados de '+cid+':',e)})
+        }).catch(function(e){errList.push(e);console.warn('[Papelera] QRs de '+cid+':',e)})
       );
       subProms.push(
         QR_DB.collection('clients').doc(cid).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
@@ -1275,18 +1286,13 @@ function loadDeletedClients(){
               +'<div><button onclick="restoreScan(\''+cid+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
               +'<button onclick="permDeleteScan(\''+cid+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
           });
-        }).catch(function(e){console.warn('Error cargando scans eliminados de '+cid+':',e)})
+        }).catch(function(e){errList.push(e);console.warn('[Papelera] scans de '+cid+':',e)})
       );
     });
     return Promise.all(subProms);
-  }).catch(function(e){console.warn('Error cargando clientes para la papelera:',e)});
-  // Cuando todo termine, mostrar (mensaje vacío solo si realmente no hay nada)
-  Promise.all([clientPromise,subPromise]).then(function(){
-    if(deletedClientsHtml) html+=deletedClientsHtml;
-    if(deletedQrsHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📱 QRs eliminados</h3>'+deletedQrsHtml;
-    if(deletedScansHtml) html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>'+deletedScansHtml;
-    document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
-  });
+  }).catch(function(e){errList.push(e);console.warn('[Papelera] clientes:',e)});
+  // Cuando todo termine, mostrar (mensaje vacío solo si realmente no hay nada y no hubo errores)
+  Promise.all([clientPromise,subPromise]).then(done);
 }
 function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
 
@@ -1511,7 +1517,7 @@ function deleteQrCode(clientId,qrId){
 }
 function restoreQrCode(clientId,qrId){
   QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
-    toast(__('qrRestored'));loadQrCodes(clientId);
+    toast(__('qrRestored'));loadQrCodes(clientId);loadDeletedClients();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function permDeleteQrCode(clientId,qrId){

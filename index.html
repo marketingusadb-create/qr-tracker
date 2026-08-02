@@ -97,7 +97,7 @@ var TRANS={
     sendingTxt:'Enviando tu información...',errorTitle:'⚠️ Error',retryBtn:'Intentar de nuevo',
     defaultBusiness:'Contáctanos',sendAndContact:'Enviar y contactar por ',
     errGeneric:'Este código QR no es válido.',errNotRegistered:'Este código QR no está registrado.',
-    errDisabled:'Este código QR ha sido desactivado.',errBusinessNotRegistered:'El negocio no está registrado.',
+    errDisabled:'Este código QR ha sido desactivado.',errDeleted:'Este código QR fue eliminado y ya no está disponible.',errBusinessNotRegistered:'El negocio no está registrado.',
     errConnection:'Error de conexión.',errServiceNotConfigured:'El servicio no está configurado.',
     errSendFailed:'Error al enviar. Intenta de nuevo.',redirectingTxt:'Redirigiendo...'},
   en:{pageTitle:'📩 Contact',lblName:'Name',lblEmail:'Email',lblPhone:'Phone',lblMsg:'Message',
@@ -106,7 +106,7 @@ var TRANS={
     sendingTxt:'Sending your information...',errorTitle:'⚠️ Error',retryBtn:'Try again',
     defaultBusiness:'Contact us',sendAndContact:'Send and contact via ',
     errGeneric:'This QR code is not valid.',errNotRegistered:'This QR code is not registered.',
-    errDisabled:'This QR code has been deactivated.',errBusinessNotRegistered:'The business is not registered.',
+    errDisabled:'This QR code has been deactivated.',errDeleted:'This QR code was deleted and is no longer available.',errBusinessNotRegistered:'The business is not registered.',
     errConnection:'Connection error.',errServiceNotConfigured:'This service is not configured.',
     errSendFailed:'Error sending. Please try again.',redirectingTxt:'Redirecting...'}
 };
@@ -367,6 +367,7 @@ else{
   var _qrDocData=null;
   DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).get().then(function(qrDoc){
     if(!qrDoc.exists){showError(__('errNotRegistered'));return null}
+    if(qrDoc.data().deleted){showError(__('errDeleted'));return null}
     if(qrDoc.data().active===false){showError(__('errDisabled'));return null}
     _qrDocData=qrDoc.data();
     return DB.collection('clients').doc(clientId).collection('public').doc('info').get();
