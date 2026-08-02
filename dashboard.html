@@ -324,7 +324,11 @@ textarea{min-height:60px;resize:vertical}
     <div id="tab-trash" class="tab-content">
       <div class="card">
         <h2>🗑 <span data-lang="trashTitle">Papelera</span></h2>
-        <p style="font-size:13px;color:#94a3b8;margin-bottom:12px" data-lang="trashDesc">Scans eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:12px" data-lang="trashDesc">QRs y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+        <h3 style="margin:0 0 8px;font-size:14px;color:#e2e8f0">📱 <span data-lang="deletedQrs">QRs eliminados</span></h3>
+        <div id="trashQrList"></div>
+        <div class="empty" id="trashQrEmpty" data-lang="emptyTrashQrs" style="display:none">No hay QRs en la papelera.</div>
+        <h3 style="margin:18px 0 8px;font-size:14px;color:#e2e8f0">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>
         <div class="scroll-wrap">
           <table class="scan-table">
             <thead><tr>
@@ -385,7 +389,7 @@ var _TRANS={
     tabStats:'Estadísticas',tabQr:'Mis QR',tabFlyer:'Flyer',tabProfile:'Mi Perfil',tabLeads:'Leads',
     statTotal:'Total escaneos',statToday:'Hoy',statWeek:'Esta semana',statMonth:'Este mes',statMobile:'Móvil',
     topCitiesTitle:'Ciudades con más escaneos',realtimeTitle:'Escaneos en tiempo real',
-    tabTrash:'Papelera',trashTitle:'Papelera',trashDesc:'Scans eliminados. Podés restaurarlos o eliminarlos permanentemente.',emptyTrash:'No hay nada en la papelera.',restore:'Restaurar',deletePerm:'Eliminar permanentemente',deletedPerm:'✅ Eliminado permanentemente',restored:'✅ Restaurado',
+    tabTrash:'Papelera',trashTitle:'Papelera',trashDesc:'QRs y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.',deletedQrs:'QRs eliminados',deletedScans:'Scans eliminados',emptyTrashQrs:'No hay QRs en la papelera.',emptyTrash:'No hay nada en la papelera.',restore:'Restaurar',deletePerm:'Eliminar permanentemente',deletedPerm:'✅ Eliminado permanentemente',restored:'✅ Restaurado',
     filterAll:'Todos',filterToday:'Hoy',filterWeek:'Esta semana',filterMonth:'Este mes',
     thDate:'Fecha',thName:'Nombre',thContact:'Email / Tel',thMessage:'Mensaje',thLocation:'Ubicación',thDevice:'Dispositivo',thStatus:'Estado',thNote:'Nota',thAction:'Acción',
     noScans:'Aún no has recibido escaneos. Comparte tus códigos QR para empezar.',
@@ -426,7 +430,7 @@ var _TRANS={
     tabStats:'Statistics',tabQr:'My QR',tabFlyer:'Flyer',tabProfile:'My Profile',tabLeads:'Leads',
     statTotal:'Total scans',statToday:'Today',statWeek:'This week',statMonth:'This month',statMobile:'Mobile',
     topCitiesTitle:'Top scanned cities',realtimeTitle:'Real-time scans',
-    tabTrash:'Trash',trashTitle:'Trash',trashDesc:'Deleted scans. You can restore or permanently delete them.',emptyTrash:'Trash is empty.',restore:'Restore',deletePerm:'Delete permanently',deletedPerm:'✅ Permanently deleted',restored:'✅ Restored',
+    tabTrash:'Trash',trashTitle:'Trash',trashDesc:'Deleted QR codes and scans. You can restore or permanently delete them.',deletedQrs:'Deleted QR codes',deletedScans:'Deleted scans',emptyTrashQrs:'No QR codes in trash.',emptyTrash:'Trash is empty.',restore:'Restore',deletePerm:'Delete permanently',deletedPerm:'✅ Permanently deleted',restored:'✅ Restored',
     filterAll:'All',filterToday:'Today',filterWeek:'This week',filterMonth:'This month',
     thDate:'Date',thName:'Name',thContact:'Email / Phone',thMessage:'Message',thLocation:'Location',thDevice:'Device',thStatus:'Status',thNote:'Note',thAction:'Action',
     noScans:'No scans yet. Share your QR codes to get started.',
@@ -798,8 +802,23 @@ function toggleQrStatus(qrId,newStatus){
 
 function deleteQrCode(qrId){
   if(!_clientDocId)return
-  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    toast('🗑 QR eliminado');loadQrCodes()
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).update({deleted:true,deletedBy:'client',deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('🗑 QR eliminado');loadQrCodes();loadTrash()
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function restoreQrCode(qrId){
+  if(!_clientDocId)return
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).update({deleted:false,deletedBy:firebase.firestore.FieldValue.delete(),deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    toast('↩ '+__('restored'));loadTrash();loadQrCodes()
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function permDeleteQrCode(qrId){
+  if(!_clientDocId)return
+  if(!confirm(_LANG==='es'?'¿Eliminar permanentemente este QR? No se puede deshacer.':'Permanently delete this QR? Cannot be undone.'))return
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').doc(qrId).delete().then(function(){
+    toast('🗑 '+__('deletedPerm'));loadTrash()
   }).catch(function(err){toast('Error: '+err.message)});
 }
 
@@ -953,7 +972,19 @@ function deleteScanFromLead(scanId){
 }
 
 function loadTrash(){
-  if(!_clientDocId){document.getElementById('trashBody').innerHTML='';return}
+  if(!_clientDocId){document.getElementById('trashBody').innerHTML='';document.getElementById('trashQrList').innerHTML='';return}
+  QR_DB.collection('clients').doc(_clientDocId).collection('qrCodes').where('deleted','==',true).orderBy('deletedAt','desc').limit(30).get().then(function(qrSnap){
+    var html='';var c=0;
+    qrSnap.forEach(function(qrDoc){
+      c++;var qd=qrDoc.data();
+      var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+      html+='<div class="client-card" style="opacity:.75"><div style="display:flex;justify-content:space-between;align-items:center"><div style="flex:1"><b>📱 '+esc(qd.label||qrDoc.id)+'</b> <small style="color:#94a3b8">'+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</small><div style="font-size:11px;color:#94a3b8">🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreQrCode(\''+qrDoc.id+'\')" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+qrDoc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px">🗑 '+__('deletePerm')+'</button></div></div></div>';
+    });
+    document.getElementById('trashQrList').innerHTML=html;
+    document.getElementById('trashQrEmpty').style.display=c?'none':'block';
+  }).catch(function(){
+    document.getElementById('trashQrList').innerHTML='<p style="color:#888;text-align:center;padding:12px">'+__('errorConnection')+'</p>';
+  });
   QR_DB.collection('clients').doc(_clientDocId).collection('scans').where('deleted','==',true).orderBy('timestamp','desc').limit(50).get().then(function(snap){
     var html='';var c=0;
     snap.forEach(function(doc){

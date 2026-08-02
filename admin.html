@@ -1168,7 +1168,7 @@ function toggleProfileQrStatus(qrId,newStatus){
 
 function deleteProfileQr(qrId){
   if(!_profileId)return
-  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+  QR_DB.collection('clients').doc(_profileId).collection('qrCodes').doc(qrId).update({deleted:true,deletedBy:'admin',deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
     toast(__('qrSentTrash'));adminLoadQrCodes()
   }).catch(function(err){toast('Error: '+err.message)});
 }
@@ -1233,11 +1233,32 @@ function loadClients(){
       var tb=b.data().createdAt&&b.data().createdAt.seconds||0;
       return tb-ta;
     });
+    var orderById={};
+    var byCreated=docs.slice().filter(function(doc){var d=doc.data();return !(d.deleted||d.isAdminProfile)});
+    byCreated.sort(function(a,b){
+      var ta=a.data().createdAt&&a.data().createdAt.seconds||0;
+      var tb=b.data().createdAt&&b.data().createdAt.seconds||0;
+      return ta-tb;
+    });
+    byCreated.forEach(function(doc,i){orderById[doc.id]=i+1});
     docs.forEach(function(doc){var d=doc.data();if(d.deleted||d.isAdminProfile)return;d._id=doc.id;_clients.push(d);
       var _active=d.licenciaActiva===true;
-      html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+' <span class="badge '+(_active?'badge-active':'badge-inactive')+'">'+(_active?'✅ Activo':'❌ Inactivo')+'</span></h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | ⏳ '+(d.licenciaVence||'Sin vencimiento')+'</div><div style="font-size:11px;color:#64748b">🆔 '+doc.id+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="event.stopPropagation();toggleClientActive(\''+doc.id+'\','+(!_active)+')" class="btn btn-sm '+(_active?'btn-warning':'btn-success')+'">'+(_active?'🔴 Desactivar':'🟢 Activar')+'</button><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" title="Enviar a papelera">🗑</button></div></div></div>'});
+      html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+' <span class="badge '+(_active?'badge-active':'badge-inactive')+'">'+(_active?'✅ Activo':'❌ Inactivo')+'</span></h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | ⏳ '+(d.licenciaVence||'Sin vencimiento')+' | <span class="badge" style="background:#2563eb;color:#fff" id="qrcount_'+doc.id+'" title="Cantidad de QRs del cliente">📱 …</span></div><div style="font-size:11px;color:#64748b">#'+(orderById[doc.id]||'?')+' · 🆔 '+doc.id+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="event.stopPropagation();toggleClientActive(\''+doc.id+'\','+(!_active)+')" class="btn btn-sm '+(_active?'btn-warning':'btn-success')+'">'+(_active?'🔴 Desactivar':'🟢 Activar')+'</button><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" title="Enviar a papelera">🗑</button></div></div></div>'});
     if(!html) html='<p style="color:#888;text-align:center;padding:40px" data-lang="noClients">No hay clientes aún.</p>';
-    document.getElementById('clientList').innerHTML=html;populateManualSelect()
+    document.getElementById('clientList').innerHTML=html;populateManualSelect();
+    refreshClientQrCounts(docs);
+  });
+}
+function refreshClientQrCounts(items){
+  items=items||_clients;
+  items.forEach(function(it){
+    var id=(it&&it.id)?it.id:(it&&it._id);if(!id)return;
+    QR_DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){
+      var total=0;snap.forEach(function(q){if(!q.data().deleted)total++});
+      var el=document.getElementById('qrcount_'+id);if(el)el.textContent='📱 '+total;
+    }).catch(function(){
+      var el=document.getElementById('qrcount_'+id);if(el)el.textContent='📱 ?';
+    });
   });
 }
 
@@ -1247,7 +1268,10 @@ function clientTrashItem(id,d){
 function qrTrashItem(cid,cname,qid,qd){
   var baseUrl=getBaseUrl();var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
   var qrData=baseUrl+'?c='+cid+'&q='+qid+'&s='+(qd.type||'whatsapp');
-  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
+  var who = qd.deletedBy==='client'
+    ? '<span class="badge" style="background:#8b5cf6;color:#fff" title="Eliminado por el cliente">👤 Cliente</span>'
+    : '<span class="badge" style="background:#e74c3c;color:#fff" title="Eliminado por el admin">🛠 Admin</span>';
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+' '+who+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permDeleteQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
 }
 function loadDeletedClients(){
   var deletedClientsHtml='',deletedQrsHtml='',deletedScansHtml='',errList=[];
@@ -1501,6 +1525,7 @@ function loadQrCodes(clientId){
     if(!shown) html='<p style="color:#888;text-align:center;padding:20px">'+__('noQrCodes')+'</p>';
     document.getElementById('modalQrList').innerHTML=html;
     items.forEach(function(it){renderQrCanvas(it.canvasId,it.qrData,logoUrl,280)});
+    refreshClientQrCounts();
   });
 }
 
@@ -1511,13 +1536,13 @@ function toggleQrStatus(clientId,qrId,newStatus){
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function deleteQrCode(clientId,qrId){
-  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-    toast(__('qrSentTrash'));loadQrCodes(clientId);
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:true,deletedBy:'admin',deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast(__('qrSentTrash'));loadQrCodes(clientId);loadDeletedClients();refreshClientQrCounts();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function restoreQrCode(clientId,qrId){
-  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
-    toast(__('qrRestored'));loadQrCodes(clientId);loadDeletedClients();
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedBy:firebase.firestore.FieldValue.delete(),deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    toast(__('qrRestored'));loadQrCodes(clientId);loadDeletedClients();refreshClientQrCounts();
   }).catch(function(err){toast('Error: '+err.message)});
 }
 function permDeleteQrCode(clientId,qrId){
